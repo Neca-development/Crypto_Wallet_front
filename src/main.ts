@@ -1,3 +1,4 @@
+import "vuesax/dist/vuesax.css";
 import "@/style.scss";
 
 import Vue from "vue";
@@ -8,8 +9,6 @@ import store from "./store";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: types doesnt exist
 import Vuesax from "vuesax";
-
-import "vuesax/dist/vuesax.css";
 
 Vue.use(Vuesax, {});
 Vue.config.productionTip = false;
