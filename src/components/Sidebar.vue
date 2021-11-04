@@ -1,24 +1,27 @@
 <template>
   <vs-sidebar class="sidebar" fixed open v-model="activeWallet">
     <template #header><h2>Your Wallets</h2></template>
-    <vs-sidebar-item
-      v-for="wallet in wallets"
-      :id="wallet.address.base58"
-      :key="wallet.publicKey"
-    >
-      <router-link
-        class="link"
-        :to="{ name: 'Wallet', params: { address: wallet.address.base58 } }"
+    <template v-if="wallets.length">
+      <vs-sidebar-item
+        v-for="wallet in wallets"
+        :id="wallet.address.base58"
+        :key="wallet.publicKey"
       >
-        <div class="wallet">
-          <img src="@/assets/tron.png" alt="" />
-          <div class="wallet__txt">
-            <b class="wallet__title">Tron</b> <br />
-            {{ wallet.address.base58 }}
+        <router-link
+          class="link"
+          :to="{ name: 'Wallet', params: { address: wallet.address.base58 } }"
+        >
+          <div class="wallet">
+            <img src="@/assets/tron.png" alt="" />
+            <div class="wallet__txt">
+              <b class="wallet__title">Tron</b> <br />
+              {{ wallet.address.base58 }}
+            </div>
           </div>
-        </div>
-      </router-link>
-    </vs-sidebar-item>
+        </router-link>
+      </vs-sidebar-item>
+    </template>
+    <h3 class="wallets-placeholder" v-else>Create or add wallet to begin</h3>
     <template #footer>
       <vs-row justify="space-between">
         <vs-button @click="openNewWalletPopup" gradient class="new-wallet-btn">
@@ -100,7 +103,7 @@ export default {
   computed: {
     ...mapGetters(["Tron", "wallets"]),
   },
-  created() {
+  mounted() {
     const address = this.$route.params.address;
 
     if (address) {
@@ -167,6 +170,12 @@ export default {
   input {
     width: 100%;
   }
+}
+
+.wallets-placeholder {
+  padding: 2rem;
+  opacity: 0.5;
+  font-size: 2.5rem;
 }
 
 .wallet {

@@ -19,10 +19,12 @@ export default {
   methods: {
     ...mapActions(["setTronInstance", "updateAllWalletsBalance"]),
   },
-  created() {
+  mounted() {
+    console.log("created");
     const tron = new TronWeb({
       fullHost: "https://api.shasta.trongrid.io",
     });
+    console.log(tron);
 
     this.setTronInstance(tron);
     this.$store.commit("GET_WALLETS_FROM_LS");
