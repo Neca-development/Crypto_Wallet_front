@@ -1,7 +1,11 @@
 <template>
-  <vs-sidebar absolute open>
+  <vs-sidebar class="sidebar" fixed open v-model="activeWallet">
     <template #header><h2>Your Wallets</h2></template>
-    <vs-sidebar-item v-for="wallet in wallets" :key="wallet.publicKey">
+    <vs-sidebar-item
+      v-for="wallet in wallets"
+      :id="wallet.address.base58"
+      :key="wallet.publicKey"
+    >
       <router-link
         class="link"
         :to="{ name: 'Wallet', params: { address: wallet.address.base58 } }"
@@ -18,9 +22,9 @@
     <template #footer>
       <vs-row justify="space-between">
         <vs-button @click="openNewWalletPopup" gradient class="new-wallet-btn">
-          Add wallet
+          ⨭ Add wallet
         </vs-button>
-        <vs-dialog v-model="isNewWalletPopupOpen">
+        <vs-dialog class="new-wallet-modal" v-model="isNewWalletPopupOpen">
           <template #header>
             <vs-button-group>
               <vs-button
@@ -62,7 +66,6 @@
             <form @submit.prevent="importWallet">
               <vs-input
                 v-model="prvKeyInput"
-                label="Connect existed wallet"
                 placeholder="Enter your prv key"
                 class="import-input"
               />
@@ -91,10 +94,18 @@ export default {
       isNewWalletPopupOpen: false,
       newWalletActiveTab: "create",
       newWalletCurrency: "",
+      activeWallet: null,
     };
   },
   computed: {
     ...mapGetters(["Tron", "wallets"]),
+  },
+  created() {
+    const address = this.$route.params.address;
+
+    if (address) {
+      this.activeWallet = address;
+    }
   },
   methods: {
     ...mapActions(["addWallet"]),
@@ -139,7 +150,8 @@ export default {
 }
 
 .new-wallet-btn {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
+  padding: 0 1rem;
 }
 
 .create-new-btn {
@@ -160,14 +172,59 @@ export default {
 .wallet {
   display: flex;
   text-decoration: none;
+
+  img {
+    height: 36px;
+  }
+
   &__txt {
     margin-left: 1rem;
     font-weight: 400;
+    font-size: 1.1rem;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 
 .link {
   text-decoration: none;
   color: inherit;
+}
+
+.sidebar {
+  background: linear-gradient(
+    307deg,
+    rgba(25, 91, 255, 0) 17%,
+    rgb(9, 36, 105) 100%
+  );
+
+  .vs-sidebar__item {
+    padding: 0;
+
+    a {
+      display: block;
+      padding: 18px 16px 18px 25px;
+    }
+
+    &:after {
+      background: #fff;
+    }
+
+    &:hover {
+      padding-left: 0;
+    }
+
+    &.active {
+      color: #fff;
+      padding-left: 10px;
+    }
+  }
+}
+
+.new-wallet-modal {
+  * {
+    font-size: 1.2rem;
+  }
 }
 </style>

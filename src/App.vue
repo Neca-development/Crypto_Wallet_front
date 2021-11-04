@@ -17,7 +17,7 @@ export default {
     return {};
   },
   methods: {
-    ...mapActions(["setTronInstance"]),
+    ...mapActions(["setTronInstance", "updateAllWalletsBalance"]),
   },
   created() {
     const tron = new TronWeb({
@@ -25,6 +25,8 @@ export default {
     });
 
     this.setTronInstance(tron);
+    this.$store.commit("GET_WALLETS_FROM_LS");
+    this.updateAllWalletsBalance();
   },
   computed: {},
 };
