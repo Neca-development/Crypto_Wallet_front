@@ -137,7 +137,7 @@ export default {
 
       await this.Tron.setPrivateKey(this.prvKeyInput);
       wallet.address = this.Tron.defaultAddress;
-      wallet.balance = await this.Tron.trx.getBalance(wallet.address.base58);
+      wallet.balance = {};
 
       this.addWallet(wallet);
       this.prvKeyInput = "";

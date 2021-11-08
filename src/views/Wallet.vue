@@ -21,8 +21,8 @@
             </div>
           </article>
           <article class="balance">
-            <b>{{ USDBalance }} $</b> <br />
-            <small>{{ wallet.balance | convertToTRX }} TRX</small>
+            <b>{{ wallet.balance.usd }} $</b> <br />
+            <small>{{ wallet.balance.coin | convertToTRX }} TRX</small>
           </article>
         </div>
         <vs-button
@@ -75,7 +75,7 @@ export default {
         amount: "",
       },
       isTrxSuccess: false,
-      USDBalance: 0,
+      updateInterval: null,
     };
   },
   computed: {
@@ -93,14 +93,18 @@ export default {
   },
   watch: {
     $route() {
-      this.clearSendTrxForm();
-      this.updateWalletBalance(this.wallet.address.base58);
-
-      this.convertToUSD();
+      this.updateWalletInfo();
     },
   },
   mounted() {
-    this.convertToUSD();
+    this.updateWalletInfo();
+
+    this.updateInterval = setInterval(() => {
+      this.updateWalletInfo();
+    }, 5000);
+  },
+  beforeDestroy() {
+    clearInterval(this.updateInterval);
   },
   methods: {
     ...mapActions(["updateWalletBalance"]),
@@ -133,21 +137,9 @@ export default {
         amount: "",
       };
     },
-    async convertToUSD() {
-      if (this.wallet.balance == 0) {
-        return (this.USDBalance = 0);
-      }
-
-      const resp = await fetch(
-        "https://api.coingecko.com/api/v3/simple/price?ids=tron&vs_currencies=usd"
-      );
-
-      const data = await resp.json();
-
-      this.USDBalance = (
-        (this.wallet.balance / 1000000) *
-        data.tron.usd
-      ).toFixed(2);
+    updateWalletInfo() {
+      this.clearSendTrxForm();
+      this.updateWalletBalance(this.wallet.address.base58);
     },
     async sendTrx(e) {
       this.Tron.setPrivateKey(this.wallet.privateKey);
@@ -156,7 +148,7 @@ export default {
       try {
         await this.Tron.trx.sendTransaction(
           address,
-          this.sendTrxForm.amount * 1000,
+          this.sendTrxForm.amount * 1000000,
           this.wallet.privateKey
         );
         this.isTrxSuccess = true;
