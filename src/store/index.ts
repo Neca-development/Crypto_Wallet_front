@@ -56,8 +56,7 @@ export default new Vuex.Store({
 
         if (balance.coin) {
           balance.usd = (
-            (balance.coin / 1000000) *
-            state.coinsToUSD.tron.usd
+            state.Tron.fromSun(balance.coin) * state.coinsToUSD.tron.usd
           ).toFixed(2);
         } else {
           balance.usd = "0";
@@ -87,8 +86,7 @@ export default new Vuex.Store({
 
       if (balance.coin) {
         balance.usd = (
-          (balance.coin / 1000000) *
-          state.coinsToUSD.tron.usd
+          state.Tron.fromSun(balance.coin) * state.coinsToUSD.tron.usd
         ).toFixed(2);
       } else {
         balance.usd = "0";

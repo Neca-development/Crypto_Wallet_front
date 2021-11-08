@@ -22,7 +22,7 @@
           </article>
           <article class="balance">
             <b>{{ wallet.balance.usd }} $</b> <br />
-            <small>{{ wallet.balance.coin | convertToTRX }} TRX</small>
+            <small>{{ Tron.fromSun(wallet.balance.coin) }} TRX</small>
           </article>
         </div>
         <vs-button
@@ -61,6 +61,79 @@
         </div>
       </form>
     </section>
+    <section v-if="wallet" class="wallet-page__transactions">
+      <h2 class="subtitle">Transactions History</h2>
+
+      <vs-table>
+        <template #thead>
+          <vs-tr>
+            <vs-th> Id </vs-th>
+            <vs-th> In / Out </vs-th>
+            <vs-th> Amount </vs-th>
+            <vs-th> From </vs-th>
+            <vs-th> To </vs-th>
+            <vs-th> Result </vs-th>
+          </vs-tr>
+        </template>
+        <template #tbody>
+          <vs-tr
+            :key="i"
+            v-for="(tr, i) in $vs.getPage(
+              transactions,
+              transactionsPage,
+              transactionsPerPage
+            )"
+            :data="tr"
+          >
+            <vs-td>
+              {{ tr.txID }}
+            </vs-td>
+            <vs-td>
+              {{
+                tr.raw_data.contract[0].parameter.value.owner_address
+                  | detectTransactionOwner(wallet.address.hex)
+              }}
+            </vs-td>
+            <vs-td>
+              {{ Tron.fromSun(tr.raw_data.contract[0].parameter.value.amount) }}
+            </vs-td>
+            <vs-td>
+              <vs-tooltip color="#7d33ff" border-thick>
+                {{
+                  tr.raw_data.contract[0].parameter.value.owner_address
+                    | cropLongString
+                }}
+                <template #tooltip>
+                  {{ tr.raw_data.contract[0].parameter.value.owner_address }}
+                </template>
+              </vs-tooltip>
+            </vs-td>
+            <vs-td>
+              {{
+                tr.raw_data.contract[0].parameter.value.to_address
+                  | cropLongString
+              }}
+            </vs-td>
+            <vs-td>
+              <span v-if="tr.ret[0].contractRet" class="success-status">
+                <img
+                  src="https://shasta.tronscan.org/static/media/Verified.cd1e3b6e.svg"
+                  alt=""
+                />
+                SUCCESS
+              </span>
+              <span v-else> {{ tr.ret[0].contractRet }}</span>
+            </vs-td>
+          </vs-tr>
+        </template>
+        <template #footer>
+          <vs-pagination
+            v-model="transactionsPage"
+            :length="$vs.getLength(transactions, transactionsPerPage)"
+          />
+        </template>
+      </vs-table>
+    </section>
   </div>
 </template>
 
@@ -76,28 +149,47 @@ export default {
       },
       isTrxSuccess: false,
       updateInterval: null,
+      transactions: [],
+      transactionsPage: 1,
+      transactionsPerPage: 8,
     };
   },
   computed: {
     ...mapGetters(["Tron"]),
     wallet() {
       const address = this.$route.params.address;
-      console.log(address);
       return this.$store.getters.getWalletByAddress(address);
     },
   },
   filters: {
-    convertToTRX(val) {
-      return (val / 1000000).toFixed(3);
+    convertToTRX(val, Tron) {
+      return Tron.fromSun(val);
+    },
+    cropLongString(val) {
+      if (val.length < 16) {
+        return val;
+      }
+
+      return val.substr(0, 8) + "..." + val.substr(-8, 8);
+    },
+    detectTransactionOwner(val, address) {
+      console.log(val);
+      console.log(address);
+      if (val === address) {
+        return "Out";
+      }
+      return "In";
     },
   },
   watch: {
     $route() {
       this.updateWalletInfo();
+      this.clearSendTrxForm();
     },
   },
   mounted() {
     this.updateWalletInfo();
+    this.clearSendTrxForm();
 
     this.updateInterval = setInterval(() => {
       this.updateWalletInfo();
@@ -138,8 +230,16 @@ export default {
       };
     },
     updateWalletInfo() {
-      this.clearSendTrxForm();
       this.updateWalletBalance(this.wallet.address.base58);
+      this.getTransactions();
+    },
+    async getTransactions() {
+      const resp = await fetch(
+        `https://api.shasta.trongrid.io/v1/accounts/${this.wallet.address.base58}/transactions?limit=200`
+      );
+
+      const { data } = await resp.json();
+      this.transactions = data;
     },
     async sendTrx(e) {
       this.Tron.setPrivateKey(this.wallet.privateKey);
@@ -148,7 +248,7 @@ export default {
       try {
         await this.Tron.trx.sendTransaction(
           address,
-          this.sendTrxForm.amount * 1000000,
+          this.Tron.toSun(this.sendTrxForm.amount),
           this.wallet.privateKey
         );
         this.isTrxSuccess = true;
@@ -179,11 +279,20 @@ export default {
 
 <style lang="scss">
 .wallet-page {
-  &__info {
+  &__info,
+  &__transactions {
     background: #08080c;
     border-radius: 30px;
     color: #fff;
     padding: 2rem;
+  }
+
+  &__transactions {
+    margin-top: 2rem;
+
+    .vs-table-content {
+      color: #fff;
+    }
   }
 
   &__send-trx {
@@ -295,6 +404,16 @@ export default {
 
   button {
     display: inline-block;
+  }
+}
+
+.success-status {
+  display: inline-flex;
+  align-items: center;
+
+  img {
+    margin-right: 0.3rem;
+    height: 1rem;
   }
 }
 </style>
