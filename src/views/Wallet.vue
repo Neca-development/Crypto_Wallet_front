@@ -21,7 +21,8 @@
             </div>
           </article>
           <article class="balance">
-            <b>{{ wallet.balance | convertToTRX }}</b>
+            <b>{{ USDBalance }} $</b> <br />
+            <small>{{ wallet.balance | convertToTRX }} TRX</small>
           </article>
         </div>
         <vs-button
@@ -74,6 +75,7 @@ export default {
         amount: "",
       },
       isTrxSuccess: false,
+      USDBalance: 0,
     };
   },
   computed: {
@@ -86,14 +88,19 @@ export default {
   },
   filters: {
     convertToTRX(val) {
-      return (val / 1000).toFixed(3);
+      return (val / 1000000).toFixed(3);
     },
   },
   watch: {
     $route() {
       this.clearSendTrxForm();
       this.updateWalletBalance(this.wallet.address.base58);
+
+      this.convertToUSD();
     },
+  },
+  mounted() {
+    this.convertToUSD();
   },
   methods: {
     ...mapActions(["updateWalletBalance"]),
@@ -125,6 +132,22 @@ export default {
         receiver: "",
         amount: "",
       };
+    },
+    async convertToUSD() {
+      if (this.wallet.balance == 0) {
+        return (this.USDBalance = 0);
+      }
+
+      const resp = await fetch(
+        "https://api.coingecko.com/api/v3/simple/price?ids=tron&vs_currencies=usd"
+      );
+
+      const data = await resp.json();
+
+      this.USDBalance = (
+        (this.wallet.balance / 1000000) *
+        data.tron.usd
+      ).toFixed(2);
     },
     async sendTrx(e) {
       this.Tron.setPrivateKey(this.wallet.privateKey);

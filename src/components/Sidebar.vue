@@ -207,6 +207,7 @@ export default {
     rgba(25, 91, 255, 0) 17%,
     rgb(9, 36, 105) 100%
   );
+  max-width: 18rem;
 
   .vs-sidebar__item {
     padding: 0;
