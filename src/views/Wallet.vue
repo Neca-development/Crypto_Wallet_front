@@ -72,6 +72,7 @@
             <vs-th> Amount </vs-th>
             <vs-th> From </vs-th>
             <vs-th> To </vs-th>
+            <vs-th> Satus </vs-th>
             <vs-th> Result </vs-th>
           </vs-tr>
         </template>
@@ -110,19 +111,33 @@
             </vs-td>
             <vs-td>
               {{
-                tr.raw_data.contract[0].parameter.value.to_address
+                tr.raw_data.contract[0].parameter.value.to_address ||
+                tr.raw_data.contract[0].parameter.value.contract_address
                   | cropLongString
               }}
             </vs-td>
             <vs-td>
-              <span v-if="tr.ret[0].contractRet" class="success-status">
+              <span
+                class="status"
+                :class="{ unconfirmed: tr.status === 'UNCONFIRMED' }"
+              >
+                {{ tr.status }}
+              </span>
+            </vs-td>
+            <vs-td>
+              <span
+                v-if="tr.ret[0].contractRet === 'SUCCESS'"
+                class="success-status"
+              >
                 <img
                   src="https://shasta.tronscan.org/static/media/Verified.cd1e3b6e.svg"
                   alt=""
                 />
                 SUCCESS
               </span>
-              <span v-else> {{ tr.ret[0].contractRet }}</span>
+              <span style="color: #f44" v-else>
+                {{ tr.ret[0].contractRet }}</span
+              >
             </vs-td>
           </vs-tr>
         </template>
@@ -134,10 +149,13 @@
         </template>
       </vs-table>
     </section>
+    <vs-button @click="getTrcTokens">TRC-20</vs-button>
   </div>
 </template>
 
 <script>
+import TronWeb from "tronweb";
+
 import { mapActions, mapGetters } from "vuex";
 export default {
   data() {
@@ -166,15 +184,13 @@ export default {
       return Tron.fromSun(val);
     },
     cropLongString(val) {
-      if (val.length < 16) {
+      if (!val || val.length < 16) {
         return val;
       }
 
       return val.substr(0, 8) + "..." + val.substr(-8, 8);
     },
     detectTransactionOwner(val, address) {
-      console.log(val);
-      console.log(address);
       if (val === address) {
         return "Out";
       }
@@ -185,6 +201,7 @@ export default {
     $route() {
       this.updateWalletInfo();
       this.clearSendTrxForm();
+      this.transactionsPage = 1;
     },
   },
   mounted() {
@@ -233,13 +250,65 @@ export default {
       this.updateWalletBalance(this.wallet.address.base58);
       this.getTransactions();
     },
-    async getTransactions() {
-      const resp = await fetch(
-        `https://api.shasta.trongrid.io/v1/accounts/${this.wallet.address.base58}/transactions?limit=200`
+    async getTrcTokens() {
+      const HttpProvider = TronWeb.providers.HttpProvider;
+      const fullNode = new HttpProvider("https://api.shasta.trongrid.io");
+      const solidityNode = new HttpProvider("https://api.shasta.trongrid.io");
+      const eventServer = new HttpProvider("https://api.shasta.trongrid.io");
+      const privateKey = this.wallet.privateKey;
+      const address = "TD53WjP3WKdBS9CvUpZZ97MciWRPmPt82X";
+      const tronWeb = new TronWeb(
+        fullNode,
+        solidityNode,
+        eventServer,
+        privateKey
       );
 
-      const { data } = await resp.json();
-      this.transactions = data;
+      (async function triggerSmartContract() {
+        const trc20ContractAddress = "TQQg4EL8o1BSeKJY4MJ8TB8XK7xufxFBvK"; //contract address
+
+        try {
+          let contract = await tronWeb.contract().at(trc20ContractAddress);
+          //Use call to execute a pure or view smart contract method.
+          // These methods do not modify the blockchain, do not cost anything to execute and are also not broadcasted to the network.
+          let result = await contract.balanceOf(address).call();
+          console.log("result: ", result);
+        } catch (error) {
+          console.error("trigger smart contract error", error);
+        }
+      })();
+    },
+    async getTransactions() {
+      const transactions = [];
+      let confirmedTransactions;
+      let unconfirmedTransactions;
+
+      await fetch(
+        `https://api.shasta.trongrid.io/v1/accounts/${this.wallet.address.base58}/transactions?limit=200&only_confirmed=true`
+      ).then((data) =>
+        data.json().then(({ data }) => {
+          confirmedTransactions = data.map((x) => {
+            x.status = "CONFIRMED";
+            return x;
+          });
+        })
+      );
+
+      await fetch(
+        `https://api.shasta.trongrid.io/v1/accounts/${this.wallet.address.base58}/transactions?limit=200&only_unconfirmed=true`
+      ).then((data) =>
+        data.json().then(
+          ({ data }) =>
+            (unconfirmedTransactions = data.map((x) => {
+              x.status = "UNCONFIRMED";
+              return x;
+            }))
+        )
+      );
+
+      transactions.push(...unconfirmedTransactions, ...confirmedTransactions);
+
+      this.transactions = transactions;
     },
     async sendTrx(e) {
       this.Tron.setPrivateKey(this.wallet.privateKey);
@@ -414,6 +483,14 @@ export default {
   img {
     margin-right: 0.3rem;
     height: 1rem;
+  }
+}
+
+.status {
+  color: green;
+
+  &.unconfirmed {
+    color: grey;
   }
 }
 </style>
