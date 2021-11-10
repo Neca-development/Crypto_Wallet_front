@@ -705,5 +705,6 @@ export default {
 
 .vs-select__input {
   text-transform: capitalize;
+  font-size: 1rem;
 }
 </style>
