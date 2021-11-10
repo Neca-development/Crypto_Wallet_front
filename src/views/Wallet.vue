@@ -61,31 +61,79 @@
         </vs-button>
       </vs-row>
     </section>
-
-    <section class="wallet-page__send-trx">
-      <form @submit.prevent="sendTrx">
-        <h2 class="subtitle">Send TRX</h2>
-        <vs-input
-          class="input"
-          label="To"
-          name="receiver"
-          placeholder="Receiver Address"
-          v-model="sendTrxForm.receiver"
-        ></vs-input>
-        <br />
-        <vs-input
-          name="amount"
-          class="input"
-          label="Amount"
-          placeholder="0.01"
-          v-model="sendTrxForm.amount"
-        ></vs-input>
-        <div class="send-trx">
-          <b v-if="isTrxSuccess">✓</b>
-          <vs-button v-else gradient success> Send </vs-button>
-        </div>
-      </form>
-    </section>
+    <vs-row justify="space-between">
+      <section class="wallet-page__send-trx">
+        <form @submit.prevent="sendTrx">
+          <h2 class="subtitle">Send TRX</h2>
+          <vs-input
+            class="input"
+            label="To"
+            name="receiver"
+            placeholder="Receiver Address"
+            v-model="sendTrxForm.receiver"
+          ></vs-input>
+          <br />
+          <vs-input
+            name="amount"
+            class="input"
+            label="Amount"
+            placeholder="0.01"
+            v-model="sendTrxForm.amount"
+          ></vs-input>
+          <div class="send-trx">
+            <b v-if="isTrxSuccess">✓</b>
+            <vs-button v-else gradient success> Send </vs-button>
+          </div>
+        </form>
+      </section>
+      <section v-if="tokens" class="wallet-page__send-trx">
+        <form @submit.prevent="sendToken">
+          <vs-row>
+            <h2 class="subtitle">Send Token</h2>
+            <vs-select
+              class="token-selector"
+              placeholder="Select Token"
+              v-model="sendTokenForm.tokenAbbr"
+            >
+              <template #message-danger> Required </template>
+              <vs-option
+                v-for="(token, idx) of tokens"
+                :key="idx"
+                :label="token.tokenName"
+                :value="token.tokenAbbr"
+                class="token-selector__option"
+              >
+                <img
+                  class="token-selector__logo"
+                  :src="token.tokenLogo"
+                  alt=""
+                />
+                {{ token.tokenName }}
+              </vs-option>
+            </vs-select>
+          </vs-row>
+          <vs-input
+            class="input"
+            label="To"
+            name="receiver"
+            placeholder="Receiver Address"
+            v-model="sendTokenForm.receiver"
+          ></vs-input>
+          <br />
+          <vs-input
+            name="amount"
+            class="input"
+            label="Amount"
+            placeholder="0.01"
+            v-model="sendTokenForm.amount"
+          ></vs-input>
+          <div class="send-trx">
+            <b v-if="isTrxSuccess">✓</b>
+            <vs-button v-else gradient success> Send </vs-button>
+          </div>
+        </form>
+      </section>
+    </vs-row>
     <section v-if="wallet" class="wallet-page__transactions">
       <h2 class="subtitle">Transactions History <small>(last 200)</small></h2>
 
@@ -184,15 +232,22 @@
 </template>
 
 <script>
+import TronWeb from "tronweb";
+
 import { mapGetters } from "vuex";
 export default {
   data() {
     return {
-      isPrvKeySuccessCopied: false,
       sendTrxForm: {
         receiver: "",
         amount: "",
       },
+      sendTokenForm: {
+        tokenAbbr: "",
+        receiver: "",
+        amount: "",
+      },
+      isPrvKeySuccessCopied: false,
       isTrxSuccess: false,
       updateInterval: null,
       transactions: [],
@@ -222,9 +277,12 @@ export default {
       }, 0);
 
       totalBalance.trx = totalBalance.trx.toFixed(6);
-      totalBalance.usd = (
-        totalBalance.trx * this.coinsCostInUSDT.tron.usd
-      ).toFixed(2);
+
+      if (this.coinsCostInUSDT.tron) {
+        totalBalance.usd = (
+          totalBalance.trx * this.coinsCostInUSDT.tron.usd
+        ).toFixed(2);
+      }
 
       return totalBalance;
     },
@@ -267,7 +325,7 @@ export default {
 
     this.updateInterval = setInterval(() => {
       this.updateWalletInfo();
-    }, 5000);
+    }, 30000);
   },
   beforeDestroy() {
     clearInterval(this.updateInterval);
@@ -347,7 +405,7 @@ export default {
 
       this.transactions = transactions;
     },
-    async sendTrx(e) {
+    async sendTrx() {
       this.Tron.setPrivateKey(this.wallet.privateKey);
 
       const address = this.Tron.address.toHex(this.sendTrxForm.receiver);
@@ -379,6 +437,61 @@ export default {
         });
       }
     },
+    async sendToken() {
+      const HttpProvider = TronWeb.providers.HttpProvider;
+      const fullNode = new HttpProvider("https://api.trongrid.io");
+      const solidityNode = new HttpProvider("https://api.trongrid.io");
+      const eventServer = new HttpProvider("https://api.trongrid.io");
+      const privateKey = this.wallet.privateKey;
+
+      const tronWeb = new TronWeb(
+        fullNode,
+        solidityNode,
+        eventServer,
+        privateKey
+      );
+
+      const token = this.tokens.find(
+        (x) => x.tokenAbbr === this.sendTokenForm.tokenAbbr
+      );
+
+      const address = this.sendTokenForm.receiver;
+      console.log(
+        "%cMyProject%cline:457%caddress",
+        "color:#fff;background:#ee6f57;padding:3px;border-radius:2px",
+        "color:#fff;background:#1f3c88;padding:3px;border-radius:2px",
+        "color:#fff;background:rgb(17, 63, 61);padding:3px;border-radius:2px",
+        address
+      );
+      const trc20ContractAddress = token.tokenId;
+      console.log(
+        "%cMyProject%cline:458%ctrc20ContractAddress",
+        "color:#fff;background:#ee6f57;padding:3px;border-radius:2px",
+        "color:#fff;background:#1f3c88;padding:3px;border-radius:2px",
+        "color:#fff;background:rgb(161, 23, 21);padding:3px;border-radius:2px",
+        trc20ContractAddress
+      );
+
+      try {
+        let contract = await tronWeb.contract().at(trc20ContractAddress);
+        //Use send to execute a non-pure or modify smart contract method on a given smart contract that modify or change values on the blockchain.
+        // These methods consume resources(bandwidth and energy) to perform as the changes need to be broadcasted out to the network.
+        let result = await contract
+          .transfer(
+            address, //address _to
+            this.sendTokenForm.amount //amount
+          )
+          .send({
+            feeLimit: 1000000,
+          })
+          .then((output) => {
+            console.log("- Output:", output, "\n");
+          });
+        console.log("result: ", result);
+      } catch (error) {
+        console.error("trigger smart contract error", error);
+      }
+    },
   },
 };
 </script>
@@ -407,8 +520,7 @@ export default {
     color: #fff;
     padding: 1.5rem 2rem;
     margin-top: 2rem;
-    display: inline-block;
-    min-width: 24.75rem;
+    width: calc(48% - 4rem);
   }
 }
 
@@ -575,5 +687,23 @@ export default {
 
 .max-content {
   width: max-content;
+}
+
+.token-selector {
+  margin-left: 2rem;
+  &__logo {
+    height: 30px;
+    margin-right: 0.625rem;
+  }
+}
+
+.vs-select__option {
+  align-items: center;
+  font-size: 0.7rem;
+  text-transform: capitalize;
+}
+
+.vs-select__input {
+  text-transform: capitalize;
 }
 </style>
