@@ -14,21 +14,30 @@ export default {
     "app-sidebar": SidebarVue,
   },
   data() {
-    return {};
+    return {
+      coinsToUSDIntervalID: null,
+    };
   },
   methods: {
-    ...mapActions(["setTronInstance", "updateAllWalletsBalance"]),
+    ...mapActions(["setTronInstance", "setCoinsToUSD"]),
   },
   created() {
-    console.log("created");
     const tron = new TronWeb({
-      fullHost: "https://api.shasta.trongrid.io",
+      fullHost: "https://api.trongrid.io",
+      solidityNode: "https://api.trongrid.io",
+      eventServer: "https://api.trongrid.io",
     });
-    console.log(tron);
+
+    this.setCoinsToUSD();
+    this.coinsToUSDIntervalID = setInterval(() => {
+      this.setCoinsToUSD();
+    }, 600000);
 
     this.setTronInstance(tron);
     this.$store.commit("GET_WALLETS_FROM_LS");
-    this.updateAllWalletsBalance();
+  },
+  beforeDestroy() {
+    clearInterval(this.coinsToUSDIntervalID);
   },
   computed: {},
 };

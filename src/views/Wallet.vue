@@ -13,16 +13,41 @@
       </h2>
       <vs-row justify="space-between">
         <div class="chain-info">
-          <article class="currency">
-            <img src="@/assets/tron.png" alt="" />
-            <div>
-              <span>TRX</span> <br />
-              <b>Tron</b>
+          <h3 v-if="totalBalance">
+            Total Balance:
+            <small>
+              <b>{{ totalBalance.trx }} TRX</b>
+              (≈ {{ totalBalance.usd }} $)
+            </small>
+          </h3>
+          <article v-for="(token, idx) of tokens" :key="idx" class="token">
+            <div class="token__name">
+              <img :src="token.tokenLogo" alt="" />
+              <div>
+                <abbr>{{ token.tokenAbbr }}</abbr> <br />
+                <b>Tron</b>
+              </div>
             </div>
-          </article>
-          <article class="balance">
-            <b>{{ wallet.balance.usd }} $</b> <br />
-            <small>{{ Tron.fromSun(wallet.balance.coin) }} TRX</small>
+            <table class="token__info">
+              <thead>
+                <tr>
+                  <th>Amount</th>
+                  <th v-if="token.tokenAbbr !== 'trx'">Price in TRX</th>
+                  <th>Price in USD</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>{{ token.balance | convertToTRX(Tron) }}</td>
+                  <td v-if="token.tokenAbbr !== 'trx'">
+                    {{ token.tokenPriceInTrx.toFixed(6) }}
+                  </td>
+                  <td>
+                    {{ (coinsCostInUSDT.tron.usd * token.amount).toFixed(2) }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </article>
         </div>
         <vs-button
@@ -62,13 +87,14 @@
       </form>
     </section>
     <section v-if="wallet" class="wallet-page__transactions">
-      <h2 class="subtitle">Transactions History</h2>
+      <h2 class="subtitle">Transactions History <small>(last 200)</small></h2>
 
       <vs-table>
         <template #thead>
           <vs-tr>
             <vs-th> Id </vs-th>
             <vs-th> In / Out </vs-th>
+            <vs-th> Date </vs-th>
             <vs-th> Amount </vs-th>
             <vs-th> From </vs-th>
             <vs-th> To </vs-th>
@@ -87,13 +113,18 @@
             :data="tr"
           >
             <vs-td>
-              {{ tr.txID }}
+              {{ tr.txID | cropLongString }}
             </vs-td>
             <vs-td>
               {{
                 tr.raw_data.contract[0].parameter.value.owner_address
                   | detectTransactionOwner(wallet.address.hex)
               }}
+            </vs-td>
+            <vs-td>
+              <div class="max-content">
+                {{ tr.raw_data.timestamp | convertToLocaleDateAndTime }}
+              </div>
             </vs-td>
             <vs-td>
               {{ Tron.fromSun(tr.raw_data.contract[0].parameter.value.amount) }}
@@ -149,14 +180,11 @@
         </template>
       </vs-table>
     </section>
-    <vs-button @click="getTrcTokens">TRC-20</vs-button>
   </div>
 </template>
 
 <script>
-import TronWeb from "tronweb";
-
-import { mapActions, mapGetters } from "vuex";
+import { mapGetters } from "vuex";
 export default {
   data() {
     return {
@@ -170,13 +198,35 @@ export default {
       transactions: [],
       transactionsPage: 1,
       transactionsPerPage: 8,
+      tokens: null,
     };
   },
   computed: {
-    ...mapGetters(["Tron"]),
+    ...mapGetters(["Tron", "coinsCostInUSDT"]),
     wallet() {
       const address = this.$route.params.address;
       return this.$store.getters.getWalletByAddress(address);
+    },
+    totalBalance() {
+      if (!this.tokens) {
+        return null;
+      }
+
+      const totalBalance = {
+        trx: 0,
+        usd: 0,
+      };
+
+      totalBalance.trx = this.tokens.reduce((accum, token) => {
+        return accum + +token.amount;
+      }, 0);
+
+      totalBalance.trx = totalBalance.trx.toFixed(6);
+      totalBalance.usd = (
+        totalBalance.trx * this.coinsCostInUSDT.tron.usd
+      ).toFixed(2);
+
+      return totalBalance;
     },
   },
   filters: {
@@ -195,6 +245,13 @@ export default {
         return "Out";
       }
       return "In";
+    },
+    convertToLocaleDateAndTime(timestamp) {
+      return (
+        new Date(timestamp).toLocaleDateString() +
+        " " +
+        new Date(timestamp).toLocaleTimeString()
+      );
     },
   },
   watch: {
@@ -216,7 +273,6 @@ export default {
     clearInterval(this.updateInterval);
   },
   methods: {
-    ...mapActions(["updateWalletBalance"]),
     copyAddress() {
       navigator.clipboard.writeText(this.wallet.address.base58).then(
         function () {
@@ -247,36 +303,17 @@ export default {
       };
     },
     updateWalletInfo() {
-      this.updateWalletBalance(this.wallet.address.base58);
       this.getTransactions();
+      this.getWalletTokens();
     },
-    async getTrcTokens() {
-      const HttpProvider = TronWeb.providers.HttpProvider;
-      const fullNode = new HttpProvider("https://api.shasta.trongrid.io");
-      const solidityNode = new HttpProvider("https://api.shasta.trongrid.io");
-      const eventServer = new HttpProvider("https://api.shasta.trongrid.io");
-      const privateKey = this.wallet.privateKey;
-      const address = "TD53WjP3WKdBS9CvUpZZ97MciWRPmPt82X";
-      const tronWeb = new TronWeb(
-        fullNode,
-        solidityNode,
-        eventServer,
-        privateKey
+    async getWalletTokens() {
+      await fetch(
+        `https://apilist.tronscan.org/api/account?address=${this.wallet.address.base58}`
+      ).then((data) =>
+        data.json().then(({ tokens }) => {
+          this.tokens = tokens;
+        })
       );
-
-      (async function triggerSmartContract() {
-        const trc20ContractAddress = "TQQg4EL8o1BSeKJY4MJ8TB8XK7xufxFBvK"; //contract address
-
-        try {
-          let contract = await tronWeb.contract().at(trc20ContractAddress);
-          //Use call to execute a pure or view smart contract method.
-          // These methods do not modify the blockchain, do not cost anything to execute and are also not broadcasted to the network.
-          let result = await contract.balanceOf(address).call();
-          console.log("result: ", result);
-        } catch (error) {
-          console.error("trigger smart contract error", error);
-        }
-      })();
     },
     async getTransactions() {
       const transactions = [];
@@ -284,7 +321,7 @@ export default {
       let unconfirmedTransactions;
 
       await fetch(
-        `https://api.shasta.trongrid.io/v1/accounts/${this.wallet.address.base58}/transactions?limit=200&only_confirmed=true`
+        `https://api.trongrid.io/v1/accounts/${this.wallet.address.base58}/transactions?limit=200&only_confirmed=true&fingerprint`
       ).then((data) =>
         data.json().then(({ data }) => {
           confirmedTransactions = data.map((x) => {
@@ -295,7 +332,7 @@ export default {
       );
 
       await fetch(
-        `https://api.shasta.trongrid.io/v1/accounts/${this.wallet.address.base58}/transactions?limit=200&only_unconfirmed=true`
+        `https://api.trongrid.io/v1/accounts/${this.wallet.address.base58}/transactions?limit=200&only_unconfirmed=true`
       ).then((data) =>
         data.json().then(
           ({ data }) =>
@@ -413,32 +450,69 @@ export default {
     }
   }
 }
-.currency {
+.token {
+  margin-top: 2rem;
   display: flex;
-  font-size: 2rem;
-  font-size: 1rem;
+  align-items: flex-end;
 
-  img {
-    height: 4rem;
-    width: auto;
-    margin-right: 0.5rem;
+  &__name {
+    display: flex;
+    font-size: 2rem;
+    font-size: 1rem;
+
+    abbr {
+      font-size: 0.9em;
+      text-transform: uppercase;
+    }
+
+    img {
+      height: 3.5rem;
+      width: auto;
+      margin-right: 0.5rem;
+    }
+
+    b {
+      font-size: 1.5em;
+    }
   }
 
-  b {
-    font-size: 1.7em;
+  &__balance {
+    font-size: 2rem;
+    margin-left: 2rem;
   }
-}
 
-.balance {
-  font-size: 3.5rem;
-  line-height: 1;
-  margin-left: 3rem;
+  &__info {
+    border-collapse: collapse;
+    margin-left: 2rem;
+
+    td,
+    th {
+      width: max-content;
+      border-right: 1px solid white;
+      padding: 0.2rem 1rem;
+      text-align: center;
+
+      &:last-of-type {
+        border-right: 0;
+      }
+    }
+
+    th {
+      border-bottom: 1px solid white;
+    }
+  }
 }
 
 .chain-info {
-  display: flex;
   margin-top: 2rem;
   padding: 1.5rem 2rem;
+
+  h3 {
+    font-size: 2.5rem;
+    font-weight: 400;
+    line-height: 1;
+    margin: 0;
+  }
 }
 
 .private-key {
@@ -450,6 +524,11 @@ export default {
 .subtitle {
   margin: 0;
   margin-bottom: 3rem;
+
+  small {
+    font-weight: 400;
+    font-size: 0.5em;
+  }
 }
 
 .input {
@@ -492,5 +571,9 @@ export default {
   &.unconfirmed {
     color: grey;
   }
+}
+
+.max-content {
+  width: max-content;
 }
 </style>

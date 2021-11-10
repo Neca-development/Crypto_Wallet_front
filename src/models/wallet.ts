@@ -2,7 +2,7 @@ export interface IWallet {
   address: IAddress;
   privateKey: string;
   publicKey: string;
-  balance: IBalance;
+  balance?: IBalance;
 }
 
 export interface IAddress {
