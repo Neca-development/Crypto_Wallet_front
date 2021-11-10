@@ -95,9 +95,13 @@
               placeholder="Select Token"
               v-model="sendTokenForm.tokenAbbr"
             >
-              <template #message-danger> Required </template>
+              <template #message-danger>
+                {{ sendTokenForm.tokenAbbr ? "" : "Required" }}
+              </template>
               <vs-option
-                v-for="(token, idx) of tokens"
+                v-for="(token, idx) of $options.filters.filterTrc20Tokens(
+                  tokens
+                )"
                 :key="idx"
                 :label="token.tokenName"
                 :value="token.tokenAbbr"
@@ -310,6 +314,9 @@ export default {
         " " +
         new Date(timestamp).toLocaleTimeString()
       );
+    },
+    filterTrc20Tokens(tokens) {
+      return tokens.filter((x) => x.tokenType === "trc20");
     },
   },
   watch: {
