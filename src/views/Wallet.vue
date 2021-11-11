@@ -32,8 +32,8 @@
               <thead>
                 <tr>
                   <th>Amount</th>
-                  <th v-if="token.tokenAbbr !== 'trx'">Price in TRX</th>
-                  <th>Price in USD</th>
+                  <th v-if="token.tokenAbbr !== 'trx'">Total Sum in TRX</th>
+                  <th>Total Sum in USD</th>
                 </tr>
               </thead>
               <tbody>
@@ -61,7 +61,7 @@
         </vs-button>
       </vs-row>
     </section>
-    <vs-row justify="space-between">
+    <div v-if="tokens" class="grid-row">
       <section class="wallet-page__send-trx">
         <form @submit.prevent="sendTrx">
           <h2 class="subtitle">Send TRX</h2>
@@ -86,7 +86,7 @@
           </div>
         </form>
       </section>
-      <section v-if="tokens" class="wallet-page__send-trx">
+      <section class="wallet-page__send-trx">
         <form @submit.prevent="sendToken">
           <vs-row>
             <h2 class="subtitle">Send Token</h2>
@@ -122,7 +122,11 @@
             name="receiver"
             placeholder="Receiver Address"
             v-model="sendTokenForm.receiver"
-          ></vs-input>
+          >
+            <template v-if="!sendTokenForm.receiver" #message-danger>
+              Required
+            </template>
+          </vs-input>
           <br />
           <vs-input
             name="amount"
@@ -130,14 +134,29 @@
             label="Amount"
             placeholder="0.01"
             v-model="sendTokenForm.amount"
-          ></vs-input>
+          >
+            <template v-if="!sendTokenForm.amount" #message-danger>
+              Required
+            </template>
+          </vs-input>
           <div class="send-trx">
             <b v-if="isTrxSuccess">✓</b>
-            <vs-button v-else gradient success> Send </vs-button>
+            <vs-button
+              :disabled="
+                !sendTokenForm.tokenAbbr ||
+                !sendTokenForm.receiver ||
+                !sendTokenForm.amount
+              "
+              v-else
+              gradient
+              success
+            >
+              Send
+            </vs-button>
           </div>
         </form>
       </section>
-    </vs-row>
+    </div>
     <section v-if="wallet" class="wallet-page__transactions">
       <h2 class="subtitle">Transactions History <small>(last 200)</small></h2>
 
@@ -367,6 +386,13 @@ export default {
         amount: "",
       };
     },
+    clearSendTokenForm() {
+      this.sendTrxForm = {
+        tokenAbbr: "",
+        receiver: "",
+        amount: "",
+      };
+    },
     updateWalletInfo() {
       this.getTransactions();
       this.getWalletTokens();
@@ -433,7 +459,6 @@ export default {
           text: "Transaction was successfully sended",
         });
         this.clearSendTrxForm();
-        this.updateWalletBalance(this.wallet.address.base58);
       } catch (error) {
         console.log(error);
         this.$vs.notification({
@@ -463,21 +488,8 @@ export default {
       );
 
       const address = this.sendTokenForm.receiver;
-      console.log(
-        "%cMyProject%cline:457%caddress",
-        "color:#fff;background:#ee6f57;padding:3px;border-radius:2px",
-        "color:#fff;background:#1f3c88;padding:3px;border-radius:2px",
-        "color:#fff;background:rgb(17, 63, 61);padding:3px;border-radius:2px",
-        address
-      );
+
       const trc20ContractAddress = token.tokenId;
-      console.log(
-        "%cMyProject%cline:458%ctrc20ContractAddress",
-        "color:#fff;background:#ee6f57;padding:3px;border-radius:2px",
-        "color:#fff;background:#1f3c88;padding:3px;border-radius:2px",
-        "color:#fff;background:rgb(161, 23, 21);padding:3px;border-radius:2px",
-        trc20ContractAddress
-      );
 
       try {
         let contract = await tronWeb.contract().at(trc20ContractAddress);
@@ -486,17 +498,28 @@ export default {
         let result = await contract
           .transfer(
             address, //address _to
-            this.sendTokenForm.amount //amount
+            this.Tron.toSun(this.sendTokenForm.amount) //amount
           )
           .send({
-            feeLimit: 1000000,
+            feeLimit: 10000000,
           })
           .then((output) => {
-            console.log("- Output:", output, "\n");
+            this.$vs.notification({
+              color: "success",
+              title: "Success",
+              position: "top-right",
+              text: "Token was successfully sended",
+            });
+            this.clearSendTokenForm();
           });
         console.log("result: ", result);
       } catch (error) {
-        console.error("trigger smart contract error", error);
+        this.$vs.notification({
+          color: "danger",
+          title: "Error",
+          position: "top-right",
+          text: error,
+        });
       }
     },
   },
@@ -526,8 +549,6 @@ export default {
     border-radius: 25px;
     color: #fff;
     padding: 1.5rem 2rem;
-    margin-top: 2rem;
-    width: calc(48% - 4rem);
   }
 }
 
@@ -713,5 +734,12 @@ export default {
 .vs-select__input {
   text-transform: capitalize;
   font-size: 1rem;
+}
+
+.grid-row {
+  display: grid;
+  margin-top: 2rem;
+  gap: 40px;
+  grid-template-columns: repeat(2, 1fr);
 }
 </style>
