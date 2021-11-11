@@ -23,9 +23,12 @@
     </template>
     <h3 class="wallets-placeholder" v-else>Create or add wallet to begin</h3>
     <template #footer>
-      <vs-row justify="space-between">
-        <vs-button @click="openNewWalletPopup" gradient class="new-wallet-btn">
+      <vs-row justify="space-between" align="stretch">
+        <vs-button @click="openBackupModal" gradient class="new-wallet-btn">
           ⨭ Add wallet
+        </vs-button>
+        <vs-button @click="openBackupModal" class="backup-btn" warn gradient>
+          💾
         </vs-button>
         <vs-dialog class="new-wallet-modal" v-model="isNewWalletPopupOpen">
           <template #header>
@@ -82,22 +85,64 @@
             </form>
           </div>
         </vs-dialog>
+        <vs-dialog v-model="isBackupModalOpen">
+          <template #header>
+            <h4>
+              This wallet makes it easy to access your crypto and interact with
+              blockchain. We does not have access to your funds.
+            </h4>
+          </template>
+          <vs-row>
+            <vs-input
+              type="password"
+              icon-after
+              v-model="secretKey"
+              placeholder="Password"
+              label="Enter your decrypt/encrypt secret key"
+              class="secret-key"
+            >
+              <template #icon> 🔒 </template>
+            </vs-input>
+          </vs-row>
+          <vs-row>
+            <vs-button
+              gradient
+              success
+              :disabled="!secretKey"
+              @click="downloadBackup"
+              >Download backup ⭳</vs-button
+            >
+            <vs-button
+              gradient
+              warn
+              :disabled="!secretKey"
+              @click="uploadBackup"
+              >Upload backup ⭱</vs-button
+            >
+          </vs-row>
+        </vs-dialog>
       </vs-row>
     </template>
   </vs-sidebar>
 </template>
 
 <script>
+import CryptoJS from "crypto-js";
+
 import { mapActions, mapGetters } from "vuex";
 
 export default {
   data() {
     return {
       prvKeyInput: "",
+
       isNewWalletPopupOpen: false,
+      isBackupModalOpen: false,
+
       newWalletActiveTab: "create",
       newWalletCurrency: "",
       activeWallet: null,
+      secretKey: "",
     };
   },
   computed: {
@@ -118,6 +163,12 @@ export default {
     closeNewWalletPopup() {
       this.isNewWalletPopupOpen = false;
     },
+    openBackupModal() {
+      this.isBackupModalOpen = true;
+    },
+    closeBackupModal() {
+      this.isBackupModalOpen = false;
+    },
     async createWallet() {
       const wallet = await this.Tron.createAccount();
       wallet.balance = await this.Tron.trx.getBalance(wallet.address.base58);
@@ -128,6 +179,50 @@ export default {
 
     selectNewWalletTab(title) {
       this.newWalletActiveTab = title;
+    },
+
+    downloadBackup() {
+      const encrypted = CryptoJS.AES.encrypt(
+        JSON.stringify(this.wallets),
+        this.secretKey
+      );
+
+      this.downloadAsFile(encrypted.formatter.stringify(encrypted));
+    },
+
+    uploadBackup() {
+      const input = document.createElement("input");
+
+      input.type = "file";
+      input.accept = ".txt";
+      input.click();
+      input.addEventListener("change", () => {
+        this.dectyptFile(input.files[0]);
+      });
+    },
+
+    dectyptFile(file) {
+      let data;
+
+      var fr = new FileReader();
+
+      fr.onload = (e) => {
+        console.log(e.target.result);
+        const decrypted = CryptoJS.AES.decrypt(e.target.result, this.secretKey);
+
+        data = JSON.parse(decrypted.toString(CryptoJS.enc.Utf8));
+        this.$store.commit("UPDATE_WALLETS_INFO", data);
+      };
+
+      fr.readAsText(file);
+    },
+
+    downloadAsFile(data) {
+      const a = document.createElement("a");
+      const file = new Blob([data], { type: "application/json" });
+      a.href = URL.createObjectURL(file);
+      a.download = `backup${new Date().toLocaleString()}.txt`;
+      a.click();
     },
 
     async importWallet() {
@@ -235,6 +330,19 @@ export default {
 .new-wallet-modal {
   * {
     font-size: 1.2rem;
+  }
+}
+
+.backup-btn {
+  width: 3rem;
+  font-size: 1.2rem;
+}
+
+.secret-key {
+  width: 18rem;
+  margin: 1.5625rem 0;
+  input {
+    width: 100%;
   }
 }
 </style>
