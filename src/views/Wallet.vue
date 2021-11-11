@@ -32,7 +32,9 @@
               <thead>
                 <tr>
                   <th>Amount</th>
+                  <th v-if="token.tokenAbbr !== 'trx'">1 Token to TRX</th>
                   <th v-if="token.tokenAbbr !== 'trx'">Total Sum in TRX</th>
+                  <th>1 Coin to USD</th>
                   <th>Total Sum in USD</th>
                 </tr>
               </thead>
@@ -41,6 +43,18 @@
                   <td>{{ token.balance | convertToTRX(Tron) }}</td>
                   <td v-if="token.tokenAbbr !== 'trx'">
                     {{ token.tokenPriceInTrx.toFixed(6) }}
+                  </td>
+                  <td v-if="token.tokenAbbr !== 'trx'">
+                    {{ token.amount.toFixed(6) }}
+                  </td>
+                  <td>
+                    {{
+                      token.tokenAbbr !== "trx"
+                        ? (
+                            coinsCostInUSDT.tron.usd * token.tokenPriceInTrx
+                          ).toFixed(2)
+                        : coinsCostInUSDT.tron.usd.toFixed(2)
+                    }}
                   </td>
                   <td>
                     {{ (coinsCostInUSDT.tron.usd * token.amount).toFixed(2) }}
@@ -255,6 +269,8 @@
 </template>
 
 <script>
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 import TronWeb from "tronweb";
 
 import { mapGetters } from "vuex";
@@ -301,7 +317,7 @@ export default {
 
       totalBalance.trx = totalBalance.trx.toFixed(6);
 
-      if (this.coinsCostInUSDT.tron) {
+      if (this.coinsCostInUSDT) {
         totalBalance.usd = (
           totalBalance.trx * this.coinsCostInUSDT.tron.usd
         ).toFixed(2);
@@ -341,13 +357,14 @@ export default {
   watch: {
     $route() {
       this.updateWalletInfo();
-      this.clearSendTrxForm();
+      this.clearForms();
+
       this.transactionsPage = 1;
     },
   },
   mounted() {
     this.updateWalletInfo();
-    this.clearSendTrxForm();
+    this.clearForms();
 
     this.updateInterval = setInterval(() => {
       this.updateWalletInfo();
@@ -387,11 +404,15 @@ export default {
       };
     },
     clearSendTokenForm() {
-      this.sendTrxForm = {
+      this.sendTokenForm = {
         tokenAbbr: "",
         receiver: "",
         amount: "",
       };
+    },
+    clearForms() {
+      this.clearSendTrxForm();
+      this.clearSendTokenForm();
     },
     updateWalletInfo() {
       this.getTransactions();
