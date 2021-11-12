@@ -190,31 +190,64 @@ export default {
       this.downloadAsFile(encrypted.formatter.stringify(encrypted));
     },
 
-    uploadBackup() {
-      const input = document.createElement("input");
+    async uploadBackup() {
+      const file = await this.getFileFromUserDevice();
+      const data = await this.getDataFromFile(file);
 
-      input.type = "file";
-      input.accept = ".txt";
-      input.click();
-      input.addEventListener("change", () => {
-        this.dectyptFile(input.files[0]);
+      const wallets = this.dectyptFile(data);
+
+      this.$store.commit("UPDATE_WALLETS_INFO", wallets);
+      this.isBackupModalOpen = false;
+    },
+
+    getFileFromUserDevice() {
+      return new Promise((resolve, reject) => {
+        const input = document.createElement("input");
+
+        input.type = "file";
+        input.accept = ".txt";
+        input.addEventListener("change", () => {
+          if (input.files[0]) {
+            resolve(input.files[0]);
+          } else {
+            this.$vs.notification({
+              color: "danger",
+              title: "Error",
+              position: "top-right",
+              text: "Select backup file to restore data",
+            });
+            reject("error");
+          }
+        });
+
+        input.click();
       });
     },
 
-    dectyptFile(file) {
-      let data;
+    getDataFromFile(file) {
+      return new Promise((resolve, reject) => {
+        var fr = new FileReader();
 
-      var fr = new FileReader();
+        fr.onload = (e) => {
+          resolve(e.target.result);
+        };
 
-      fr.onload = (e) => {
-        console.log(e.target.result);
-        const decrypted = CryptoJS.AES.decrypt(e.target.result, this.secretKey);
+        fr.readAsText(file);
+      });
+    },
 
-        data = JSON.parse(decrypted.toString(CryptoJS.enc.Utf8));
-        this.$store.commit("UPDATE_WALLETS_INFO", data);
-      };
-
-      fr.readAsText(file);
+    dectyptFile(data) {
+      try {
+        const decrypted = CryptoJS.AES.decrypt(data, this.secretKey);
+        return JSON.parse(decrypted.toString(CryptoJS.enc.Utf8));
+      } catch (error) {
+        this.$vs.notification({
+          color: "danger",
+          title: "Error",
+          position: "top-right",
+          text: "Invalid secret key",
+        });
+      }
     },
 
     downloadAsFile(data) {
