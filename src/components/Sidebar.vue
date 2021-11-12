@@ -24,7 +24,7 @@
     <h3 class="wallets-placeholder" v-else>Create or add wallet to begin</h3>
     <template #footer>
       <vs-row justify="space-between" align="stretch">
-        <vs-button @click="openBackupModal" gradient class="new-wallet-btn">
+        <vs-button @click="openNewWalletPopup" gradient class="new-wallet-btn">
           ⨭ Add wallet
         </vs-button>
         <vs-button @click="openBackupModal" class="backup-btn" warn gradient>
