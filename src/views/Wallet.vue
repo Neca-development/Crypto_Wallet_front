@@ -47,7 +47,7 @@
                   <td v-if="token.tokenAbbr !== 'trx'">
                     {{ token.amount.toFixed(6) }}
                   </td>
-                  <td>
+                  <td v-if="coinsCostInUSDT">
                     {{
                       token.tokenAbbr !== "trx"
                         ? (
@@ -56,7 +56,7 @@
                         : coinsCostInUSDT.tron.usd.toFixed(2)
                     }}
                   </td>
-                  <td>
+                  <td v-if="coinsCostInUSDT">
                     {{ (coinsCostInUSDT.tron.usd * token.amount).toFixed(2) }}
                   </td>
                 </tr>
@@ -95,7 +95,7 @@
             v-model="sendTrxForm.amount"
           ></vs-input>
           <div class="send-trx">
-            <b v-if="isTrxSuccess">✓</b>
+            <b v-if="isTrcSuccess">✓</b>
             <vs-button v-else gradient success> Send </vs-button>
           </div>
         </form>
@@ -154,7 +154,7 @@
             </template>
           </vs-input>
           <div class="send-trx">
-            <b v-if="isTrxSuccess">✓</b>
+            <b v-if="isTrcSuccess">✓</b>
             <vs-button
               :disabled="
                 !sendTokenForm.tokenAbbr ||
@@ -270,10 +270,8 @@
 
 <script>
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
-import TronWeb from "tronweb";
-
 import { mapGetters } from "vuex";
+
 export default {
   data() {
     return {
@@ -287,12 +285,13 @@ export default {
         amount: "",
       },
       isPrvKeySuccessCopied: false,
-      isTrxSuccess: false,
+      isTrcSuccess: false,
       updateInterval: null,
       transactions: [],
       transactionsPage: 1,
       transactionsPerPage: 8,
       tokens: null,
+      addressChain: "Tron",
     };
   },
   computed: {
@@ -384,6 +383,7 @@ export default {
         }
       );
     },
+
     copyPrivKeyToCb() {
       navigator.clipboard.writeText(this.wallet.privateKey).then(
         () => {
@@ -397,12 +397,14 @@ export default {
         }
       );
     },
+
     clearSendTrxForm() {
       this.sendTrxForm = {
         receiver: "",
         amount: "",
       };
     },
+
     clearSendTokenForm() {
       this.sendTokenForm = {
         tokenAbbr: "",
@@ -410,78 +412,81 @@ export default {
         amount: "",
       };
     },
+
     clearForms() {
       this.clearSendTrxForm();
       this.clearSendTokenForm();
     },
+
     updateWalletInfo() {
       this.getTransactions();
       this.getWalletTokens();
     },
+
     async getWalletTokens() {
-      await fetch(
-        `https://apilist.tronscan.org/api/account?address=${this.wallet.address.base58}`
-      ).then((data) =>
-        data.json().then(({ tokens }) => {
-          this.tokens = tokens;
-        })
-      );
+      switch (this.addressChain) {
+        case "Tron":
+          this.tokens = await this.$Tron.getWalletTokens(
+            this.wallet.address.base58
+          );
+          break;
+
+        default:
+          break;
+      }
     },
     async getTransactions() {
-      const transactions = [];
-      let confirmedTransactions;
-      let unconfirmedTransactions;
-
-      await fetch(
-        `https://api.trongrid.io/v1/accounts/${this.wallet.address.base58}/transactions?limit=200&only_confirmed=true&fingerprint`
-      ).then((data) =>
-        data.json().then(({ data }) => {
-          confirmedTransactions = data.map((x) => {
-            x.status = "CONFIRMED";
-            return x;
-          });
-        })
-      );
-
-      await fetch(
-        `https://api.trongrid.io/v1/accounts/${this.wallet.address.base58}/transactions?limit=200&only_unconfirmed=true`
-      ).then((data) =>
-        data.json().then(
-          ({ data }) =>
-            (unconfirmedTransactions = data.map((x) => {
-              x.status = "UNCONFIRMED";
-              return x;
-            }))
-        )
-      );
-
-      transactions.push(...unconfirmedTransactions, ...confirmedTransactions);
-
-      this.transactions = transactions;
-    },
-    async sendTrx() {
-      this.Tron.setPrivateKey(this.wallet.privateKey);
-
-      const address = this.Tron.address.toHex(this.sendTrxForm.receiver);
       try {
-        await this.Tron.trx.sendTransaction(
-          address,
-          this.Tron.toSun(this.sendTrxForm.amount),
-          this.wallet.privateKey
-        );
-        this.isTrxSuccess = true;
-        setTimeout(() => {
-          this.isTrxSuccess = false;
-        }, 1000);
+        switch (this.addressChain) {
+          case "Tron":
+            this.transactions = await this.$Tron.getTransactions(
+              this.wallet.address.base58
+            );
+            break;
+
+          default:
+            break;
+        }
+      } catch (error) {
+        this.$vs.notification({
+          color: "danger",
+          title: "Error",
+          position: "top-right",
+          text: "An error occurred while requesting a transaction, please try again",
+        });
+      }
+    },
+
+    async sendTrx() {
+      const data = {
+        privateKey: this.wallet.privateKey,
+        receiverAddress: this.sendTrxForm.receiver,
+        amount: this.sendTrxForm.amount,
+      };
+
+      try {
+        switch (this.addressChain) {
+          case "Tron":
+            await this.$Tron.sendTrx(data);
+            break;
+
+          default:
+            break;
+        }
+
+        this.isTrcSuccess = true;
+        setTimeout(() => (this.isTrcSuccess = false), 1000);
+
         this.$vs.notification({
           color: "success",
           title: "Success",
           position: "top-right",
           text: "Transaction was successfully sended",
         });
+
         this.clearSendTrxForm();
+        this.getTransactions();
       } catch (error) {
-        console.log(error);
         this.$vs.notification({
           color: "danger",
           title: "Error",
@@ -491,49 +496,36 @@ export default {
       }
     },
     async sendToken() {
-      const HttpProvider = TronWeb.providers.HttpProvider;
-      const fullNode = new HttpProvider("https://api.trongrid.io");
-      const solidityNode = new HttpProvider("https://api.trongrid.io");
-      const eventServer = new HttpProvider("https://api.trongrid.io");
-      const privateKey = this.wallet.privateKey;
-
-      const tronWeb = new TronWeb(
-        fullNode,
-        solidityNode,
-        eventServer,
-        privateKey
-      );
-
-      const token = this.tokens.find(
-        (x) => x.tokenAbbr === this.sendTokenForm.tokenAbbr
-      );
-
-      const address = this.sendTokenForm.receiver;
-
-      const trc20ContractAddress = token.tokenId;
+      const data = {
+        privateKey: this.wallet.privateKey,
+        receiverAddress: this.sendTokenForm.receiver,
+        amount: this.sendTokenForm.amount,
+        cotractAddress: "",
+      };
 
       try {
-        let contract = await tronWeb.contract().at(trc20ContractAddress);
-        //Use send to execute a non-pure or modify smart contract method on a given smart contract that modify or change values on the blockchain.
-        // These methods consume resources(bandwidth and energy) to perform as the changes need to be broadcasted out to the network.
-        let result = await contract
-          .transfer(
-            address, //address _to
-            this.Tron.toSun(this.sendTokenForm.amount) //amount
-          )
-          .send({
-            feeLimit: 10000000,
-          })
-          .then((output) => {
-            this.$vs.notification({
-              color: "success",
-              title: "Success",
-              position: "top-right",
-              text: "Token was successfully sended",
-            });
-            this.clearSendTokenForm();
-          });
-        console.log("result: ", result);
+        switch (this.addressChain) {
+          case "Tron":
+            data.cotractAddress = this.$Tron.getTokenContractAddress(
+              this.tokens,
+              this.sendTokenForm.tokenAbbr
+            );
+
+            await this.$Tron.sendTRC20Token(data);
+            break;
+
+          default:
+            break;
+        }
+
+        this.$vs.notification({
+          color: "success",
+          title: "Success",
+          position: "top-right",
+          text: "Token was successfully sended",
+        });
+        this.clearSendTokenForm();
+        this.getTransactions();
       } catch (error) {
         this.$vs.notification({
           color: "danger",
