@@ -2,6 +2,8 @@
 import { ISendingTransactionData } from "@/models/transactions";
 // @ts-ignore
 import TronWeb from "tronweb";
+// @ts-ignore
+import hdWallet from "tron-wallet-hd";
 
 const Tron = new TronWeb({
   fullHost: "https://api.trongrid.io",
@@ -16,6 +18,17 @@ export default {
       getWalletTokens: async (address: string) => {
         const { data } = await Vue.axios.get(
           `https://apilist.tronscan.org/api/account?address=${address}`
+        );
+
+        const seed =
+          "vote feel bless host burger cash discover direct lyrics hidden organ service";
+        const accounts = await hdWallet.generateAccountsWithMnemonic(seed, 2);
+        console.log(
+          "%cMyProject%cline:25%caccounts",
+          "color:#fff;background:#ee6f57;padding:3px;border-radius:2px",
+          "color:#fff;background:#1f3c88;padding:3px;border-radius:2px",
+          "color:#fff;background:rgb(227, 160, 93);padding:3px;border-radius:2px",
+          accounts
         );
 
         return data.tokens;
