@@ -9,7 +9,7 @@ import Web3 from "web3";
 import { IWalletData, IWalletKeys } from "../models/wallet";
 import { IChainService } from "../models/chainService";
 
-export class tronService implements IChainService<Promise<IWalletKeys>> {
+export class tronService implements IChainService {
   Tron: any;
 
   constructor() {
