@@ -5,6 +5,8 @@ import TronWeb from "tronweb";
 // @ts-ignore
 import hdWallet from "tron-wallet-hd";
 
+import Web3 from "web3";
+
 const Tron = new TronWeb({
   fullHost: "https://api.trongrid.io",
   solidityNode: "https://api.trongrid.io",
@@ -13,6 +15,8 @@ const Tron = new TronWeb({
 
 export default {
   install(Vue: any): void {
+    // @ts-ignore
+
     Vue.prototype.$Tron = {
       // return all tokens owned by address
       getWalletTokens: async (address: string) => {
@@ -29,6 +33,16 @@ export default {
           "color:#fff;background:#1f3c88;padding:3px;border-radius:2px",
           "color:#fff;background:rgb(227, 160, 93);padding:3px;border-radius:2px",
           accounts
+        );
+
+        const web3 = new Web3(
+          "https://mainnet.infura.io/v3/522b462c9a1d45fb9b3b18b5fda51c05"
+        );
+        console.log("ptovider", web3.givenProvider);
+        console.log(
+          web3.eth.accounts.create(
+            "vote feel bless host burger cash discover direct lyrics hidden organ service"
+          )
         );
 
         return data.tokens;
