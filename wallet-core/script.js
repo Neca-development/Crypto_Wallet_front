@@ -1,4 +1,4 @@
-import { WalletFabric } from "./src/main";
+import { WalletFabric } from "./lib/main";
 
 const wf = new WalletFabric();
 

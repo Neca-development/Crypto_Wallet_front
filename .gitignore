@@ -22,5 +22,8 @@ pnpm-debug.log*
 *.sln
 *.sw?
 package-lock.json
+
+# wallet core
 wallet-core/.cache
 wallet-core/.parcel-cache
+wallet-core/dist

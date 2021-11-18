@@ -1,7 +1,8 @@
 import { ChainIds } from "./models/enums";
 import { IWallet, IWalletData, IWalletFabric } from "./models/wallet";
-import { tronService } from "./services/Tron.servicce";
-import hdWallet from "tron-wallet-hd";
+import { tronService } from "./services/Tron.service";
+// @ts-ignore
+import hdWallet from "../node_modules/tron-wallet-hd";
 import { IChainService } from "./models/chainService";
 
 export class WalletFabric implements IWalletFabric {
