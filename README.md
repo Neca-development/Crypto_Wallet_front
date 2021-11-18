@@ -1,24 +1,25 @@
-# crypto-wallet
+# Crypto Wallet Core
 
 ## Project setup
+
 ```
 npm install
 ```
 
-### Compiles and hot-reloads for development
+### Run demo template
+
 ```
-npm run serve
+npm run start
 ```
 
-### Compiles and minifies for production
+### Compile documentation
+
 ```
-npm run build
+npm run docs
 ```
 
-### Lints and fixes files
-```
-npm run lint
-```
+### Compile js from ts
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+```
+npm run compile
+```

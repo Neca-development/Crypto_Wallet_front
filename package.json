@@ -1,42 +1,28 @@
 {
-  "name": "crypto-wallet",
-  "version": "0.1.0",
-  "private": true,
+  "name": "crypto-wallet-core",
+  "version": "1.0.0",
+  "description": "",
+  "source": "src/main.ts",
+  "main": "lib/main.js",
+  "typings": "lib/types",
   "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "compile": "npx tsc -p tsconfig.json",
+    "start": "parcel index.html",
+    "docs": "npx typedoc src/main.ts"
   },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "dependencies": {
     "axios": "^0.24.0",
-    "core-js": "^3.6.5",
-    "crypto-js": "^4.1.1",
+    "lumi-web-core": "^1.9.0",
+    "tron-wallet-hd": "^1.0.2",
     "tronweb": "^4.0.0",
-    "vue": "^2.6.11",
-    "vue-axios": "^3.4.0",
-    "vue-router": "^3.2.0",
-    "vuesax": "^4.0.1-alpha.25",
-    "vuex": "^3.4.0"
+    "typedoc": "^0.22.9",
+    "web3": "^1.6.1"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^4.18.0",
-    "@typescript-eslint/parser": "^4.18.0",
-    "@vue/cli-plugin-babel": "~4.5.0",
-    "@vue/cli-plugin-eslint": "~4.5.0",
-    "@vue/cli-plugin-router": "~4.5.0",
-    "@vue/cli-plugin-typescript": "~4.5.0",
-    "@vue/cli-plugin-vuex": "~4.5.0",
-    "@vue/cli-service": "~4.5.0",
-    "@vue/eslint-config-prettier": "^6.0.0",
-    "@vue/eslint-config-typescript": "^7.0.0",
-    "eslint": "^6.7.2",
-    "eslint-plugin-prettier": "^3.3.1",
-    "eslint-plugin-vue": "^6.2.2",
-    "prettier": "^2.2.1",
-    "sass": "^1.26.5",
-    "sass-loader": "^8.0.2",
-    "typescript": "~4.1.5",
-    "vue-cli-plugin-netlify-lambda": "~0.1.1",
-    "vue-template-compiler": "^2.6.11"
+    "@babel/core": "^7.16.0",
+    "typescript": "^4.5.2"
   }
 }

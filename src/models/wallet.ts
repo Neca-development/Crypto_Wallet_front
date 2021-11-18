@@ -1,16 +1,21 @@
+import { ChainIds } from "./enums";
+
+export interface IWalletFabric {
+  createWallets(): IWallet[];
+}
+
 export interface IWallet {
-  address: IAddress;
+  data: IWalletData;
+}
+
+export interface IWalletData {
   privateKey: string;
   publicKey: string;
-  balance?: IBalance;
+  mnemonic: string;
+  chainId: ChainIds;
 }
 
-export interface IAddress {
-  base58: string;
-  hex: string;
-}
-
-export interface IBalance {
-  coin: number;
-  usd: string;
+export interface IWalletKeys {
+  privateKey: string;
+  publicKey: string;
 }

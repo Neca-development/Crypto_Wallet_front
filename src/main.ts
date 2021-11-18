@@ -1,26 +1,65 @@
-import "vuesax/dist/vuesax.css";
-import "@/style.scss";
+import { ChainIds } from "./models/enums";
+import { IWallet, IWalletData, IWalletFabric } from "./models/wallet";
+import { tronService } from "./services/Tron.service";
+// @ts-ignore
+import hdWallet from "../node_modules/tron-wallet-hd";
+import { IChainService } from "./models/chainService";
 
-import Vue from "vue";
-import App from "./App.vue";
-import router from "./router";
-import store from "./store";
+export class WalletFabric implements IWalletFabric {
+  createWallets() {
+    const wallets: IWallet[] = [];
+    const mnemonic = hdWallet.generateMnemonic();
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore: types doesnt exist
-import Vuesax from "vuesax";
-import axios from "axios";
-import VueAxios from "vue-axios";
-import Tron from "./plugins/Tron";
+    for (const chainId in ChainIds) {
+      const isValueProperty = parseInt(chainId, 10) >= 0;
 
-Vue.use(Vuesax, {});
-Vue.use(VueAxios, axios);
-Vue.use(Tron);
+      if (isValueProperty) {
+        wallets.push(new Wallet(chainId as unknown as ChainIds, mnemonic));
+      }
+    }
 
-Vue.config.productionTip = false;
+    return wallets;
+  }
+}
 
-new Vue({
-  router,
-  store,
-  render: (h) => h(App),
-}).$mount("#app");
+class Wallet implements IWallet {
+  data: IWalletData = {
+    privateKey: null,
+    publicKey: null,
+    chainId: null,
+    mnemonic: null,
+  };
+
+  service: IChainService;
+
+  constructor(chainId: ChainIds, mnemonic: string) {
+    this.data.chainId = chainId;
+    this.data.mnemonic = mnemonic;
+
+    this.selectChainService(chainId);
+    this.createWallet();
+  }
+
+  private selectChainService(chainId: ChainIds) {
+    switch (+chainId) {
+      case ChainIds["Ethereum"]:
+        console.log("Ether");
+        break;
+      case ChainIds["Tron"]:
+        console.log("Tron");
+        this.service = new tronService();
+        break;
+
+      default:
+        break;
+    }
+  }
+
+  private async createWallet() {
+    const data = await this.service.createWallet(this.data.mnemonic);
+    this.data.privateKey = data.privateKey;
+    this.data.publicKey = data.publicKey;
+
+    console.log(this.data);
+  }
+}
