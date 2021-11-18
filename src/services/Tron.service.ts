@@ -1,24 +1,22 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { ISendingTransactionData } from "../models/transaction";
-import { IWalletData, IWalletKeys } from "../models/wallet";
+import { ISendingTransactionData, ITransaction } from "../models/transaction";
+import { IWalletKeys } from "../models/wallet";
 import { IChainService } from "../models/chainService";
+
+import { tronWebProviders } from "../constants/providers";
 
 // @ts-ignore
 import TronWeb from "tronweb";
 // @ts-ignore
 import hdWallet from "tron-wallet-hd";
 import axios from "axios";
-import Web3 from "web3";
+import { IToken } from "../models/token";
 
 export class tronService implements IChainService {
   Tron: any;
 
   constructor() {
-    this.Tron = new TronWeb({
-      fullHost: "https://api.trongrid.io",
-      solidityNode: "https://api.trongrid.io",
-      eventServer: "https://api.trongrid.io",
-    });
+    this.Tron = new TronWeb(tronWebProviders);
   }
 
   async createWallet(mnemonic: string): Promise<IWalletKeys> {
@@ -32,25 +30,37 @@ export class tronService implements IChainService {
     };
   }
 
-  async getWalletTokens(address: string) {
+  async getTokensByAddress(address: string): Promise<IToken[]> {
     const { data } = await axios.get(
       `https://apilist.tronscan.org/api/account?address=${address}`
     );
 
-    const web3 = new Web3(
-      "https://mainnet.infura.io/v3/522b462c9a1d45fb9b3b18b5fda51c05"
-    );
-    console.log("ptovider", web3.givenProvider);
-    console.log(
-      web3.eth.accounts.create(
-        "vote feel bless host burger cash discover direct lyrics hidden organ service"
+    const trxToUSD = await axios
+      .get(
+        "https://api.coingecko.com/api/v3/simple/price?ids=tron&vs_currencies=usd"
       )
-    );
+      .then(({ data }) => data.tron.usd);
 
-    return data.tokens;
+    const tokens: IToken[] = data.tokens.map((x: any): IToken => {
+      return {
+        balance: this.Tron.fromSun(x.balance),
+        tokenId: x.tokenId,
+        contractAddress: x.tokenId,
+        tokenAbbr: x.tokenAbbr,
+        tokenName: x.tokenName,
+        tokenType: x.tokenType,
+        tokenLogo: x.tokenLogo,
+        tokenPriceInChainCoin: x.tokenPriceInTrx,
+        tokenPriceInUSD: +x.tokenPriceInTrx * trxToUSD,
+      };
+    });
+
+    return tokens;
   }
 
-  async getTransactions(address: string) {
+  async getTransactionsHistoryByAddress(
+    address: string
+  ): Promise<ITransaction[]> {
     const transactions = [];
     let confirmedTransactions: any[] = [];
     let unconfirmedTransactions: any[] = [];
@@ -84,7 +94,7 @@ export class tronService implements IChainService {
     return transactions;
   }
 
-  async sendTrx(data: ISendingTransactionData) {
+  async sendMainToken(data: ISendingTransactionData) {
     this.Tron.setPrivateKey(data.privateKey);
 
     const address = this.Tron.address.toHex(data.receiverAddress);
@@ -96,7 +106,7 @@ export class tronService implements IChainService {
     );
   }
 
-  async sendTRC20Token(data: ISendingTransactionData) {
+  async send20Token(data: ISendingTransactionData) {
     this.Tron.setPrivateKey(data.privateKey);
 
     const contract = await this.Tron.contract().at(data.cotractAddress);

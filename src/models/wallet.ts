@@ -1,13 +1,5 @@
 import { ChainIds } from "./enums";
 
-export interface IWalletFabric {
-  createWallets(): IWallet[];
-}
-
-export interface IWallet {
-  data: IWalletData;
-}
-
 export interface IWalletData {
   privateKey: string;
   publicKey: string;

@@ -4,3 +4,12 @@ export interface ISendingTransactionData {
   amount: number;
   cotractAddress?: string;
 }
+
+export interface ITransaction {
+  amount: string;
+  to: string;
+  from: string;
+  costInUSD: string;
+  direction: "IN" | "OUT";
+  status: "CONFIRMED" | "UNCOMFIRMED";
+}

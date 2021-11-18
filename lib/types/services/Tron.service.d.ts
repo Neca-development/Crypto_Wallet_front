@@ -1,14 +1,15 @@
-import { ISendingTransactionData } from "../models/transaction";
+import { ISendingTransactionData, ITransaction } from "../models/transaction";
 import { IWalletKeys } from "../models/wallet";
 import { IChainService } from "../models/chainService";
+import { IToken } from "../models/token";
 export declare class tronService implements IChainService {
     Tron: any;
     constructor();
     createWallet(mnemonic: string): Promise<IWalletKeys>;
-    getWalletTokens(address: string): Promise<any>;
-    getTransactions(address: string): Promise<any[]>;
-    sendTrx(data: ISendingTransactionData): Promise<void>;
-    sendTRC20Token(data: ISendingTransactionData): Promise<void>;
+    getTokensByAddress(address: string): Promise<IToken[]>;
+    getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]>;
+    sendMainToken(data: ISendingTransactionData): Promise<void>;
+    send20Token(data: ISendingTransactionData): Promise<void>;
     getTokenContractAddress(tokens: any[], tokenAbbr: string): any;
 }
 //# sourceMappingURL=Tron.service.d.ts.map
