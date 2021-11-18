@@ -8,7 +8,7 @@
   "scripts": {
     "compile": "npx tsc -p tsconfig.json",
     "start": "parcel index.html",
-    "docs": "npx typedoc src/main.ts"
+    "docs": "npx typedoc src/main.ts --plugin typedoc-plugin-missing-exports --excludeExternals true"
   },
   "keywords": [],
   "author": "",
@@ -19,6 +19,7 @@
     "tron-wallet-hd": "^1.0.2",
     "tronweb": "^4.0.0",
     "typedoc": "^0.22.9",
+    "typedoc-plugin-missing-exports": "^0.22.4",
     "web3": "^1.6.1"
   },
   "devDependencies": {

@@ -6,6 +6,9 @@ import hdWallet from "../node_modules/tron-wallet-hd";
 import { IChainService } from "./models/chainService";
 
 export class WalletFabric implements IWalletFabric {
+  /**
+   * Create a single wallet for every chain
+   */
   createWallets() {
     const wallets: IWallet[] = [];
     const mnemonic = hdWallet.generateMnemonic();
@@ -22,7 +25,7 @@ export class WalletFabric implements IWalletFabric {
   }
 }
 
-class Wallet implements IWallet {
+export class Wallet implements IWallet {
   data: IWalletData = {
     privateKey: null,
     publicKey: null,
