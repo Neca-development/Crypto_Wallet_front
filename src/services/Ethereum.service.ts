@@ -8,6 +8,7 @@ import {
   etherScanApiKey,
   web3Provider,
   coinConverterApi,
+  etherUSDTContractAddress,
 } from "../constants/providers";
 
 // @ts-ignore
@@ -37,23 +38,43 @@ export class ethereumService implements IChainService {
   async getTokensByAddress(address: string) {
     const tokens: Array<IToken> = [];
 
-    const ethToUSD = await axios
-      .get(`${coinConverterApi}/v3/simple/price?ids=ethereum&vs_currencies=usd`)
-      .then(({ data }) => data.eth.usd);
+    const { data: ethToUSD } = await axios.get(
+      `${coinConverterApi}/v3/simple/price?ids=ethereum&vs_currencies=usd,tether`
+    );
+
+    console.log(ethToUSD);
 
     const { data: mainToken } = await axios.get(
       `${etherScanApi}?module=account&action=balance&address=${address}&tag=latest&apikey=${etherScanApiKey}`
     );
 
-    mainToken.push({
-      balance: mainToken.result,
+    tokens.push({
+      balance: this.web3.utils.fromWei(mainToken.result),
       tokenId: "_",
       contractAddress: "_",
       tokenAbbr: "ETH",
       tokenName: "ETH",
       tokenType: "eth",
+      tokenLogo:
+        "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
       tokenPriceInChainCoin: "1",
-      tokenPriceInUSD: ethToUSD,
+      tokenPriceInUSD: ethToUSD.ethereum.usd,
+    });
+
+    const { data: USDT } = await axios.get(
+      `${etherScanApi}?module=account&action=tokenbalance&contractaddress=${etherUSDTContractAddress}&address=${address}&tag=latest&apikey=${etherScanApiKey}`
+    );
+
+    tokens.push({
+      balance: (USDT.result / 10e6).toString(),
+      tokenId: "_",
+      contractAddress: "_",
+      tokenAbbr: "USDT",
+      tokenName: "USD Tether",
+      tokenType: "ERC-20",
+      tokenLogo: "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png",
+      tokenPriceInChainCoin: "1",
+      tokenPriceInUSD: ethToUSD.ethereum.usd,
     });
 
     return tokens;

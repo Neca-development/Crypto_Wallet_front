@@ -16,7 +16,7 @@
           <h3 v-if="totalBalance">
             Total Balance:
             <small>
-              <b>{{ totalBalance.trx }} TRX</b>
+              <b>{{ totalBalance.trx + " " + wallet.chainId }}</b>
               (≈ {{ totalBalance.usd }} $)
             </small>
           </h3>
@@ -32,8 +32,10 @@
               <thead>
                 <tr>
                   <th>Amount</th>
-                  <th v-if="token.tokenAbbr !== 'trx'">1 Token to TRX</th>
-                  <th v-if="token.tokenAbbr !== 'trx'">Total Sum in TRX</th>
+                  <th v-if="idx !== 0">1 Token to {{ tokens[0].tokenAbbr }}</th>
+                  <th v-if="idx !== 0">
+                    Total Sum in {{ tokens[0].tokenAbbr }}
+                  </th>
                   <th>1 Coin to USD</th>
                   <th>Total Sum in USD</th>
                 </tr>
@@ -41,16 +43,18 @@
               <tbody>
                 <tr>
                   <td>{{ token.balance }}</td>
-                  <td v-if="token.tokenAbbr !== 'trx'">
-                    {{ token.tokenPriceInChainCoin.toFixed(6) }}
+                  <td v-if="idx !== 0">
+                    {{
+                      Number.parseInt(token.tokenPriceInChainCoin).toFixed(6)
+                    }}
                   </td>
-                  <td v-if="token.tokenAbbr !== 'trx'">
+                  <td v-if="idx !== 0">
                     {{
                       (token.tokenPriceInChainCoin * token.balance).toFixed(6)
                     }}
                   </td>
                   <td>
-                    {{ token.tokenPriceInUSD.toFixed(2) }}
+                    {{ Number.parseInt(token.tokenPriceInUSD).toFixed(2) }}
                   </td>
                   <td>
                     {{ (token.tokenPriceInUSD * token.balance).toFixed(2) }}
