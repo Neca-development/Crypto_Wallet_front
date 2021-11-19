@@ -4,27 +4,27 @@
 </a>
 <hr>
 
-<a href="#установка-проекта" id="установка-проекта" style="color: inherit; text-decoration: none;">
-  <h2>Установка проекта</h2>
+<a href="#project-installation" id="project-installation" style="color: inherit; text-decoration: none;">
+  <h2>Project installation</h2>
 </a>
 <ol>
-<li>Для начала нужно установить зависимости проекта запустив</li>
+<li>To begin, you must install the project dependencies by running</li>
 </ol>
 <pre><code><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-0">install</span>
 </code></pre>
 <ol start="2">
-<li>Далее импортировать класс WalletFactory и создать экземпляр класса</li>
+<li>Next, import the WalletFactory class and create an instance of the class</li>
 </ol>
-<pre><code><span class="hl-2">import</span><span class="hl-1"> { </span><span class="hl-0">WalletFactory</span><span class="hl-1"> } </span><span class="hl-2">from</span><span class="hl-1"> </span><span class="hl-3">&quot;../../lib/main&quot;</span><span class="hl-1">;</span><br/><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">wf</span><span class="hl-1"> = </span><span class="hl-4">new</span><span class="hl-1"> </span><span class="hl-6">WalletFactory</span><span class="hl-1">();</span>
+<pre><code><span class="hl-2">import</span><span class="hl-1"> { </span><span class="hl-0">WalletFactory</span><span class="hl-1"> } </span><span class="hl-2">from</span><span class="hl-1"> </span><span class="hl-3">&quot;Crypto_Wallet/lib/main&quot;&quot;</span><span class="hl-4">;</span><br/><br/><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">wf</span><span class="hl-1"> = </span><span class="hl-5">new</span><span class="hl-1"> </span><span class="hl-7">WalletFactory</span><span class="hl-1">();</span>
 </code></pre>
 <ol start="3">
-<li>Для генерации кошельков вызвать у экземпляра метод createWallets(mnemonic?: string). Параметр menominc явлеется опциональным и необходим для восстановления имеющихся кошельков при помощи мнемонической фразы.</li>
+<li>To generate wallets, call the instance&#39;s method createWallets(mnemonic?: string). The menominc parameter is optional and is required to restore existing wallets using a mnemonic phrase.</li>
 </ol>
-<pre><code><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">wallets</span><span class="hl-1"> = </span><span class="hl-2">await</span><span class="hl-1"> </span><span class="hl-0">wf</span><span class="hl-1">.</span><span class="hl-6">createWallets</span><span class="hl-1">(</span><span class="hl-0">mnemonic</span><span class="hl-1">);</span>
+<pre><code><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">wallets</span><span class="hl-1"> = </span><span class="hl-2">await</span><span class="hl-1"> </span><span class="hl-0">wf</span><span class="hl-1">.</span><span class="hl-7">createWallets</span><span class="hl-1">(</span><span class="hl-0">mnemonic</span><span class="hl-1">);</span>
 </code></pre>
 <hr>
-<p>Подробная информацию по свойствам и методам кошелька находится в документации по <a href="classes/Wallet.html">ссылке</a>
-Демонстрация работы библиотеки находится в папке <code>demo</code></p>
+<p>Detailed information on the properties and methods of the wallet can be found in the documentation at link (classes/Wallet.html)
+A demo of the library can be found in the folder <code>demo</code></p>
 
 <a href="#project-scripts" id="project-scripts" style="color: inherit; text-decoration: none;">
   <h2>Project scripts</h2>
