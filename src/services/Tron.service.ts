@@ -2,21 +2,26 @@
 import { ISendingTransactionData, ITransaction } from "../models/transaction";
 import { IWalletKeys } from "../models/wallet";
 import { IChainService } from "../models/chainService";
+import { IToken } from "../models/token";
 
-import { tronWebProviders } from "../constants/providers";
+import {
+  tronGridApi,
+  tronScanApi,
+  tronWebProvider,
+  coinConverterApi,
+} from "../constants/providers";
 
 // @ts-ignore
 import TronWeb from "tronweb";
 // @ts-ignore
 import hdWallet from "tron-wallet-hd";
 import axios from "axios";
-import { IToken } from "../models/token";
 
 export class tronService implements IChainService {
   Tron: any;
 
   constructor() {
-    this.Tron = new TronWeb(tronWebProviders);
+    this.Tron = new TronWeb(tronWebProvider);
   }
 
   async createWallet(mnemonic: string): Promise<IWalletKeys> {
@@ -32,13 +37,11 @@ export class tronService implements IChainService {
 
   async getTokensByAddress(address: string): Promise<IToken[]> {
     const { data } = await axios.get(
-      `https://apilist.tronscan.org/api/account?address=${address}`
+      `${tronScanApi}/account?address=${address}`
     );
 
     const trxToUSD = await axios
-      .get(
-        "https://api.coingecko.com/api/v3/simple/price?ids=tron&vs_currencies=usd"
-      )
+      .get(`${coinConverterApi}/v3/simple/price?ids=tron&vs_currencies=usd`)
       .then(({ data }) => data.tron.usd);
 
     const tokens: IToken[] = data.tokens.map((x: any): IToken => {
@@ -68,7 +71,7 @@ export class tronService implements IChainService {
     // get last 200 confirmed transactions
     await axios
       .get(
-        `https://api.trongrid.io/v1/accounts/${address}/transactions?limit=200&only_confirmed=true&fingerprint`
+        `${tronGridApi}/accounts/${address}/transactions?limit=200&only_confirmed=true&fingerprint`
       )
       .then(
         ({ data }: any) =>
@@ -80,7 +83,7 @@ export class tronService implements IChainService {
 
     // get up to 200 last uncofirmed transactions
     await axios(
-      `https://api.trongrid.io/v1/accounts/${address}/transactions?limit=200&only_unconfirmed=true`
+      `${tronGridApi}/accounts/${address}/transactions?limit=200&only_unconfirmed=true`
     ).then(
       ({ data }: any) =>
         (unconfirmedTransactions = data.data.map((x: any) => {

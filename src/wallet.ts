@@ -8,7 +8,7 @@ import { IWalletData } from "./models/wallet";
 import { ISendingTransactionData, ITransaction } from "./models/transaction";
 
 export class Wallet {
-  service: IChainService;
+  private service: IChainService;
 
   private isInitialized = false;
   private data: IWalletData = {
@@ -76,32 +76,26 @@ export class Wallet {
   }
 
   /**
-   * Return tokens by received address. By default address is current wallet address
-   * @param {any} address?:string
+   * Return tokens by wallet address
    * @returns {Promise<IToken[]>}
    */
-  async getTokensByAddress(address?: string): Promise<IToken[]> {
-    return await this.service.getTokensByAddress(
-      address || this.data.publicKey
-    );
+  async getTokensByAddress(): Promise<IToken[]> {
+    return await this.service.getTokensByAddress(this.data.publicKey);
   }
 
   /**
-   * Return transactions by received address. By default address is current wallet address
-   * @param {any} address?:string
+   * Return wallet transactions
    * @returns {Promise<ITransaction[]>}
    */
-  async getTransactionsHistoryByAddress(
-    address?: string
-  ): Promise<ITransaction[]> {
+  async getTransactionsHistoryByAddress(): Promise<ITransaction[]> {
     return await this.service.getTransactionsHistoryByAddress(
-      address || this.data.publicKey
+      this.data.publicKey
     );
   }
 
   /**
    * send current chain main token e.g. ETH, BTC or TRX
-   * @param {any} data:ISendingTransactionData
+   * @param {ISendingTransactionData} data:ISendingTransactionData
    * @returns {Promise<void>}
    */
   async sendMainToken(data: ISendingTransactionData): Promise<void> {
@@ -110,7 +104,7 @@ export class Wallet {
 
   /**
    * send 20 token e.g. ERC-20 or TRC-20
-   * @param {any} data:ISendingTransactionData
+   * @param {ISendingTransactionData} data:ISendingTransactionData
    * @returns {Promise<void>}
    */
   async send20Token(data: ISendingTransactionData): Promise<void> {
@@ -119,7 +113,7 @@ export class Wallet {
 
   /**
    * select chain service for wallet
-   * @param {any} chainId:ChainIds
+   * @param {chainId} chainId:ChainIds
    * @returns {void}
    */
   private selectChainService(chainId: ChainIds): void {

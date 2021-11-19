@@ -23,11 +23,11 @@ export default {
   },
   async created() {
     const wf = new WalletFactory();
-    const wallets = await wf.createWallets(
+    const data = await wf.createWallets(
       "light afraid crawl solve chicken receive sound prize figure turn punch angry"
     );
 
-    this.$store.commit("ADD_WALLETS", wallets);
+    this.$store.commit("ADD_WALLETS", data.wallets);
   },
   beforeDestroy() {
     clearInterval(this.coinsToUSDIntervalID);

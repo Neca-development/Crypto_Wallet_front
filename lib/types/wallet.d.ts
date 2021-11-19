@@ -1,9 +1,8 @@
 import { ChainIds } from "./models/enums";
-import { IChainService } from "./models/chainService";
 import { IToken } from "./models/token";
 import { ISendingTransactionData, ITransaction } from "./models/transaction";
 export declare class Wallet {
-    service: IChainService;
+    private service;
     private isInitialized;
     private data;
     /**
@@ -38,32 +37,30 @@ export declare class Wallet {
      */
     init(): Promise<void>;
     /**
-     * Return tokens by received address. By default address is current wallet address
-     * @param {any} address?:string
+     * Return tokens by wallet address
      * @returns {Promise<IToken[]>}
      */
-    getTokensByAddress(address?: string): Promise<IToken[]>;
+    getTokensByAddress(): Promise<IToken[]>;
     /**
-     * Return transactions by received address. By default address is current wallet address
-     * @param {any} address?:string
+     * Return wallet transactions
      * @returns {Promise<ITransaction[]>}
      */
-    getTransactionsHistoryByAddress(address?: string): Promise<ITransaction[]>;
+    getTransactionsHistoryByAddress(): Promise<ITransaction[]>;
     /**
      * send current chain main token e.g. ETH, BTC or TRX
-     * @param {any} data:ISendingTransactionData
+     * @param {ISendingTransactionData} data:ISendingTransactionData
      * @returns {Promise<void>}
      */
     sendMainToken(data: ISendingTransactionData): Promise<void>;
     /**
      * send 20 token e.g. ERC-20 or TRC-20
-     * @param {any} data:ISendingTransactionData
+     * @param {ISendingTransactionData} data:ISendingTransactionData
      * @returns {Promise<void>}
      */
     send20Token(data: ISendingTransactionData): Promise<void>;
     /**
      * select chain service for wallet
-     * @param {any} chainId:ChainIds
+     * @param {chainId} chainId:ChainIds
      * @returns {void}
      */
     private selectChainService;

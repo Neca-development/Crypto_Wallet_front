@@ -3,7 +3,12 @@ import { ISendingTransactionData } from "../models/transaction";
 import { IWalletKeys } from "../models/wallet";
 import { IChainService } from "../models/chainService";
 
-import { web3Provider } from "../constants/providers";
+import {
+  etherScanApi,
+  etherScanApiKey,
+  web3Provider,
+  coinConverterApi,
+} from "../constants/providers";
 
 // @ts-ignore
 import axios from "axios";
@@ -11,18 +16,16 @@ import Web3 from "web3";
 // @ts-ignore
 // import Wallet from "lumi-web-core";
 import { ethers } from "ethers";
+import { IToken } from "../models/token";
 
 export class ethereumService implements IChainService {
-  web3: any;
+  private web3: any;
 
   constructor() {
     this.web3 = new Web3(web3Provider);
   }
 
   async createWallet(mnemonic: string): Promise<IWalletKeys> {
-    // const WALLET = new Wallet();
-
-    // await WALLET.createByMnemonic.generateAccountsWithMnemonic(mnemonic);
     const data = ethers.Wallet.fromMnemonic(mnemonic);
 
     return {
@@ -32,11 +35,28 @@ export class ethereumService implements IChainService {
   }
 
   async getTokensByAddress(address: string) {
-    const { data } = await axios.get(
-      `https://apilist.tronscan.org/api/account?address=${address}`
+    const tokens: Array<IToken> = [];
+
+    const ethToUSD = await axios
+      .get(`${coinConverterApi}/v3/simple/price?ids=ethereum&vs_currencies=usd`)
+      .then(({ data }) => data.eth.usd);
+
+    const { data: mainToken } = await axios.get(
+      `${etherScanApi}?module=account&action=balance&address=${address}&tag=latest&apikey=${etherScanApiKey}`
     );
 
-    return data.tokens;
+    mainToken.push({
+      balance: mainToken.result,
+      tokenId: "_",
+      contractAddress: "_",
+      tokenAbbr: "ETH",
+      tokenName: "ETH",
+      tokenType: "eth",
+      tokenPriceInChainCoin: "1",
+      tokenPriceInUSD: ethToUSD,
+    });
+
+    return tokens;
   }
 
   async getTransactionsHistoryByAddress(address: string) {

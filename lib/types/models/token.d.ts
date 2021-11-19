@@ -1,4 +1,3 @@
-import { TokenType } from "./enums";
 export interface IToken {
     tokenPriceInChainCoin: string;
     tokenPriceInUSD: number;
@@ -6,7 +5,7 @@ export interface IToken {
     balance: string;
     tokenName: string;
     tokenAbbr: string;
-    tokenType: TokenType;
+    tokenType: string;
     tokenLogo?: string;
     contractAddress?: string;
 }
