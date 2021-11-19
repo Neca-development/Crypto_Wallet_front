@@ -124,10 +124,4 @@ export class tronService implements IChainService {
 
     console.log(result);
   }
-
-  getTokenContractAddress(tokens: any[], tokenAbbr: string) {
-    const token = tokens.find((x: any) => x.tokenAbbr === tokenAbbr);
-
-    return token.tokenId;
-  }
 }

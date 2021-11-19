@@ -2,6 +2,7 @@ import { Wallet } from "./wallet";
 // @ts-ignore
 import hdWallet from "tron-wallet-hd";
 import { ChainIds } from "./models/enums";
+import { ICreateWalletsData } from "./models/wallet";
 
 export class WalletFactory {
   /**
@@ -10,17 +11,10 @@ export class WalletFactory {
    * @param {string} mnemonic
    * @returns {Promise<Wallet[]>}
    */
-  async createWallets(mnemonic?: string): Promise<Wallet[]> {
+  async createWallets(mnemonic?: string): Promise<ICreateWalletsData> {
     if (mnemonic === undefined) {
       mnemonic = hdWallet.generateMnemonic();
     }
-    console.log(
-      "%cMyProject%cline:15%cmnemonic",
-      "color:#fff;background:#ee6f57;padding:3px;border-radius:2px",
-      "color:#fff;background:#1f3c88;padding:3px;border-radius:2px",
-      "color:#fff;background:rgb(251, 178, 23);padding:3px;border-radius:2px",
-      mnemonic
-    );
 
     const wallets: Wallet[] = [];
 
@@ -36,6 +30,6 @@ export class WalletFactory {
       await wallet.init();
     }
 
-    return wallets;
+    return { mnemonic, wallets };
   }
 }
