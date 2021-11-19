@@ -113,7 +113,7 @@ export class tronService implements IChainService {
     console.log(data);
     //Use send to execute a non-pure or modify smart contract method on a given smart contract that modify or change values on the blockchain.
     // These methods consume resources(bandwidth and energy) to perform as the changes need to be broadcasted out to the network.
-    await contract
+    const result = await contract
       .transfer(
         data.receiverAddress, //address _to
         this.Tron.toSun(data.amount) //amount
@@ -121,6 +121,8 @@ export class tronService implements IChainService {
       .send({
         feeLimit: 10000000,
       });
+
+    console.log(result);
   }
 
   getTokenContractAddress(tokens: any[], tokenAbbr: string) {

@@ -42,10 +42,12 @@
                 <tr>
                   <td>{{ token.balance }}</td>
                   <td v-if="token.tokenAbbr !== 'trx'">
-                    {{ token.tokenPriceInTrx.toFixed(6) }}
+                    {{ token.tokenPriceInChainCoin.toFixed(6) }}
                   </td>
                   <td v-if="token.tokenAbbr !== 'trx'">
-                    {{ token.amount.toFixed(6) }}
+                    {{
+                      (token.tokenPriceInChainCoin * token.balance).toFixed(6)
+                    }}
                   </td>
                   <td>
                     {{ token.tokenPriceInUSD.toFixed(2) }}
@@ -366,7 +368,7 @@ export default {
   },
   methods: {
     copyAddress() {
-      navigator.clipboard.writeText(this.wallet.address.base58).then(
+      navigator.clipboard.writeText(this.wallet.address).then(
         function () {
           console.log("Async: Copying to clipboard was successful!");
         },
@@ -416,71 +418,65 @@ export default {
       this.transactions = await this.wallet.getTransactionsHistoryByAddress();
     },
     async sendTrx() {
-      // this.Tron.setPrivateKey(this.wallet.privateKey);
-      // const address = this.Tron.address.toHex(this.sendTrxForm.receiver);
-      // try {
-      //   await this.Tron.trx.sendTransaction(
-      //     address,
-      //     this.Tron.toSun(this.sendTrxForm.amount),
-      //     this.wallet.privateKey
-      //   );
-      //   this.isTrxSuccess = true;
-      //   setTimeout(() => {
-      //     this.isTrxSuccess = false;
-      //   }, 1000);
-      //   this.$vs.notification({
-      //     color: "success",
-      //     title: "Success",
-      //     position: "top-right",
-      //     text: "Transaction was successfully sended",
-      //   });
-      //   this.clearSendTrxForm();
-      // } catch (error) {
-      //   console.log(error);
-      //   this.$vs.notification({
-      //     color: "danger",
-      //     title: "Error",
-      //     position: "top-right",
-      //     text: error,
-      //   });
-      // }
+      try {
+        await this.wallet.sendMainToken({
+          privateKey: this.wallet.privateKey,
+          receiverAddress: this.sendTrxForm.receiver,
+          amount: this.sendTrxForm.amount,
+        });
+        this.isTrxSuccess = true;
+        setTimeout(() => {
+          this.isTrxSuccess = false;
+        }, 1000);
+        this.$vs.notification({
+          color: "success",
+          title: "Success",
+          position: "top-right",
+          text: "Transaction was successfully sended",
+        });
+        this.clearSendTrxForm();
+      } catch (error) {
+        console.log(error);
+        this.$vs.notification({
+          color: "danger",
+          title: "Error",
+          position: "top-right",
+          text: error,
+        });
+      }
     },
     async sendToken() {
-      // const token = this.tokens.find(
-      //   (x) => x.tokenAbbr === this.sendTokenForm.tokenAbbr
-      // );
-      // const address = this.sendTokenForm.receiver;
-      // const trc20ContractAddress = token.tokenId;
-      // try {
-      //   let contract = await tronWeb.contract().at(trc20ContractAddress);
-      //   //Use send to execute a non-pure or modify smart contract method on a given smart contract that modify or change values on the blockchain.
-      //   // These methods consume resources(bandwidth and energy) to perform as the changes need to be broadcasted out to the network.
-      //   let result = await contract
-      //     .transfer(
-      //       address, //address _to
-      //       this.Tron.toSun(this.sendTokenForm.amount) //amount
-      //     )
-      //     .send({
-      //       feeLimit: 10000000,
-      //     })
-      //     .then(() => {
-      //       this.$vs.notification({
-      //         color: "success",
-      //         title: "Success",
-      //         position: "top-right",
-      //         text: "Token was successfully sended",
-      //       });
-      //       this.clearSendTokenForm();
-      //     });
-      //   console.log("result: ", result);
-      // } catch (error) {
-      //   this.$vs.notification({
-      //     color: "danger",
-      //     title: "Error",
-      //     position: "top-right",
-      //     text: error,
-      //   });
-      // }
+      const token = this.tokens.find(
+          (x) => x.tokenAbbr === this.sendTokenForm.tokenAbbr
+        ),
+        receiverAddress = this.sendTokenForm.receiver,
+        cotractAddress = token.contractAddress,
+        amount = this.sendTokenForm.amount,
+        privateKey = this.wallet.privateKey;
+
+      try {
+        await this.wallet.send20Token({
+          receiverAddress,
+          cotractAddress,
+          amount,
+          privateKey,
+        });
+
+        this.$vs.notification({
+          color: "success",
+          title: "Success",
+          position: "top-right",
+          text: "Token was successfully sended",
+        });
+        this.clearSendTokenForm();
+      } catch (error) {
+        this.$vs.notification({
+          color: "danger",
+          title: "Error",
+          position: "top-right",
+          text: error,
+        });
+      }
     },
   },
 };
