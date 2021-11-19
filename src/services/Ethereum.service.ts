@@ -74,6 +74,8 @@ export class ethereumService implements IChainService {
   }
 
   async sendMainToken(data: ISendingTransactionData) {
+    console.log(data);
+
     // this.Tron.setPrivateKey(data.privateKey);
     // const address = this.Tron.address.toHex(data.receiverAddress);
     // await this.Tron.trx.sendTransaction(
@@ -84,6 +86,8 @@ export class ethereumService implements IChainService {
   }
 
   async send20Token(data: ISendingTransactionData) {
+    console.log(data);
+
     // this.Tron.setPrivateKey(data.privateKey);
     // const contract = await this.Tron.contract().at(data.cotractAddress);
     // console.log(data);

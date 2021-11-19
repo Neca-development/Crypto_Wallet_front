@@ -7,10 +7,10 @@ export declare class Wallet {
     private isInitialized;
     private data;
     /**
-     * return wallet chain name
+     * return wallet chain id
      * @returns {string}
      */
-    get chainName(): string;
+    get chainId(): string;
     /**
      * return wallet address
      * @returns {string}

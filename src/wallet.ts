@@ -19,10 +19,10 @@ export class Wallet {
   };
 
   /**
-   * return wallet chain name
+   * return wallet chain id
    * @returns {string}
    */
-  get chainName(): string {
+  get chainId(): string {
     return ChainIds[+this.data.chainId];
   }
 
