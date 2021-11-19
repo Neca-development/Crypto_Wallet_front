@@ -13,7 +13,7 @@ npm install
 2. Далее импортировать класс WalletFactory и создать экземпляр класса
 
 ```
-import { WalletFactory } from "../../lib/main";
+import { WalletFactory } from "Crypto_Wallet/lib/main"";
 
 const wf = new WalletFactory();
 ```
