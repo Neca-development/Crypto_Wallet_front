@@ -2,15 +2,15 @@
 
 ---
 
-## Установка проекта
+## Project installation
 
-1. Для начала нужно установить зависимости проекта запустив
+1. To begin, you must install the project dependencies by running
 
 ```
 npm install
 ```
 
-2. Далее импортировать класс WalletFactory и создать экземпляр класса
+2. Next, import the WalletFactory class and create an instance of the class
 
 ```
 import { WalletFactory } from "Crypto_Wallet/lib/main"";
@@ -18,7 +18,7 @@ import { WalletFactory } from "Crypto_Wallet/lib/main"";
 const wf = new WalletFactory();
 ```
 
-3. Для генерации кошельков вызвать у экземпляра метод createWallets(mnemonic?: string). Параметр menominc явлеется опциональным и необходим для восстановления имеющихся кошельков при помощи мнемонической фразы.
+3. To generate wallets, call the instance's method createWallets(mnemonic?: string). The menominc parameter is optional and is required to restore existing wallets using a mnemonic phrase.
 
 ```
 const wallets = await wf.createWallets(mnemonic);
@@ -26,8 +26,8 @@ const wallets = await wf.createWallets(mnemonic);
 
 ---
 
-Подробная информацию по свойствам и методам кошелька находится в документации по [ссылке](classes/Wallet.html)
-Демонстрация работы библиотеки находится в папке `demo`
+Detailed information on the properties and methods of the wallet can be found in the documentation at link (classes/Wallet.html)
+A demo of the library can be found in the folder `demo`
 
 ## Project scripts
 
