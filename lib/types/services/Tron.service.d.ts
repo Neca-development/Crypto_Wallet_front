@@ -10,6 +10,5 @@ export declare class tronService implements IChainService {
     getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]>;
     sendMainToken(data: ISendingTransactionData): Promise<void>;
     send20Token(data: ISendingTransactionData): Promise<void>;
-    getTokenContractAddress(tokens: any[], tokenAbbr: string): any;
 }
 //# sourceMappingURL=Tron.service.d.ts.map
