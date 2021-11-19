@@ -304,7 +304,7 @@ export default {
       };
 
       totalBalance.trx = this.tokens.reduce((accum, token) => {
-        return accum + +token.balance;
+        return accum + +token.balance * token.tokenPriceInChainCoin;
       }, 0);
 
       totalBalance.trx = totalBalance.trx.toFixed(6);
