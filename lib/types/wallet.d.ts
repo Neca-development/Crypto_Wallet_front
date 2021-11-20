@@ -37,6 +37,11 @@ export declare class Wallet {
      */
     init(): Promise<void>;
     /**
+     * return total wallet balance in USD
+     * @returns {number}
+     */
+    getTotalBalanceInUSD(): Promise<number>;
+    /**
      * Return tokens by wallet address
      * @returns {Promise<IToken[]>}
      */

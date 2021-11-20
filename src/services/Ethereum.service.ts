@@ -42,14 +42,18 @@ export class ethereumService implements IChainService {
       `${coinConverterApi}/v3/simple/price?ids=ethereum&vs_currencies=usd,tether`
     );
 
-    console.log(ethToUSD);
-
     const { data: mainToken } = await axios.get(
       `${etherScanApi}?module=account&action=balance&address=${address}&tag=latest&apikey=${etherScanApiKey}`
     );
 
+    const mainTokenBalanceInUSD =
+      Math.trunc(
+        this.web3.utils.fromWei(mainToken.result) * ethToUSD.ethereum.usd * 100
+      ) / 100;
+
     tokens.push({
       balance: this.web3.utils.fromWei(mainToken.result),
+      balanceInUSD: mainTokenBalanceInUSD,
       tokenId: "_",
       contractAddress: "_",
       tokenAbbr: "ETH",
@@ -57,7 +61,6 @@ export class ethereumService implements IChainService {
       tokenType: "eth",
       tokenLogo:
         "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
-      tokenPriceInChainCoin: "1",
       tokenPriceInUSD: ethToUSD.ethereum.usd,
     });
 
@@ -65,15 +68,19 @@ export class ethereumService implements IChainService {
       `${etherScanApi}?module=account&action=tokenbalance&contractaddress=${etherUSDTContractAddress}&address=${address}&tag=latest&apikey=${etherScanApiKey}`
     );
 
+    const USDTDecimal = 10e6;
+    const USDTbalanceInUSD =
+      Math.trunc((USDT.result / USDTDecimal) * 100) / 100;
+
     tokens.push({
-      balance: (USDT.result / 10e6).toString(),
+      balance: USDT.result / USDTDecimal,
+      balanceInUSD: USDTbalanceInUSD,
       tokenId: "_",
       contractAddress: "_",
       tokenAbbr: "USDT",
       tokenName: "USD Tether",
       tokenType: "ERC-20",
       tokenLogo: "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png",
-      tokenPriceInChainCoin: "1",
       tokenPriceInUSD: ethToUSD.ethereum.usd,
     });
 

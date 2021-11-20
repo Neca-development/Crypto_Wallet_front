@@ -76,6 +76,17 @@ export class Wallet {
   }
 
   /**
+   * return total wallet balance in USD
+   * @returns {number}
+   */
+  async getTotalBalanceInUSD(): Promise<number> {
+    const tokens = await this.getTokensByAddress();
+    const balance = tokens.reduce((balance, x) => balance + x.balanceInUSD, 0);
+
+    return Math.trunc(balance * 100) / 100;
+  }
+
+  /**
    * Return tokens by wallet address
    * @returns {Promise<IToken[]>}
    */
@@ -119,11 +130,9 @@ export class Wallet {
   private selectChainService(chainId: ChainIds): void {
     switch (+chainId) {
       case ChainIds["Ethereum"]:
-        console.log("Ether");
         this.service = new ethereumService();
         break;
       case ChainIds["Tron"]:
-        console.log("Tron");
         this.service = new tronService();
         break;
 

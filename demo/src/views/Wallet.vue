@@ -13,11 +13,10 @@
       </h2>
       <vs-row justify="space-between">
         <div class="chain-info">
-          <h3 v-if="totalBalance">
+          <h3>
             Total Balance:
             <small>
-              <b>{{ totalBalance.trx + " " + wallet.chainId }}</b>
-              (≈ {{ totalBalance.usd }} $)
+              <b> ≈ {{ totalBalance }} $</b>
             </small>
           </h3>
           <article v-for="(token, idx) of tokens" :key="idx" class="token">
@@ -32,10 +31,6 @@
               <thead>
                 <tr>
                   <th>Amount</th>
-                  <th v-if="idx !== 0">1 Token to {{ tokens[0].tokenAbbr }}</th>
-                  <th v-if="idx !== 0">
-                    Total Sum in {{ tokens[0].tokenAbbr }}
-                  </th>
                   <th>1 Coin to USD</th>
                   <th>Total Sum in USD</th>
                 </tr>
@@ -43,21 +38,11 @@
               <tbody>
                 <tr>
                   <td>{{ token.balance }}</td>
-                  <td v-if="idx !== 0">
-                    {{
-                      Number.parseInt(token.tokenPriceInChainCoin).toFixed(6)
-                    }}
-                  </td>
-                  <td v-if="idx !== 0">
-                    {{
-                      (token.tokenPriceInChainCoin * token.balance).toFixed(6)
-                    }}
+                  <td>
+                    {{ token.tokenPriceInUSD }}
                   </td>
                   <td>
-                    {{ Number.parseInt(token.tokenPriceInUSD).toFixed(2) }}
-                  </td>
-                  <td>
-                    {{ (token.tokenPriceInUSD * token.balance).toFixed(2) }}
+                    {{ token.balanceInUSD }}
                   </td>
                 </tr>
               </tbody>
@@ -104,28 +89,18 @@
         <form @submit.prevent="sendToken">
           <vs-row>
             <h2 class="subtitle">Send Token</h2>
-            <vs-select
-              class="token-selector"
-              placeholder="Select Token"
-              v-model="sendTokenForm.tokenAbbr"
-            >
+            <vs-select class="token-selector" placeholder="Select Token" v-model="sendTokenForm.tokenAbbr">
               <template #message-danger>
                 {{ sendTokenForm.tokenAbbr ? "" : "Required" }}
               </template>
               <vs-option
-                v-for="(token, idx) of $options.filters.filterTrc20Tokens(
-                  tokens
-                )"
+                v-for="(token, idx) of $options.filters.filterTrc20Tokens(tokens)"
                 :key="idx"
                 :label="token.tokenName"
                 :value="token.tokenAbbr"
                 class="token-selector__option"
               >
-                <img
-                  class="token-selector__logo"
-                  :src="token.tokenLogo"
-                  alt=""
-                />
+                <img class="token-selector__logo" :src="token.tokenLogo" alt="" />
                 {{ token.tokenName }}
               </vs-option>
             </vs-select>
@@ -137,30 +112,16 @@
             placeholder="Receiver Address"
             v-model="sendTokenForm.receiver"
           >
-            <template v-if="!sendTokenForm.receiver" #message-danger>
-              Required
-            </template>
+            <template v-if="!sendTokenForm.receiver" #message-danger> Required </template>
           </vs-input>
           <br />
-          <vs-input
-            name="amount"
-            class="input"
-            label="Amount"
-            placeholder="0.01"
-            v-model="sendTokenForm.amount"
-          >
-            <template v-if="!sendTokenForm.amount" #message-danger>
-              Required
-            </template>
+          <vs-input name="amount" class="input" label="Amount" placeholder="0.01" v-model="sendTokenForm.amount">
+            <template v-if="!sendTokenForm.amount" #message-danger> Required </template>
           </vs-input>
           <div class="send-trx">
             <b v-if="isTrxSuccess">✓</b>
             <vs-button
-              :disabled="
-                !sendTokenForm.tokenAbbr ||
-                !sendTokenForm.receiver ||
-                !sendTokenForm.amount
-              "
+              :disabled="!sendTokenForm.tokenAbbr || !sendTokenForm.receiver || !sendTokenForm.amount"
               v-else
               gradient
               success
@@ -177,72 +138,56 @@
       <vs-table>
         <template #thead>
           <vs-tr>
+            <vs-th> Token </vs-th>
             <vs-th> Id </vs-th>
             <vs-th> In / Out </vs-th>
             <vs-th> Date </vs-th>
             <vs-th> Amount </vs-th>
+            <vs-th> Amount in USD</vs-th>
             <vs-th> From </vs-th>
             <vs-th> To </vs-th>
-            <vs-th> Satus </vs-th>
             <vs-th> Result </vs-th>
           </vs-tr>
         </template>
         <template #tbody>
           <vs-tr
             :key="i"
-            v-for="(tr, i) in $vs.getPage(
-              transactions,
-              transactionsPage,
-              transactionsPerPage
-            )"
+            v-for="(tr, i) in $vs.getPage(transactions, transactionsPage, transactionsPerPage)"
             :data="tr"
           >
             <vs-td>
-              {{ tr.txID | cropLongString }}
+              {{ tr.tokenName }}
             </vs-td>
             <vs-td>
-              {{
-                tr.raw_data.contract[0].parameter.value.owner_address
-                  | detectTransactionOwner(wallet.address.hex)
-              }}
+              {{ tr.txId | cropLongString }}
+            </vs-td>
+            <vs-td>
+              {{ tr.direction }}
             </vs-td>
             <vs-td>
               <div class="max-content">
-                {{ tr.raw_data.timestamp | convertToLocaleDateAndTime }}
+                {{ tr.timestamp | convertToLocaleDateAndTime }}
               </div>
             </vs-td>
             <vs-td>
-              {{
-                tr.raw_data.contract[0].parameter.value.amount | convertToTRX
-              }}
+              {{ tr.amount }}
+            </vs-td>
+            <vs-td>
+              {{ tr.amountInUSD }}
             </vs-td>
             <vs-td>
               <vs-tooltip color="#7d33ff" border-thick>
-                {{
-                  tr.raw_data.contract[0].parameter.value.owner_address
-                    | cropLongString
-                }}
+                {{ tr.from | cropLongString }}
                 <template #tooltip>
-                  {{ tr.raw_data.contract[0].parameter.value.owner_address }}
+                  {{ tr.from }}
                 </template>
               </vs-tooltip>
             </vs-td>
             <vs-td>
-              {{
-                tr.raw_data.contract[0].parameter.value.to_address ||
-                tr.raw_data.contract[0].parameter.value.contract_address
-                  | cropLongString
-              }}
+              {{ tr.to | cropLongString }}
             </vs-td>
-            <vs-td>
-              <span
-                class="status"
-                :class="{ unconfirmed: tr.status === 'UNCONFIRMED' }"
-              >
-                {{ tr.status }}
-              </span>
-            </vs-td>
-            <vs-td>
+
+            <!-- <vs-td>
               <span
                 v-if="tr.ret[0].contractRet === 'SUCCESS'"
                 class="success-status"
@@ -256,14 +201,11 @@
               <span style="color: #f44" v-else>
                 {{ tr.ret[0].contractRet }}</span
               >
-            </vs-td>
+            </vs-td> -->
           </vs-tr>
         </template>
         <template #footer>
-          <vs-pagination
-            v-model="transactionsPage"
-            :length="$vs.getLength(transactions, transactionsPerPage)"
-          />
+          <vs-pagination v-model="transactionsPage" :length="$vs.getLength(transactions, transactionsPerPage)" />
         </template>
       </vs-table>
     </section>
@@ -290,34 +232,13 @@ export default {
       transactionsPage: 1,
       transactionsPerPage: 8,
       tokens: null,
+      totalBalance: 0,
     };
   },
   computed: {
     wallet() {
       const address = this.$route.params.address;
       return this.$store.getters.getWalletByAddress(address);
-    },
-    totalBalance() {
-      if (!this.tokens) {
-        return null;
-      }
-
-      const totalBalance = {
-        trx: 0,
-        usd: 0,
-      };
-
-      totalBalance.trx = this.tokens.reduce((accum, token) => {
-        return accum + +token.balance * token.tokenPriceInChainCoin;
-      }, 0);
-
-      totalBalance.trx = totalBalance.trx.toFixed(6);
-
-      totalBalance.usd = (
-        totalBalance.trx * this.tokens[0].tokenPriceInUSD
-      ).toFixed(2);
-
-      return totalBalance;
     },
   },
   filters: {
@@ -338,11 +259,7 @@ export default {
       return "In";
     },
     convertToLocaleDateAndTime(timestamp) {
-      return (
-        new Date(timestamp).toLocaleDateString() +
-        " " +
-        new Date(timestamp).toLocaleTimeString()
-      );
+      return new Date(timestamp).toLocaleDateString() + " " + new Date(timestamp).toLocaleTimeString();
     },
     filterTrc20Tokens(tokens) {
       return tokens.filter((x) => x.tokenType === "trc20");
@@ -411,9 +328,10 @@ export default {
       this.clearSendTrxForm();
       this.clearSendTokenForm();
     },
-    updateWalletInfo() {
+    async updateWalletInfo() {
       this.getTransactions();
       this.getWalletTokens();
+      this.totalBalance = await this.wallet.getTotalBalanceInUSD();
     },
     async getWalletTokens() {
       this.tokens = await this.wallet.getTokensByAddress();
@@ -450,9 +368,7 @@ export default {
       }
     },
     async sendToken() {
-      const token = this.tokens.find(
-          (x) => x.tokenAbbr === this.sendTokenForm.tokenAbbr
-        ),
+      const token = this.tokens.find((x) => x.tokenAbbr === this.sendTokenForm.tokenAbbr),
         receiverAddress = this.sendTokenForm.receiver,
         cotractAddress = token.contractAddress,
         amount = this.sendTokenForm.amount,

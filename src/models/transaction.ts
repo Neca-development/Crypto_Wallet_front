@@ -6,10 +6,14 @@ export interface ISendingTransactionData {
 }
 
 export interface ITransaction {
-  amount: string;
+  amount: number;
+  amountInUSD: number;
   to: string;
   from: string;
-  costInUSD: string;
   direction: "IN" | "OUT";
-  status: "CONFIRMED" | "UNCOMFIRMED";
+  txId: string;
+  tokenName: string;
+  timestamp: number;
+  status?: "CONFIRMED" | "UNCOMFIRMED";
+  type?: "TransferContract" | "TriggerSmartContract";
 }
