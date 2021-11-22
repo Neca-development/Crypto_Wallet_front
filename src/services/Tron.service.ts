@@ -164,6 +164,7 @@ export class tronService implements IChainService {
       type,
       tokenName: "TRX",
       timestamp: txData.block_timestamp,
+      fee: 0,
     };
   }
 
@@ -190,6 +191,7 @@ export class tronService implements IChainService {
       direction,
       tokenName: txData.token_info.symbol,
       timestamp: txData.block_timestamp,
+      fee: 8,
     };
   }
 }

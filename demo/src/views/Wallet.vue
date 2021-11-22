@@ -24,7 +24,7 @@
               <img :src="token.tokenLogo" alt="" />
               <div>
                 <abbr>{{ token.tokenAbbr }}</abbr> <br />
-                <b>Tron</b>
+                <b>{{ wallet.chainId }}</b>
               </div>
             </div>
             <table class="token__info">
@@ -144,6 +144,7 @@
             <vs-th> Date </vs-th>
             <vs-th> Amount </vs-th>
             <vs-th> Amount in USD</vs-th>
+            <vs-th> Fee</vs-th>
             <vs-th> From </vs-th>
             <vs-th> To </vs-th>
             <vs-th> Result </vs-th>
@@ -174,6 +175,9 @@
             </vs-td>
             <vs-td>
               {{ tr.amountInUSD }}
+            </vs-td>
+            <vs-td>
+              {{ tr.fee }}
             </vs-td>
             <vs-td>
               <vs-tooltip color="#7d33ff" border-thick>

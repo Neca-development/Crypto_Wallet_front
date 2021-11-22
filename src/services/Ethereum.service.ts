@@ -2,6 +2,7 @@
 import { ISendingTransactionData } from "../models/transaction";
 import { IWalletKeys } from "../models/wallet";
 import { IChainService } from "../models/chainService";
+import { ITransaction } from "../models/transaction";
 
 import {
   etherScanApi,
@@ -47,9 +48,7 @@ export class ethereumService implements IChainService {
     );
 
     const mainTokenBalanceInUSD =
-      Math.trunc(
-        this.web3.utils.fromWei(mainToken.result) * ethToUSD.ethereum.usd * 100
-      ) / 100;
+      Math.trunc(this.web3.utils.fromWei(mainToken.result) * ethToUSD.ethereum.usd * 100) / 100;
 
     tokens.push({
       balance: this.web3.utils.fromWei(mainToken.result),
@@ -58,9 +57,8 @@ export class ethereumService implements IChainService {
       contractAddress: "_",
       tokenAbbr: "ETH",
       tokenName: "ETH",
-      tokenType: "eth",
-      tokenLogo:
-        "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
+      tokenType: "mainToken",
+      tokenLogo: "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
       tokenPriceInUSD: ethToUSD.ethereum.usd,
     });
 
@@ -68,9 +66,8 @@ export class ethereumService implements IChainService {
       `${etherScanApi}?module=account&action=tokenbalance&contractaddress=${etherUSDTContractAddress}&address=${address}&tag=latest&apikey=${etherScanApiKey}`
     );
 
-    const USDTDecimal = 10e6;
-    const USDTbalanceInUSD =
-      Math.trunc((USDT.result / USDTDecimal) * 100) / 100;
+    const USDTDecimal = 1e6;
+    const USDTbalanceInUSD = Math.trunc((USDT.result / USDTDecimal) * 100) / 100;
 
     tokens.push({
       balance: USDT.result / USDTDecimal,
@@ -79,44 +76,37 @@ export class ethereumService implements IChainService {
       contractAddress: "_",
       tokenAbbr: "USDT",
       tokenName: "USD Tether",
-      tokenType: "ERC-20",
+      tokenType: "smartToken",
       tokenLogo: "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png",
-      tokenPriceInUSD: ethToUSD.ethereum.usd,
+      tokenPriceInUSD: 1,
     });
 
     return tokens;
   }
 
-  async getTransactionsHistoryByAddress(address: string) {
-    const transactions = [];
-    let confirmedTransactions: any[] = [];
-    let unconfirmedTransactions: any[] = [];
-
-    // get last 200 confirmed transactions
-    await axios
-      .get(
-        `https://api.trongrid.io/v1/accounts/${address}/transactions?limit=200&only_confirmed=true&fingerprint`
-      )
-      .then(
-        ({ data }: any) =>
-          (confirmedTransactions = data.data.map((x: any) => {
-            x.status = "CONFIRMED";
-            return x;
-          }))
-      );
-
-    // get up to 200 last uncofirmed transactions
-    await axios(
-      `https://api.trongrid.io/v1/accounts/${address}/transactions?limit=200&only_unconfirmed=true`
-    ).then(
-      ({ data }: any) =>
-        (unconfirmedTransactions = data.data.map((x: any) => {
-          x.status = "UNCONFIRMED";
-          return x;
-        }))
+  async getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]> {
+    address = address.toLowerCase();
+    const { data: ethToUSD } = await axios.get(
+      `${coinConverterApi}/v3/simple/price?ids=ethereum&vs_currencies=usd,tether`
     );
 
-    transactions.push(...unconfirmedTransactions, ...confirmedTransactions);
+    const transactions = [];
+
+    const trxTransactions = await this.getNormalTransactions(address, ethToUSD.ethereum.usd);
+
+    const usdtTransactions = await this.getUSDTTransactions(address);
+
+    transactions.push(...trxTransactions, ...usdtTransactions);
+
+    transactions.sort((a, b) => {
+      if (a.timestamp > b.timestamp) {
+        return -1;
+      } else if (a.timestamp < b.timestamp) {
+        return 1;
+      } else {
+        return 0;
+      }
+    });
 
     return transactions;
   }
@@ -155,5 +145,96 @@ export class ethereumService implements IChainService {
     const token = tokens.find((x: any) => x.tokenAbbr === tokenAbbr);
 
     return token.tokenId;
+  }
+
+  /**
+   * @param {string} address:string
+   * @param {number} ethToUSD:number
+   * @returns {Promise<ITransaction[]>}
+   */
+  private async getNormalTransactions(address: string, ethToUSD: number): Promise<ITransaction[]> {
+    // get last 200  transactions
+
+    const { data: transactions } = await axios.get(
+      `${etherScanApi}?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&page=1&apikey=${etherScanApiKey}`
+    );
+
+    return transactions.result.map((transaction: any) => {
+      return this.convertTransactionToCommonFormat(transaction, address, ethToUSD);
+    });
+  }
+
+  /**
+   * @param {string} address:string
+   * @returns {Promise<ITransaction[]>}
+   */
+  private async getUSDTTransactions(address: string): Promise<ITransaction[]> {
+    const { data: transactions } = await axios.get(
+      `${etherScanApi}?module=account&action=tokentx&address=${address}&startblock=0&endblock=99999999&page=1&apikey=${etherScanApiKey}`
+    );
+
+    return transactions.result.map((transaction: any) => {
+      return this.convertUSDTTransactionToCommonFormat(transaction, address);
+    });
+  }
+
+  /**
+   * 描述
+   * @date 2021-11-20
+   * @param {any} txData:any
+   * @param {string} address:string
+   * @param {number} trxToUSD:number
+   * @returns {ITransaction}
+   */
+  private convertTransactionToCommonFormat(txData: any, address: string, ethToUSD: number): ITransaction {
+    const to = txData.to,
+      from = txData.from,
+      amount = +this.web3.utils.fromWei(txData.value),
+      fee = +(+this.web3.utils.fromWei((txData.gasUsed * txData.gasPrice).toString())).toFixed(6),
+      direction = from === address ? "OUT" : "IN",
+      amountInUSD = Math.trunc(amount * ethToUSD * 100) / 100;
+
+    return {
+      to,
+      from,
+      amount,
+      amountInUSD,
+      txId: txData.hash,
+      direction,
+      tokenName: "ETH",
+      timestamp: +txData.timeStamp,
+      fee,
+    };
+  }
+
+  /**
+   * @param {any} txData:any
+   * @param {string} address:string
+   * @param {number} trxToUSD:number
+   * @returns {ITransaction}
+   */
+  private convertUSDTTransactionToCommonFormat(txData: any, address: string): ITransaction {
+    let decimal = "1";
+    for (let i = 0; i < txData.tokenDecimal; i++) {
+      decimal += "0";
+    }
+
+    const to = txData.to,
+      from = txData.from,
+      amount = txData.value / +decimal,
+      fee = +(+this.web3.utils.fromWei((txData.gasUsed * txData.gasPrice).toString())).toFixed(6),
+      direction = from === address ? "OUT" : "IN";
+
+    return {
+      to,
+      from,
+      amount,
+      amountInUSD: amount,
+      txId: txData.hash,
+      direction,
+      tokenName: txData.tokenSymbol,
+      timestamp: +txData.timeStamp,
+      fee,
+    };
   }
 }

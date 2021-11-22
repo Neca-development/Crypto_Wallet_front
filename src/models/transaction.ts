@@ -16,4 +16,5 @@ export interface ITransaction {
   timestamp: number;
   status?: "CONFIRMED" | "UNCOMFIRMED";
   type?: "TransferContract" | "TriggerSmartContract";
+  fee: number;
 }
