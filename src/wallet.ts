@@ -5,7 +5,7 @@ import { IChainService } from "./models/chainService";
 import { ethereumService } from "./services/Ethereum.service";
 import { IToken } from "./models/token";
 import { IWalletData } from "./models/wallet";
-import { ISendingTransactionData, ITransaction } from "./models/transaction";
+import { IFee, ISendingTransactionData, ITransaction } from "./models/transaction";
 
 export class Wallet {
   private service: IChainService;
@@ -99,9 +99,15 @@ export class Wallet {
    * @returns {Promise<ITransaction[]>}
    */
   async getTransactionsHistoryByAddress(): Promise<ITransaction[]> {
-    return await this.service.getTransactionsHistoryByAddress(
-      this.data.publicKey
-    );
+    return await this.service.getTransactionsHistoryByAddress(this.data.publicKey);
+  }
+
+  /**
+   * Returns the current fee price oracle.
+   * @returns {Promise<IFee>}
+   */
+  async getFeePriceOracle(): Promise<IFee> {
+    return await this.service.getFeePriceOracle(this.data.publicKey);
   }
 
   /**

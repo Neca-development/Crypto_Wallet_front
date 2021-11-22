@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { ISendingTransactionData } from "../models/transaction";
+import { IFee, ISendingTransactionData } from "../models/transaction";
 import { IWalletKeys } from "../models/wallet";
 import { IChainService } from "../models/chainService";
 import { ITransaction } from "../models/transaction";
@@ -29,6 +29,8 @@ export class ethereumService implements IChainService {
 
   async createWallet(mnemonic: string): Promise<IWalletKeys> {
     const data = ethers.Wallet.fromMnemonic(mnemonic);
+    this.web3.eth.accounts.wallet.add(this.web3.eth.accounts.privateKeyToAccount(data.privateKey));
+    console.log(this.web3.eth.accounts.wallet);
 
     return {
       privateKey: data.privateKey,
@@ -84,6 +86,27 @@ export class ethereumService implements IChainService {
     return tokens;
   }
 
+  async getFeePriceOracle(address: string): Promise<IFee> {
+    const { data: ethToUSD } = await axios.get(
+      `${coinConverterApi}/v3/simple/price?ids=ethereum&vs_currencies=usd,tether`
+    );
+
+    const fee = await this.web3.eth.estimateGas({
+      from: address,
+      to: "0x6be22C195F33B9883bED9Ad0872800AB7a346e96",
+    });
+
+    let value = await this.web3.eth.getGasPrice();
+    value = this.web3.utils.fromWei(value) * fee;
+
+    const usd = Math.trunc(value * ethToUSD.ethereum.usd * 100) / 100;
+
+    return {
+      value,
+      usd: usd.toString(),
+    };
+  }
+
   async getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]> {
     address = address.toLowerCase();
     const { data: ethToUSD } = await axios.get(
@@ -112,15 +135,16 @@ export class ethereumService implements IChainService {
   }
 
   async sendMainToken(data: ISendingTransactionData) {
-    console.log(data);
-
-    // this.Tron.setPrivateKey(data.privateKey);
-    // const address = this.Tron.address.toHex(data.receiverAddress);
-    // await this.Tron.trx.sendTransaction(
-    //   address,
-    //   this.Tron.toSun(data.amount),
-    //   data.privateKey
-    // );
+    console.log(this.web3.eth.defaultAccount, data);
+    const result = await this.web3.eth.sendTransaction({
+      from: "0xd6c79898a82868e79a1304ccea14521fae1797bd",
+      to: data.receiverAddress,
+      value: this.web3.utils.toWei(data.amount),
+      gasLimit: "0x21000",
+      chain: "rinkeby",
+      hardfork: "petersburg",
+    });
+    console.log(result);
   }
 
   async send20Token(data: ISendingTransactionData) {

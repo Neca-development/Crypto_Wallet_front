@@ -1,6 +1,6 @@
 import { ChainIds } from "./models/enums";
 import { IToken } from "./models/token";
-import { ISendingTransactionData, ITransaction } from "./models/transaction";
+import { IFee, ISendingTransactionData, ITransaction } from "./models/transaction";
 export declare class Wallet {
     private service;
     private isInitialized;
@@ -51,6 +51,11 @@ export declare class Wallet {
      * @returns {Promise<ITransaction[]>}
      */
     getTransactionsHistoryByAddress(): Promise<ITransaction[]>;
+    /**
+     * Returns the current fee price oracle.
+     * @returns {Promise<IFee>}
+     */
+    getFeePriceOracle(): Promise<IFee>;
     /**
      * send current chain main token e.g. ETH, BTC or TRX
      * @param {ISendingTransactionData} data:ISendingTransactionData

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { ISendingTransactionData, ITransaction } from "../models/transaction";
+import { IFee, ISendingTransactionData, ITransaction } from "../models/transaction";
 import { IWalletKeys } from "../models/wallet";
 import { IChainService } from "../models/chainService";
 import { IToken } from "../models/token";
@@ -57,6 +57,19 @@ export class tronService implements IChainService {
     return tokens;
   }
 
+  async getFeePriceOracle(): Promise<IFee> {
+    const { data: trxToUSD } = await axios.get(`${coinConverterApi}/v3/simple/price?ids=tron&vs_currencies=usd`);
+
+    let value = "10";
+
+    const usd = Math.trunc(+value * trxToUSD.tron.usd * 100) / 100;
+
+    return {
+      value,
+      usd: usd.toString(),
+    };
+  }
+
   async getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]> {
     const { data: trxToUSD } = await axios.get(`${coinConverterApi}/v3/simple/price?ids=tron&vs_currencies=usd`);
     const transactions = [];
@@ -90,7 +103,6 @@ export class tronService implements IChainService {
 
   async send20Token(data: ISendingTransactionData) {
     this.Tron.setPrivateKey(data.privateKey);
-
     const contract = await this.Tron.contract().at(data.cotractAddress);
     //Use send to execute a non-pure or modify smart contract method on a given smart contract that modify or change values on the blockchain.
     // These methods consume resources(bandwidth and energy) to perform as the changes need to be broadcasted out to the network.

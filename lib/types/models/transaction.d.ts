@@ -17,4 +17,8 @@ export interface ITransaction {
     type?: "TransferContract" | "TriggerSmartContract";
     fee: number;
 }
+export interface IFee {
+    value: string;
+    usd: string;
+}
 //# sourceMappingURL=transaction.d.ts.map

@@ -63,7 +63,7 @@
     <div v-if="tokens" class="grid-row">
       <section class="wallet-page__send-trx">
         <form @submit.prevent="sendTrx">
-          <h2 class="subtitle">Send TRX</h2>
+          <h2 class="subtitle">Send {{ tokens[0].tokenAbbr }}</h2>
           <vs-input
             class="input"
             label="To"
@@ -276,8 +276,9 @@ export default {
 
       this.transactionsPage = 1;
     },
-    wallet() {
+    async wallet() {
       this.updateWalletInfo();
+      console.log(await this.wallet.getFeePriceOracle());
     },
   },
   mounted() {

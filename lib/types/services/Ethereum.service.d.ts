@@ -1,4 +1,4 @@
-import { ISendingTransactionData } from "../models/transaction";
+import { IFee, ISendingTransactionData } from "../models/transaction";
 import { IWalletKeys } from "../models/wallet";
 import { IChainService } from "../models/chainService";
 import { ITransaction } from "../models/transaction";
@@ -8,6 +8,7 @@ export declare class ethereumService implements IChainService {
     constructor();
     createWallet(mnemonic: string): Promise<IWalletKeys>;
     getTokensByAddress(address: string): Promise<IToken[]>;
+    getFeePriceOracle(address: string): Promise<IFee>;
     getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]>;
     sendMainToken(data: ISendingTransactionData): Promise<void>;
     send20Token(data: ISendingTransactionData): Promise<void>;

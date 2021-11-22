@@ -1,4 +1,4 @@
-import { ISendingTransactionData, ITransaction } from "../models/transaction";
+import { IFee, ISendingTransactionData, ITransaction } from "../models/transaction";
 import { IWalletKeys } from "../models/wallet";
 import { IChainService } from "../models/chainService";
 import { IToken } from "../models/token";
@@ -7,6 +7,7 @@ export declare class tronService implements IChainService {
     constructor();
     createWallet(mnemonic: string): Promise<IWalletKeys>;
     getTokensByAddress(address: string): Promise<IToken[]>;
+    getFeePriceOracle(): Promise<IFee>;
     getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]>;
     sendMainToken(data: ISendingTransactionData): Promise<void>;
     send20Token(data: ISendingTransactionData): Promise<void>;
