@@ -104,10 +104,11 @@ export class Wallet {
 
   /**
    * Returns the current fee price oracle.
+   * @param {string} receiverAddress
    * @returns {Promise<IFee>}
    */
-  async getFeePriceOracle(): Promise<IFee> {
-    return await this.service.getFeePriceOracle(this.data.publicKey);
+  async getFeePriceOracle(receiverAddress: string): Promise<IFee> {
+    return await this.service.getFeePriceOracle(this.data.publicKey, receiverAddress);
   }
 
   /**

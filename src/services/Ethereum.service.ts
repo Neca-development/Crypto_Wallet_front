@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { IFee, ISendingTransactionData } from "../models/transaction";
-import { IWalletKeys } from "../models/wallet";
-import { IChainService } from "../models/chainService";
-import { ITransaction } from "../models/transaction";
+import { IFee, ISendingTransactionData } from '../models/transaction';
+import { IWalletKeys } from '../models/wallet';
+import { IChainService } from '../models/chainService';
+import { ITransaction } from '../models/transaction';
 
 import {
   etherScanApi,
@@ -10,15 +10,15 @@ import {
   web3Provider,
   coinConverterApi,
   etherUSDTContractAddress,
-} from "../constants/providers";
+} from '../constants/providers';
 
 // @ts-ignore
-import axios from "axios";
-import Web3 from "web3";
+import axios from 'axios';
+import Web3 from 'web3';
 // @ts-ignore
 // import Wallet from "lumi-web-core";
-import { ethers } from "ethers";
-import { IToken } from "../models/token";
+import { ethers } from 'ethers';
+import { IToken } from '../models/token';
 
 export class ethereumService implements IChainService {
   private web3: any;
@@ -31,6 +31,8 @@ export class ethereumService implements IChainService {
     const data = ethers.Wallet.fromMnemonic(mnemonic);
     this.web3.eth.accounts.wallet.add(this.web3.eth.accounts.privateKeyToAccount(data.privateKey));
     console.log(this.web3.eth.accounts.wallet);
+
+    console.log(await this.web3.eth.getChainId());
 
     return {
       privateKey: data.privateKey,
@@ -55,12 +57,12 @@ export class ethereumService implements IChainService {
     tokens.push({
       balance: this.web3.utils.fromWei(mainToken.result),
       balanceInUSD: mainTokenBalanceInUSD,
-      tokenId: "_",
-      contractAddress: "_",
-      tokenAbbr: "ETH",
-      tokenName: "ETH",
-      tokenType: "mainToken",
-      tokenLogo: "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
+      tokenId: '_',
+      contractAddress: '_',
+      tokenAbbr: 'ETH',
+      tokenName: 'ETH',
+      tokenType: 'mainToken',
+      tokenLogo: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880',
       tokenPriceInUSD: ethToUSD.ethereum.usd,
     });
 
@@ -74,30 +76,30 @@ export class ethereumService implements IChainService {
     tokens.push({
       balance: USDT.result / USDTDecimal,
       balanceInUSD: USDTbalanceInUSD,
-      tokenId: "_",
-      contractAddress: "_",
-      tokenAbbr: "USDT",
-      tokenName: "USD Tether",
-      tokenType: "smartToken",
-      tokenLogo: "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png",
+      tokenId: '_',
+      contractAddress: '_',
+      tokenAbbr: 'USDT',
+      tokenName: 'USD Tether',
+      tokenType: 'smartToken',
+      tokenLogo: 'https://s2.coinmarketcap.com/static/img/coins/64x64/825.png',
       tokenPriceInUSD: 1,
     });
 
     return tokens;
   }
 
-  async getFeePriceOracle(address: string): Promise<IFee> {
+  async getFeePriceOracle(from: string, to: string): Promise<IFee> {
     const { data: ethToUSD } = await axios.get(
       `${coinConverterApi}/v3/simple/price?ids=ethereum&vs_currencies=usd,tether`
     );
 
     const fee = await this.web3.eth.estimateGas({
-      from: address,
-      to: "0x6be22C195F33B9883bED9Ad0872800AB7a346e96",
+      from,
+      to,
     });
 
     let value = await this.web3.eth.getGasPrice();
-    value = this.web3.utils.fromWei(value) * fee;
+    value = (this.web3.utils.fromWei(value) * fee).toString();
 
     const usd = Math.trunc(value * ethToUSD.ethereum.usd * 100) / 100;
 
@@ -135,14 +137,17 @@ export class ethereumService implements IChainService {
   }
 
   async sendMainToken(data: ISendingTransactionData) {
-    console.log(this.web3.eth.defaultAccount, data);
+    let gasPrice = await this.web3.eth.getGasPrice();
+
+    let gasCount = Math.trunc(this.web3.utils.toWei(data.fee) / gasPrice);
+
     const result = await this.web3.eth.sendTransaction({
-      from: "0xd6c79898a82868e79a1304ccea14521fae1797bd",
+      from: '0xd6c79898a82868e79a1304ccea14521fae1797bd',
       to: data.receiverAddress,
-      value: this.web3.utils.toWei(data.amount),
-      gasLimit: "0x21000",
-      chain: "rinkeby",
-      hardfork: "petersburg",
+      value: this.web3.utils.numberToHex(this.web3.utils.toWei(data.amount)),
+      gasLimit: this.web3.utils.numberToHex(gasCount),
+      chain: 'rinkeby',
+      hardfork: 'london',
     });
     console.log(result);
   }
@@ -215,7 +220,7 @@ export class ethereumService implements IChainService {
       from = txData.from,
       amount = +this.web3.utils.fromWei(txData.value),
       fee = +(+this.web3.utils.fromWei((txData.gasUsed * txData.gasPrice).toString())).toFixed(6),
-      direction = from === address ? "OUT" : "IN",
+      direction = from === address ? 'OUT' : 'IN',
       amountInUSD = Math.trunc(amount * ethToUSD * 100) / 100;
 
     return {
@@ -225,7 +230,7 @@ export class ethereumService implements IChainService {
       amountInUSD,
       txId: txData.hash,
       direction,
-      tokenName: "ETH",
+      tokenName: 'ETH',
       timestamp: +txData.timeStamp,
       fee,
     };
@@ -238,16 +243,16 @@ export class ethereumService implements IChainService {
    * @returns {ITransaction}
    */
   private convertUSDTTransactionToCommonFormat(txData: any, address: string): ITransaction {
-    let decimal = "1";
+    let decimal = '1';
     for (let i = 0; i < txData.tokenDecimal; i++) {
-      decimal += "0";
+      decimal += '0';
     }
 
     const to = txData.to,
       from = txData.from,
       amount = txData.value / +decimal,
       fee = +(+this.web3.utils.fromWei((txData.gasUsed * txData.gasPrice).toString())).toFixed(6),
-      direction = from === address ? "OUT" : "IN";
+      direction = from === address ? 'OUT' : 'IN';
 
     return {
       to,

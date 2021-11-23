@@ -75,6 +75,7 @@
           <vs-input
             name="amount"
             class="input"
+            @change="calcFee"
             label="Amount"
             placeholder="0.01"
             v-model="sendTrxForm.amount"
@@ -83,6 +84,7 @@
             <b v-if="isTrxSuccess">✓</b>
             <vs-button v-else gradient success> Send </vs-button>
           </div>
+          <span v-if="fee">Fee is: {{ fee.value }} ({{ fee.usd }}$)</span>
         </form>
       </section>
       <section class="wallet-page__send-trx">
@@ -237,6 +239,7 @@ export default {
       transactionsPerPage: 8,
       tokens: null,
       totalBalance: 0,
+      fee: null,
     };
   },
   computed: {
@@ -278,7 +281,6 @@ export default {
     },
     async wallet() {
       this.updateWalletInfo();
-      console.log(await this.wallet.getFeePriceOracle());
     },
   },
   mounted() {
@@ -333,6 +335,9 @@ export default {
       this.clearSendTrxForm();
       this.clearSendTokenForm();
     },
+    async calcFee() {
+      this.fee = await this.wallet.getFeePriceOracle(this.sendTokenForm.receiverAddress);
+    },
     async updateWalletInfo() {
       this.getTransactions();
       this.getWalletTokens();
@@ -350,6 +355,7 @@ export default {
           privateKey: this.wallet.privateKey,
           receiverAddress: this.sendTrxForm.receiver,
           amount: this.sendTrxForm.amount,
+          fee: this.fee.value,
         });
         this.isTrxSuccess = true;
         setTimeout(() => {

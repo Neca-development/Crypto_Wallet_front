@@ -1,13 +1,13 @@
-import { Wallet } from "./wallet";
+import { Wallet } from './wallet';
 // @ts-ignore
-import hdWallet from "tron-wallet-hd";
-import { ChainIds } from "./models/enums";
-import { ICreateWalletsData } from "./models/wallet";
+import hdWallet from 'tron-wallet-hd';
+import { ChainIds } from './models/enums';
+import { ICreateWalletsData } from './models/wallet';
 
 export class WalletFactory {
   /**
    * Create a single wallet for every chain
-   * set menmonic to restore wallet. By default generate new menmonic
+   * @desc set menmonic to restore wallet. By default generate new menmonic. If mnemonic were passed, method restore existing wallets
    * @param {string} mnemonic
    * @returns {Promise<Wallet[]>}
    */

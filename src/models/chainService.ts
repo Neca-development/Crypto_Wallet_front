@@ -5,7 +5,7 @@ export interface IChainService {
   createWallet(mnemonic: string): any;
   getTokensByAddress(address: string): Promise<IToken[]>;
   getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]>;
-  getFeePriceOracle(address: string): Promise<IFee>;
+  getFeePriceOracle(from: string, to: string): Promise<IFee>;
   sendMainToken(data: ISendingTransactionData): Promise<void>;
   send20Token(data: ISendingTransactionData): Promise<void>;
 }

@@ -53,9 +53,10 @@ export declare class Wallet {
     getTransactionsHistoryByAddress(): Promise<ITransaction[]>;
     /**
      * Returns the current fee price oracle.
+     * @param {string} receiverAddress
      * @returns {Promise<IFee>}
      */
-    getFeePriceOracle(): Promise<IFee>;
+    getFeePriceOracle(receiverAddress: string): Promise<IFee>;
     /**
      * send current chain main token e.g. ETH, BTC or TRX
      * @param {ISendingTransactionData} data:ISendingTransactionData

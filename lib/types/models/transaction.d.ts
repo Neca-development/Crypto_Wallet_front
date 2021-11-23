@@ -2,6 +2,10 @@ export interface ISendingTransactionData {
     privateKey: string;
     receiverAddress: string;
     amount: number;
+    /**
+     * @desc take fee in main chain token
+     */
+    fee: string;
     cotractAddress?: string;
 }
 export interface ITransaction {

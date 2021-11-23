@@ -1,14 +1,14 @@
-import { IFee, ISendingTransactionData } from "../models/transaction";
-import { IWalletKeys } from "../models/wallet";
-import { IChainService } from "../models/chainService";
-import { ITransaction } from "../models/transaction";
-import { IToken } from "../models/token";
+import { IFee, ISendingTransactionData } from '../models/transaction';
+import { IWalletKeys } from '../models/wallet';
+import { IChainService } from '../models/chainService';
+import { ITransaction } from '../models/transaction';
+import { IToken } from '../models/token';
 export declare class ethereumService implements IChainService {
     private web3;
     constructor();
     createWallet(mnemonic: string): Promise<IWalletKeys>;
     getTokensByAddress(address: string): Promise<IToken[]>;
-    getFeePriceOracle(address: string): Promise<IFee>;
+    getFeePriceOracle(from: string, to: string): Promise<IFee>;
     getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]>;
     sendMainToken(data: ISendingTransactionData): Promise<void>;
     send20Token(data: ISendingTransactionData): Promise<void>;
