@@ -109,6 +109,10 @@ export class ethereumService implements IChainService {
     };
   }
 
+  /**
+   * @param {ISendingTransactionData} data:ISendingTransactionData
+   * @returns {any}
+   */
   async getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]> {
     address = address.toLowerCase();
     const { data: ethToUSD } = await axios.get(
