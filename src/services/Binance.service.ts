@@ -23,11 +23,11 @@ import { ethers } from 'ethers';
 import { IToken } from '../models/token';
 import { getNumberFromDecimal } from '../utils/numbers';
 
-export class ethereumService implements IChainService {
+export class binanceService implements IChainService {
   private web3: Web3;
 
   constructor() {
-    this.web3 = new Web3(web3Provider);
+    this.web3 = new Web3('https://data-seed-prebsc-1-s1.binance.org:8545/');
   }
 
   async createWallet(mnemonic: string): Promise<IWalletKeys> {
@@ -43,47 +43,43 @@ export class ethereumService implements IChainService {
 
   async getTokensByAddress(address: string) {
     const tokens: Array<IToken> = [];
+    const nativeToken = this.web3.utils.fromWei(await this.web3.eth.getBalance(address));
 
-    const { data: ethToUSD } = await axios.get(
-      `${coinConverterApi}/v3/simple/price?ids=ethereum&vs_currencies=usd,tether`
+    const { data: bnbToUSD } = await axios.get(
+      `${coinConverterApi}/v3/simple/price?ids=binancecoin&vs_currencies=usd,tether`
     );
 
-    const { data: mainToken } = await axios.get(
-      `${etherScanApi}?module=account&action=balance&address=${address}&tag=latest&apikey=${etherScanApiKey}`
-    );
-
-    const mainTokenBalanceInUSD =
-      Math.trunc(+this.web3.utils.fromWei(mainToken.result) * ethToUSD.ethereum.usd * 100) / 100;
+    const mainTokenBalanceInUSD = Math.trunc(+nativeToken * bnbToUSD.binancecoin.usd * 100) / 100;
 
     tokens.push({
-      balance: +this.web3.utils.fromWei(mainToken.result),
+      balance: +nativeToken,
       balanceInUSD: mainTokenBalanceInUSD,
       tokenId: '_',
       contractAddress: '_',
-      tokenAbbr: 'ETH',
-      tokenName: 'ETH',
+      tokenAbbr: 'BNB',
+      tokenName: 'Binance Coin',
       tokenType: 'mainToken',
-      tokenLogo: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880',
-      tokenPriceInUSD: ethToUSD.ethereum.usd,
+      tokenLogo: 'https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png',
+      tokenPriceInUSD: bnbToUSD.binancecoin.usd,
     });
 
-    const contract = new this.web3.eth.Contract(etherUSDTAbi as any, etherUSDTContractAddress);
-    const result = await contract.methods.balanceOf(address).call();
-    const decimals = getNumberFromDecimal(+(await contract.methods.decimals().call()));
+    // const contract = new this.web3.eth.Contract(etherUSDTAbi as any, etherUSDTContractAddress);
+    // const result = await contract.methods.balanceOf(address).call();
+    // const decimals = getNumberFromDecimal(+(await contract.methods.decimals().call()));
 
-    const USDTbalanceInUSD = Math.trunc((result / decimals) * 100) / 100;
+    // const USDTbalanceInUSD = Math.trunc((result / decimals) * 100) / 100;
 
-    tokens.push({
-      balance: result / decimals,
-      balanceInUSD: USDTbalanceInUSD,
-      tokenId: '_',
-      contractAddress: etherUSDTContractAddress,
-      tokenAbbr: 'USDT',
-      tokenName: 'USD Tether',
-      tokenType: 'smartToken',
-      tokenLogo: 'https://s2.coinmarketcap.com/static/img/coins/64x64/825.png',
-      tokenPriceInUSD: 1,
-    });
+    // tokens.push({
+    //   balance: result / decimals,
+    //   balanceInUSD: USDTbalanceInUSD,
+    //   tokenId: '_',
+    //   contractAddress: etherUSDTContractAddress,
+    //   tokenAbbr: 'USDT',
+    //   tokenName: 'USD Tether',
+    //   tokenType: 'smartToken',
+    //   tokenLogo: 'https://s2.coinmarketcap.com/static/img/coins/64x64/825.png',
+    //   tokenPriceInUSD: 1,
+    // });
 
     return tokens;
   }
@@ -141,14 +137,15 @@ export class ethereumService implements IChainService {
   }
 
   async sendMainToken(data: ISendingTransactionData) {
-    // let gasPrice = await this.web3.eth.getGasPrice();
-
-    // let gasCount = Math.trunc(+this.web3.utils.toWei(data.fee) / +gasPrice);
+    const gasPrice = await this.web3.eth.getGasPrice();
+    const gasCount = Math.trunc(+this.web3.utils.toWei(data.fee) / +gasPrice);
 
     const result = await this.web3.eth.sendTransaction({
       from: this.web3.eth.defaultAccount,
       to: data.receiverAddress,
       value: this.web3.utils.numberToHex(this.web3.utils.toWei(data.amount.toString())),
+      gasPrice: gasPrice,
+      gas: gasCount,
     });
     console.log(result);
   }
