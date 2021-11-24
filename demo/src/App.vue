@@ -5,13 +5,13 @@
   </div>
 </template>
 <script>
-import SidebarVue from "./components/Sidebar.vue";
-import { mapActions } from "vuex";
-import { WalletFactory } from "../../lib/main";
+import SidebarVue from './components/Sidebar.vue';
+import { mapActions } from 'vuex';
+import { WalletFactory } from '../../lib/main';
 
 export default {
   components: {
-    "app-sidebar": SidebarVue,
+    'app-sidebar': SidebarVue,
   },
   data() {
     return {
@@ -19,15 +19,16 @@ export default {
     };
   },
   methods: {
-    ...mapActions(["setTronInstance", "setCoinsToUSD"]),
+    ...mapActions(['setTronInstance', 'setCoinsToUSD']),
   },
   async created() {
     const wf = new WalletFactory();
     const data = await wf.createWallets(
-      "light afraid crawl solve chicken receive sound prize figure turn punch angry"
+      'light afraid crawl solve chicken receive sound prize figure turn punch angry'
+      // 'dizzy marine toilet tenant scatter dutch later you blame opinion verify rice'
     );
 
-    this.$store.commit("ADD_WALLETS", data.wallets);
+    this.$store.commit('ADD_WALLETS', data.wallets);
   },
   beforeDestroy() {
     clearInterval(this.coinsToUSDIntervalID);

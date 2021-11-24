@@ -1,5 +1,5 @@
 <template>
-  <div class="wallet-page">
+  <div v-if="wallet" class="wallet-page">
     <section class="wallet-page__info">
       <h2 class="address">
         <span class="address__caption">Address</span>
@@ -56,7 +56,7 @@
           border
           @click="copyPrivKeyToCb"
         >
-          {{ isPrvKeySuccessCopied ? "✓ Copied" : "Copy private key" }}
+          {{ isPrvKeySuccessCopied ? '✓ Copied' : 'Copy private key' }}
         </vs-button>
       </vs-row>
     </section>
@@ -93,7 +93,7 @@
             <h2 class="subtitle">Send Token</h2>
             <vs-select class="token-selector" placeholder="Select Token" v-model="sendTokenForm.tokenAbbr">
               <template #message-danger>
-                {{ sendTokenForm.tokenAbbr ? "" : "Required" }}
+                {{ sendTokenForm.tokenAbbr ? '' : 'Required' }}
               </template>
               <vs-option
                 v-for="(token, idx) of $options.filters.filterTrc20Tokens(tokens)"
@@ -223,13 +223,13 @@ export default {
   data() {
     return {
       sendTrxForm: {
-        receiver: "",
-        amount: "",
+        receiver: '',
+        amount: '',
       },
       sendTokenForm: {
-        tokenAbbr: "",
-        receiver: "",
-        amount: "",
+        tokenAbbr: '',
+        receiver: '',
+        amount: '',
       },
       isPrvKeySuccessCopied: false,
       isTrxSuccess: false,
@@ -257,23 +257,26 @@ export default {
         return val;
       }
 
-      return val.substr(0, 8) + "..." + val.substr(-8, 8);
+      return val.substr(0, 8) + '...' + val.substr(-8, 8);
     },
     detectTransactionOwner(val, address) {
       if (val === address) {
-        return "Out";
+        return 'Out';
       }
-      return "In";
+      return 'In';
     },
     convertToLocaleDateAndTime(timestamp) {
-      return new Date(timestamp).toLocaleDateString() + " " + new Date(timestamp).toLocaleTimeString();
+      return new Date(timestamp).toLocaleDateString() + ' ' + new Date(timestamp).toLocaleTimeString();
     },
     filterTrc20Tokens(tokens) {
-      return tokens.filter((x) => x.tokenType === "trc20");
+      return tokens;
     },
   },
   watch: {
     $route() {
+      if (this.wallet === null) {
+        return;
+      }
       this.updateWalletInfo();
       this.clearForms();
 
@@ -298,10 +301,10 @@ export default {
     copyAddress() {
       navigator.clipboard.writeText(this.wallet.address).then(
         function () {
-          console.log("Async: Copying to clipboard was successful!");
+          console.log('Async: Copying to clipboard was successful!');
         },
         function (err) {
-          console.error("Async: Could not copy text: ", err);
+          console.error('Async: Could not copy text: ', err);
         }
       );
     },
@@ -314,21 +317,21 @@ export default {
           }, 1000);
         },
         function (err) {
-          console.error("Async: Could not copy text: ", err);
+          console.error('Async: Could not copy text: ', err);
         }
       );
     },
     clearSendTrxForm() {
       this.sendTrxForm = {
-        receiver: "",
-        amount: "",
+        receiver: '',
+        amount: '',
       };
     },
     clearSendTokenForm() {
       this.sendTokenForm = {
-        tokenAbbr: "",
-        receiver: "",
-        amount: "",
+        tokenAbbr: '',
+        receiver: '',
+        amount: '',
       };
     },
     clearForms() {
@@ -339,6 +342,9 @@ export default {
       this.fee = await this.wallet.getFeePriceOracle(this.sendTokenForm.receiverAddress);
     },
     async updateWalletInfo() {
+      if (this.wallet === null) {
+        return;
+      }
       this.getTransactions();
       this.getWalletTokens();
       this.totalBalance = await this.wallet.getTotalBalanceInUSD();
@@ -362,18 +368,18 @@ export default {
           this.isTrxSuccess = false;
         }, 1000);
         this.$vs.notification({
-          color: "success",
-          title: "Success",
-          position: "top-right",
-          text: "Transaction was successfully sended",
+          color: 'success',
+          title: 'Success',
+          position: 'top-right',
+          text: 'Transaction was successfully sended',
         });
         this.clearSendTrxForm();
       } catch (error) {
         console.log(error);
         this.$vs.notification({
-          color: "danger",
-          title: "Error",
-          position: "top-right",
+          color: 'danger',
+          title: 'Error',
+          position: 'top-right',
           text: error,
         });
       }
@@ -394,17 +400,18 @@ export default {
         });
 
         this.$vs.notification({
-          color: "success",
-          title: "Success",
-          position: "top-right",
-          text: "Token was successfully sended",
+          color: 'success',
+          title: 'Success',
+          position: 'top-right',
+          text: 'Token was successfully sended',
         });
         this.clearSendTokenForm();
       } catch (error) {
+        console.log(error);
         this.$vs.notification({
-          color: "danger",
-          title: "Error",
-          position: "top-right",
+          color: 'danger',
+          title: 'Error',
+          position: 'top-right',
           text: error,
         });
       }

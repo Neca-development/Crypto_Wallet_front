@@ -3,6 +3,7 @@ import { IFee, ISendingTransactionData } from '../models/transaction';
 import { IWalletKeys } from '../models/wallet';
 import { IChainService } from '../models/chainService';
 import { ITransaction } from '../models/transaction';
+// import { Transaction } from '@ethereumjs/tx';
 
 import {
   etherScanApi,
@@ -11,6 +12,7 @@ import {
   coinConverterApi,
   etherUSDTContractAddress,
 } from '../constants/providers';
+import { etherUSDTAbi } from '../constants/eth-USDT.abi';
 
 // @ts-ignore
 import axios from 'axios';
@@ -19,6 +21,7 @@ import Web3 from 'web3';
 // import Wallet from "lumi-web-core";
 import { ethers } from 'ethers';
 import { IToken } from '../models/token';
+import { getNumberFromDecimal } from '../utils/numbers';
 
 export class ethereumService implements IChainService {
   private web3: any;
@@ -28,15 +31,13 @@ export class ethereumService implements IChainService {
   }
 
   async createWallet(mnemonic: string): Promise<IWalletKeys> {
-    const data = ethers.Wallet.fromMnemonic(mnemonic);
-    this.web3.eth.accounts.wallet.add(this.web3.eth.accounts.privateKeyToAccount(data.privateKey));
-    console.log(this.web3.eth.accounts.wallet);
-
-    console.log(await this.web3.eth.getChainId());
+    const wallet = ethers.Wallet.fromMnemonic(mnemonic);
+    this.web3.eth.accounts.wallet.add(this.web3.eth.accounts.privateKeyToAccount(wallet.privateKey));
+    this.web3.eth.defaultAccount = wallet.address;
 
     return {
-      privateKey: data.privateKey,
-      publicKey: data.address,
+      privateKey: wallet.privateKey,
+      publicKey: wallet.address,
     };
   }
 
@@ -66,18 +67,17 @@ export class ethereumService implements IChainService {
       tokenPriceInUSD: ethToUSD.ethereum.usd,
     });
 
-    const { data: USDT } = await axios.get(
-      `${etherScanApi}?module=account&action=tokenbalance&contractaddress=${etherUSDTContractAddress}&address=${address}&tag=latest&apikey=${etherScanApiKey}`
-    );
+    const contract = new this.web3.eth.Contract(etherUSDTAbi, etherUSDTContractAddress);
+    const result = await contract.methods.balanceOf(address).call();
+    const decimals = getNumberFromDecimal(+(await contract.methods.decimals().call()));
 
-    const USDTDecimal = 1e6;
-    const USDTbalanceInUSD = Math.trunc((USDT.result / USDTDecimal) * 100) / 100;
+    const USDTbalanceInUSD = Math.trunc((result / decimals) * 100) / 100;
 
     tokens.push({
-      balance: USDT.result / USDTDecimal,
+      balance: result / decimals,
       balanceInUSD: USDTbalanceInUSD,
       tokenId: '_',
-      contractAddress: '_',
+      contractAddress: etherUSDTContractAddress,
       tokenAbbr: 'USDT',
       tokenName: 'USD Tether',
       tokenType: 'smartToken',
@@ -142,32 +142,22 @@ export class ethereumService implements IChainService {
     let gasCount = Math.trunc(this.web3.utils.toWei(data.fee) / gasPrice);
 
     const result = await this.web3.eth.sendTransaction({
-      from: '0xd6c79898a82868e79a1304ccea14521fae1797bd',
+      from: this.web3.eth.defaultAccount,
       to: data.receiverAddress,
       value: this.web3.utils.numberToHex(this.web3.utils.toWei(data.amount)),
       gasLimit: this.web3.utils.numberToHex(gasCount),
-      chain: 'rinkeby',
-      hardfork: 'london',
     });
     console.log(result);
   }
 
   async send20Token(data: ISendingTransactionData) {
-    console.log(data);
-
-    // this.Tron.setPrivateKey(data.privateKey);
-    // const contract = await this.Tron.contract().at(data.cotractAddress);
-    // console.log(data);
-    // //Use send to execute a non-pure or modify smart contract method on a given smart contract that modify or change values on the blockchain.
-    // // These methods consume resources(bandwidth and energy) to perform as the changes need to be broadcasted out to the network.
-    // await contract
-    //   .transfer(
-    //     data.receiverAddress, //address _to
-    //     this.Tron.toSun(data.amount) //amount
-    //   )
-    //   .send({
-    //     feeLimit: 10000000,
-    //   });
+    const tokenAddress = data.cotractAddress;
+    const contract = new this.web3.eth.Contract(etherUSDTAbi, tokenAddress);
+    const decimals = getNumberFromDecimal(+(await contract.methods.decimals().call()));
+    const result = await contract.methods
+      .transfer(data.receiverAddress, this.web3.utils.numberToHex(data.amount * decimals))
+      .send({ from: this.web3.eth.defaultAccount, gas: 100000 });
+    console.log(result);
   }
 
   getTokenContractAddress(tokens: any[], tokenAbbr: string) {
@@ -243,10 +233,7 @@ export class ethereumService implements IChainService {
    * @returns {ITransaction}
    */
   private convertUSDTTransactionToCommonFormat(txData: any, address: string): ITransaction {
-    let decimal = '1';
-    for (let i = 0; i < txData.tokenDecimal; i++) {
-      decimal += '0';
-    }
+    const decimal = getNumberFromDecimal(txData.tokenDecimal);
 
     const to = txData.to,
       from = txData.from,
