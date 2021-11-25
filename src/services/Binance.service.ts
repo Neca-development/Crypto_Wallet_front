@@ -158,7 +158,6 @@ export class binanceService implements IChainService {
     const tokenAddress = data.cotractAddress;
     const contract = new this.web3.eth.Contract(bnbUSDTAbi as any, tokenAddress);
     const decimals = getNumberFromDecimal(+(await contract.methods._decimals().call()));
-    console.log(data.amount * decimals);
 
     const result = await contract.methods
       .transfer(data.receiverAddress, this.web3.utils.numberToHex(data.amount * decimals))
