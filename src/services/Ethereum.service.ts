@@ -8,7 +8,7 @@ import { ITransaction } from '../models/transaction';
 import {
   etherScanApi,
   etherScanApiKey,
-  web3Provider,
+  ethWeb3Provider,
   coinConverterApi,
   etherUSDTContractAddress,
 } from '../constants/providers';
@@ -27,7 +27,7 @@ export class ethereumService implements IChainService {
   private web3: Web3;
 
   constructor() {
-    this.web3 = new Web3(web3Provider);
+    this.web3 = new Web3(ethWeb3Provider);
   }
 
   async createWallet(mnemonic: string): Promise<IWalletKeys> {

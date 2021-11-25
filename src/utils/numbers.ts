@@ -4,5 +4,7 @@
  * @returns {number}
  */
 export function getNumberFromDecimal(decimalLength: number): number {
-  return parseInt('1'.padEnd(decimalLength, '0'));
+  const bigInt = BigInt('1'.padEnd(decimalLength + 1, '0'));
+
+  return Number(bigInt);
 }

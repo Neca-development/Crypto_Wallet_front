@@ -116,6 +116,9 @@
         </vs-dialog>
       </vs-row>
     </template> -->
+    <template #footer>
+      <article>Total Balance in : {{ totallBalance }}<b> $</b></article>
+    </template>
   </vs-sidebar>
 </template>
 
@@ -133,6 +136,7 @@ export default {
       newWalletCurrency: '',
       activeWallet: null,
       secretKey: '',
+      totallBalance: 0,
     };
   },
   computed: {
@@ -144,9 +148,26 @@ export default {
     if (address) {
       this.activeWallet = address;
     }
+
+    setInterval(() => {
+      this.setTotallBalance();
+    }, 60000);
+  },
+  watch: {
+    wallets() {
+      this.setTotallBalance();
+    },
   },
   methods: {
     // ...mapActions(["addWallet"]),
+    async setTotallBalance() {
+      let balance = 0;
+      for (const wallet of this.wallets) {
+        balance += await wallet.getTotalBalanceInUSD();
+      }
+
+      this.totallBalance = balance;
+    },
     // openNewWalletPopup() {
     //   this.isNewWalletPopupOpen = true;
     // },

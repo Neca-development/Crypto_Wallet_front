@@ -8,11 +8,11 @@ import { ITransaction } from '../models/transaction';
 import {
   etherScanApi,
   etherScanApiKey,
-  web3Provider,
   coinConverterApi,
-  etherUSDTContractAddress,
+  binanceWeb3Provider,
+  binanceUSDTContractAddress,
 } from '../constants/providers';
-import { etherUSDTAbi } from '../constants/eth-USDT.abi';
+import { bnbUSDTAbi } from '../constants/bnb-USDT.abi';
 
 // @ts-ignore
 import axios from 'axios';
@@ -27,7 +27,7 @@ export class binanceService implements IChainService {
   private web3: Web3;
 
   constructor() {
-    this.web3 = new Web3('https://data-seed-prebsc-1-s1.binance.org:8545/');
+    this.web3 = new Web3(binanceWeb3Provider);
   }
 
   async createWallet(mnemonic: string): Promise<IWalletKeys> {
@@ -63,23 +63,24 @@ export class binanceService implements IChainService {
       tokenPriceInUSD: bnbToUSD.binancecoin.usd,
     });
 
-    // const contract = new this.web3.eth.Contract(etherUSDTAbi as any, etherUSDTContractAddress);
-    // const result = await contract.methods.balanceOf(address).call();
-    // const decimals = getNumberFromDecimal(+(await contract.methods.decimals().call()));
+    const contract = new this.web3.eth.Contract(bnbUSDTAbi as any, binanceUSDTContractAddress);
+    const result = await contract.methods.balanceOf(address).call();
 
-    // const USDTbalanceInUSD = Math.trunc((result / decimals) * 100) / 100;
+    const decimals = getNumberFromDecimal(parseInt(await contract.methods._decimals().call(), 10));
 
-    // tokens.push({
-    //   balance: result / decimals,
-    //   balanceInUSD: USDTbalanceInUSD,
-    //   tokenId: '_',
-    //   contractAddress: etherUSDTContractAddress,
-    //   tokenAbbr: 'USDT',
-    //   tokenName: 'USD Tether',
-    //   tokenType: 'smartToken',
-    //   tokenLogo: 'https://s2.coinmarketcap.com/static/img/coins/64x64/825.png',
-    //   tokenPriceInUSD: 1,
-    // });
+    const USDTbalanceInUSD = Math.trunc((result / decimals) * 100) / 100;
+
+    tokens.push({
+      balance: result / decimals,
+      balanceInUSD: USDTbalanceInUSD,
+      tokenId: '_',
+      contractAddress: binanceUSDTContractAddress,
+      tokenAbbr: 'USDT',
+      tokenName: 'USD Tether',
+      tokenType: 'smartToken',
+      tokenLogo: 'https://s2.coinmarketcap.com/static/img/coins/64x64/825.png',
+      tokenPriceInUSD: 1,
+    });
 
     return tokens;
   }
@@ -151,9 +152,14 @@ export class binanceService implements IChainService {
   }
 
   async send20Token(data: ISendingTransactionData) {
+    console.log(data);
+    console.log(this.web3.eth.defaultAccount);
+
     const tokenAddress = data.cotractAddress;
-    const contract = new this.web3.eth.Contract(etherUSDTAbi as any, tokenAddress);
-    const decimals = getNumberFromDecimal(+(await contract.methods.decimals().call()));
+    const contract = new this.web3.eth.Contract(bnbUSDTAbi as any, tokenAddress);
+    const decimals = getNumberFromDecimal(+(await contract.methods._decimals().call()));
+    console.log(data.amount * decimals);
+
     const result = await contract.methods
       .transfer(data.receiverAddress, this.web3.utils.numberToHex(data.amount * decimals))
       .send({ from: this.web3.eth.defaultAccount, gas: 100000 });
