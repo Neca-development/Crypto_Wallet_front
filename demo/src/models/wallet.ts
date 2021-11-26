@@ -1,13 +1,9 @@
 export interface IWallet {
-  address: IAddress;
+  address: string;
   privateKey: string;
   publicKey: string;
   balance?: IBalance;
-}
-
-export interface IAddress {
-  base58: string;
-  hex: string;
+  chainId: string;
 }
 
 export interface IBalance {

@@ -1,11 +1,12 @@
-import { ChainIds } from "./models/enums";
-import { tronService } from "./services/Tron.service";
+import { ChainIds } from './models/enums';
+import { IChainService } from './models/chainService';
+import { IToken } from './models/token';
+import { IWalletData } from './models/wallet';
+import { IFee, ISendingTransactionData, ITransaction } from './models/transaction';
 
-import { IChainService } from "./models/chainService";
-import { ethereumService } from "./services/Ethereum.service";
-import { IToken } from "./models/token";
-import { IWalletData } from "./models/wallet";
-import { IFee, ISendingTransactionData, ITransaction } from "./models/transaction";
+import { tronService } from './services/Tron.service';
+import { ethereumService } from './services/Ethereum.service';
+import { binanceService } from './services/Binance.service';
 
 export class Wallet {
   private service: IChainService;
@@ -136,11 +137,14 @@ export class Wallet {
    */
   private selectChainService(chainId: ChainIds): void {
     switch (+chainId) {
-      case ChainIds["Ethereum"]:
+      case ChainIds['Ethereum']:
         this.service = new ethereumService();
         break;
-      case ChainIds["Tron"]:
+      case ChainIds['Tron']:
         this.service = new tronService();
+        break;
+      case ChainIds['Binance']:
+        this.service = new binanceService();
         break;
 
       default:
@@ -152,7 +156,7 @@ export class Wallet {
    * set main wallet data like address and private key
    */
   private async createKeys(): Promise<void> {
-    const data = await this.service.createWallet(this.data.mnemonic);
+    const data = await this.service.createKeyPair(this.data.mnemonic);
     this.data.privateKey = data.privateKey;
     this.data.publicKey = data.publicKey;
   }

@@ -175,9 +175,7 @@
             <vs-td>
               {{ tr.amount }}
             </vs-td>
-            <vs-td>
-              {{ tr.amountInUSD }}
-            </vs-td>
+            <vs-td> {{ tr.amountInUSD }}<b style="color: gold"> $</b> </vs-td>
             <vs-td>
               {{ tr.fee }}
             </vs-td>

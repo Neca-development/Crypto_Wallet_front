@@ -2,6 +2,8 @@ module.exports = {
   root: true,
   env: {
     node: true,
+    es2020: true,
+    es6: true
   },
   extends: [
     "plugin:vue/essential",

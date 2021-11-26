@@ -3,32 +3,24 @@ import { IFee, ISendingTransactionData } from '../models/transaction';
 import { IWalletKeys } from '../models/wallet';
 import { IChainService } from '../models/chainService';
 import { ITransaction } from '../models/transaction';
-// import { Transaction } from '@ethereumjs/tx';
+import { IToken } from '../models/token';
 
-import {
-  etherScanApi,
-  etherScanApiKey,
-  ethWeb3Provider,
-  coinConverterApi,
-  etherUSDTContractAddress,
-} from '../constants/providers';
-import { etherUSDTAbi } from '../constants/eth-USDT.abi';
+import { getBNFromDecimal, removeTrailingZeros } from '../utils/numbers';
+
+import { etherScanApiKey, coinConverterApi, binanceScanApi } from '../constants/providers';
+import { binanceWeb3Provider, binanceUSDTContractAddress } from '../constants/providers';
+import { bnbUSDTAbi } from '../constants/bnb-USDT.abi';
 
 // @ts-ignore
 import axios from 'axios';
 import Web3 from 'web3';
-// @ts-ignore
-// import Wallet from "lumi-web-core";
 import { ethers } from 'ethers';
-import { IToken } from '../models/token';
-import { getBNFromDecimal } from '../utils/numbers';
 import { BigNumber } from 'bignumber.js';
-
-export class ethereumService implements IChainService {
+export class binanceService implements IChainService {
   private web3: Web3;
 
   constructor() {
-    this.web3 = new Web3(ethWeb3Provider);
+    this.web3 = new Web3(binanceWeb3Provider);
   }
 
   async createKeyPair(mnemonic: string): Promise<IWalletKeys> {
@@ -44,34 +36,30 @@ export class ethereumService implements IChainService {
 
   async getTokensByAddress(address: string) {
     const tokens: Array<IToken> = [];
+    const nativeToken = this.web3.utils.fromWei(await this.web3.eth.getBalance(address));
 
-    const { data: ethToUSD } = await axios.get(
-      `${coinConverterApi}/v3/simple/price?ids=ethereum&vs_currencies=usd,tether`
+    const { data: bnbToUSD } = await axios.get(
+      `${coinConverterApi}/v3/simple/price?ids=binancecoin&vs_currencies=usd,tether`
     );
 
-    const { data: mainToken } = await axios.get(
-      `${etherScanApi}?module=account&action=balance&address=${address}&tag=latest&apikey=${etherScanApiKey}`
-    );
-
-    const mainTokenBalanceInUSD =
-      Math.trunc(+this.web3.utils.fromWei(mainToken.result) * ethToUSD.ethereum.usd * 100) / 100;
+    const mainTokenBalanceInUSD = Math.trunc(+nativeToken * bnbToUSD.binancecoin.usd * 100) / 100;
 
     tokens.push({
-      balance: +this.web3.utils.fromWei(mainToken.result),
+      balance: +nativeToken,
       balanceInUSD: mainTokenBalanceInUSD,
       tokenId: '_',
       contractAddress: '_',
-      tokenAbbr: 'ETH',
-      tokenName: 'ETH',
+      tokenAbbr: 'BNB',
+      tokenName: 'Binance Coin',
       tokenType: 'mainToken',
-      tokenLogo: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880',
-      tokenPriceInUSD: ethToUSD.ethereum.usd,
+      tokenLogo: 'https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png',
+      tokenPriceInUSD: bnbToUSD.binancecoin.usd,
     });
 
-    const contract = new this.web3.eth.Contract(etherUSDTAbi as any, etherUSDTContractAddress);
+    const contract = new this.web3.eth.Contract(bnbUSDTAbi as any, binanceUSDTContractAddress);
     const result = await contract.methods.balanceOf(address).call();
 
-    const decimals = getBNFromDecimal(parseInt(await contract.methods.decimals().call(), 10));
+    const decimals = getBNFromDecimal(parseInt(await contract.methods._decimals().call(), 10));
     const balance = new BigNumber(result).div(decimals).toNumber();
     const USDTbalanceInUSD = Math.trunc(balance * 100) / 100;
 
@@ -79,7 +67,7 @@ export class ethereumService implements IChainService {
       balance,
       balanceInUSD: USDTbalanceInUSD,
       tokenId: '_',
-      contractAddress: etherUSDTContractAddress,
+      contractAddress: binanceUSDTContractAddress,
       tokenAbbr: 'USDT',
       tokenName: 'USD Tether',
       tokenType: 'smartToken',
@@ -143,22 +131,23 @@ export class ethereumService implements IChainService {
   }
 
   async sendMainToken(data: ISendingTransactionData) {
-    // let gasPrice = await this.web3.eth.getGasPrice();
-
-    // let gasCount = Math.trunc(+this.web3.utils.toWei(data.fee) / +gasPrice);
+    const gasPrice = await this.web3.eth.getGasPrice();
+    const gasCount = Math.trunc(+this.web3.utils.toWei(data.fee) / +gasPrice);
 
     const result = await this.web3.eth.sendTransaction({
       from: this.web3.eth.defaultAccount,
       to: data.receiverAddress,
       value: this.web3.utils.numberToHex(this.web3.utils.toWei(data.amount.toString())),
+      gasPrice: gasPrice,
+      gas: gasCount,
     });
     console.log(result);
   }
 
   async send20Token(data: ISendingTransactionData) {
     const tokenAddress = data.cotractAddress;
-    const contract = new this.web3.eth.Contract(etherUSDTAbi as any, tokenAddress);
-    const decimals = getBNFromDecimal(+(await contract.methods.decimals().call()));
+    const contract = new this.web3.eth.Contract(bnbUSDTAbi as any, tokenAddress);
+    const decimals = getBNFromDecimal(+(await contract.methods._decimals().call()));
     const amount = new BigNumber(data.amount).multipliedBy(decimals).toNumber();
     const result = await contract.methods
       .transfer(data.receiverAddress, this.web3.utils.toHex(amount))
@@ -181,7 +170,7 @@ export class ethereumService implements IChainService {
     // get last 200  transactions
 
     const { data: transactions } = await axios.get(
-      `${etherScanApi}?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&page=1&apikey=${etherScanApiKey}`
+      `${binanceScanApi}?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&page=1&apikey=${etherScanApiKey}`
     );
 
     return transactions.result.map((transaction: any) => {
@@ -195,7 +184,7 @@ export class ethereumService implements IChainService {
    */
   private async getUSDTTransactions(address: string): Promise<ITransaction[]> {
     const { data: transactions } = await axios.get(
-      `${etherScanApi}?module=account&action=tokentx&address=${address}&startblock=0&endblock=99999999&page=1&apikey=${etherScanApiKey}`
+      `${binanceScanApi}?module=account&action=tokentx&address=${address}&startblock=0&endblock=99999999&page=1&apikey=${etherScanApiKey}`
     );
 
     return transactions.result.map((transaction: any) => {
@@ -224,7 +213,7 @@ export class ethereumService implements IChainService {
       amountInUSD,
       txId: txData.hash,
       direction,
-      tokenName: 'ETH',
+      tokenName: 'BNB',
       timestamp: +txData.timeStamp,
       fee,
     };
@@ -249,8 +238,8 @@ export class ethereumService implements IChainService {
     return {
       to,
       from,
-      amount,
-      amountInUSD: amount,
+      amount: removeTrailingZeros(amount),
+      amountInUSD: removeTrailingZeros(amount),
       txId: txData.hash,
       direction,
       tokenName: txData.tokenSymbol,

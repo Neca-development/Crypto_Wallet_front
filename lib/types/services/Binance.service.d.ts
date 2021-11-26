@@ -1,22 +1,28 @@
-import { IFee, ISendingTransactionData, ITransaction } from '../models/transaction';
+import { IFee, ISendingTransactionData } from '../models/transaction';
 import { IWalletKeys } from '../models/wallet';
 import { IChainService } from '../models/chainService';
+import { ITransaction } from '../models/transaction';
 import { IToken } from '../models/token';
-export declare class tronService implements IChainService {
-    Tron: any;
+export declare class binanceService implements IChainService {
+    private web3;
     constructor();
     createWallet(mnemonic: string): Promise<IWalletKeys>;
     getTokensByAddress(address: string): Promise<IToken[]>;
-    getFeePriceOracle(): Promise<IFee>;
+    getFeePriceOracle(from: string, to: string): Promise<IFee>;
+    /**
+     * @param {ISendingTransactionData} data:ISendingTransactionData
+     * @returns {any}
+     */
     getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]>;
     sendMainToken(data: ISendingTransactionData): Promise<void>;
     send20Token(data: ISendingTransactionData): Promise<void>;
+    getTokenContractAddress(tokens: any[], tokenAbbr: string): any;
     /**
      * @param {string} address:string
-     * @param {number} trxToUSD:number
+     * @param {number} ethToUSD:number
      * @returns {Promise<ITransaction[]>}
      */
-    private getTrxTransactions;
+    private getNormalTransactions;
     /**
      * @param {string} address:string
      * @returns {Promise<ITransaction[]>}
@@ -39,4 +45,4 @@ export declare class tronService implements IChainService {
      */
     private convertUSDTTransactionToCommonFormat;
 }
-//# sourceMappingURL=Tron.service.d.ts.map
+//# sourceMappingURL=Binance.service.d.ts.map
