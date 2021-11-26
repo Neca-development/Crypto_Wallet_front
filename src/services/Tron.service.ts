@@ -22,7 +22,13 @@ export class tronService implements IChainService {
     this.Tron = new TronWeb(tronWebProvider);
   }
 
-  async createKeyPair(mnemonic: string): Promise<IWalletKeys> {
+  async generatePublicKey(privateKey: string): Promise<string> {
+    const data = await hdWallet.getAccountFromPrivateKey(privateKey);
+
+    return data;
+  }
+
+  async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
     const data: any = (await hdWallet.generateAccountsWithMnemonic(mnemonic, 1))[0];
 
     return {

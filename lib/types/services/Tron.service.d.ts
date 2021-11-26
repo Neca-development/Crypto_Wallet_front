@@ -5,7 +5,8 @@ import { IToken } from '../models/token';
 export declare class tronService implements IChainService {
     Tron: any;
     constructor();
-    createWallet(mnemonic: string): Promise<IWalletKeys>;
+    generatePublicKey(privateKey: string): Promise<string>;
+    generateKeyPair(mnemonic: string): Promise<IWalletKeys>;
     getTokensByAddress(address: string): Promise<IToken[]>;
     getFeePriceOracle(): Promise<IFee>;
     getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]>;
@@ -23,8 +24,6 @@ export declare class tronService implements IChainService {
      */
     private getUSDTTransactions;
     /**
-     * 描述
-     * @date 2021-11-20
      * @param {any} txData:any
      * @param {string} address:string
      * @param {number} trxToUSD:number

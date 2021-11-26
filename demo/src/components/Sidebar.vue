@@ -166,7 +166,7 @@ export default {
         balance += await wallet.getTotalBalanceInUSD();
       }
 
-      this.totallBalance = balance;
+      this.totallBalance = Math.trunc(balance * 100) / 100;
     },
     // openNewWalletPopup() {
     //   this.isNewWalletPopupOpen = true;
