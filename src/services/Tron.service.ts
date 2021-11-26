@@ -22,7 +22,7 @@ export class tronService implements IChainService {
     this.Tron = new TronWeb(tronWebProvider);
   }
 
-  async createWallet(mnemonic: string): Promise<IWalletKeys> {
+  async createKeyPair(mnemonic: string): Promise<IWalletKeys> {
     const data: any = (await hdWallet.generateAccountsWithMnemonic(mnemonic, 1))[0];
 
     return {
@@ -151,8 +151,6 @@ export class tronService implements IChainService {
   }
 
   /**
-   * 描述
-   * @date 2021-11-20
    * @param {any} txData:any
    * @param {string} address:string
    * @param {number} trxToUSD:number

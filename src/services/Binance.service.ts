@@ -23,7 +23,7 @@ export class binanceService implements IChainService {
     this.web3 = new Web3(binanceWeb3Provider);
   }
 
-  async createWallet(mnemonic: string): Promise<IWalletKeys> {
+  async createKeyPair(mnemonic: string): Promise<IWalletKeys> {
     const wallet = ethers.Wallet.fromMnemonic(mnemonic);
     this.web3.eth.accounts.wallet.add(this.web3.eth.accounts.privateKeyToAccount(wallet.privateKey));
     this.web3.eth.defaultAccount = wallet.address;
@@ -193,8 +193,6 @@ export class binanceService implements IChainService {
   }
 
   /**
-   * 描述
-   * @date 2021-11-20
    * @param {any} txData:any
    * @param {string} address:string
    * @param {number} trxToUSD:number

@@ -156,7 +156,7 @@ export class Wallet {
    * set main wallet data like address and private key
    */
   private async createKeys(): Promise<void> {
-    const data = await this.service.createWallet(this.data.mnemonic);
+    const data = await this.service.createKeyPair(this.data.mnemonic);
     this.data.privateKey = data.privateKey;
     this.data.publicKey = data.publicKey;
   }

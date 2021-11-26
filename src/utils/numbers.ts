@@ -1,7 +1,6 @@
 import { BigNumber } from 'bignumber.js';
 
 /**
- * 描述
  * @param {number} decimalLength:number
  * @returns {number}
  */
@@ -10,7 +9,6 @@ export function getBNFromDecimal(decimalLength: number): BigNumber {
 }
 
 /**
- * 描述
  * @param {string} val:string
  * @returns {string}
  */
