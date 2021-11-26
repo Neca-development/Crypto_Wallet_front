@@ -1,5 +1,4 @@
 /**
- * 描述
  * @param {number} decimalLength:number
  * @returns {number}
  */
