@@ -59,9 +59,13 @@ export class Wallet {
     return this.isInitialized;
   }
 
-  constructor(chainId: ChainIds, mnemonic: string) {
+  constructor(chainId: ChainIds, mnemonic: string, privateKey?: string) {
     this.data.chainId = chainId;
     this.data.mnemonic = mnemonic;
+
+    if (privateKey) {
+      this.data.privateKey = privateKey;
+    }
 
     this.selectChainService(chainId);
   }
@@ -156,7 +160,14 @@ export class Wallet {
    * set main wallet data like address and private key
    */
   private async createKeys(): Promise<void> {
-    const data = await this.service.createKeyPair(this.data.mnemonic);
+    if (this.data.privateKey) {
+      const pubKey = await this.service.generatePublicKey(this.data.privateKey);
+      this.data.publicKey = pubKey;
+
+      return;
+    }
+
+    const data = await this.service.generateKeyPair(this.data.mnemonic);
     this.data.privateKey = data.privateKey;
     this.data.publicKey = data.publicKey;
   }

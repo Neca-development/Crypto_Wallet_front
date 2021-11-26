@@ -6,7 +6,7 @@ import { IToken } from '../models/token';
 export declare class ethereumService implements IChainService {
     private web3;
     constructor();
-    createWallet(mnemonic: string): Promise<IWalletKeys>;
+    generateKeyPair(mnemonic: string): Promise<IWalletKeys>;
     getTokensByAddress(address: string): Promise<IToken[]>;
     getFeePriceOracle(from: string, to: string): Promise<IFee>;
     /**
@@ -29,8 +29,6 @@ export declare class ethereumService implements IChainService {
      */
     private getUSDTTransactions;
     /**
-     * 描述
-     * @date 2021-11-20
      * @param {any} txData:any
      * @param {string} address:string
      * @param {number} trxToUSD:number

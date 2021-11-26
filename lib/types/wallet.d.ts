@@ -30,7 +30,7 @@ export declare class Wallet {
      * @returns {boolean}
      */
     get isWalletInitialized(): boolean;
-    constructor(chainId: ChainIds, mnemonic: string);
+    constructor(chainId: ChainIds, mnemonic: string, privateKey?: string);
     /**
      * generate wallet keys
      * @returns {Promise<void>}

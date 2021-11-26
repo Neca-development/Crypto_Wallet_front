@@ -1,3 +1,4 @@
+import { Wallet } from './wallet';
 import { ICreateWalletsData } from './models/wallet';
 export declare class WalletFactory {
     /**
@@ -7,5 +8,6 @@ export declare class WalletFactory {
      * @returns {Promise<Wallet[]>}
      */
     createWallets(mnemonic?: string): Promise<ICreateWalletsData>;
+    createTronWallet(privateKey: string): Promise<Wallet>;
 }
 //# sourceMappingURL=wallet-factory.d.ts.map

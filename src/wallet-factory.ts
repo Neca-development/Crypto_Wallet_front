@@ -32,4 +32,15 @@ export class WalletFactory {
 
     return { mnemonic, wallets };
   }
+
+  /**
+   * @desc Create a single Tron wallet
+   * @param {string} privateKey:string
+   * @returns {Promise<Wallet>}
+   */
+  async createTronWallet(privateKey: string): Promise<Wallet> {
+    const tronWallet = new Wallet(ChainIds.Tron, null, privateKey);
+    await tronWallet.init();
+    return tronWallet;
+  }
 }
