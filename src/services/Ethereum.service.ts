@@ -240,9 +240,6 @@ export class ethereumService implements IChainService {
    */
   private convertUSDTTransactionToCommonFormat(txData: any, address: string): ITransaction {
     const decimal = getBNFromDecimal(parseInt(txData.tokenDecimal, 10));
-    console.log(parseInt(txData.tokenDecimal, 10));
-
-    console.log(decimal);
 
     const to = txData.to;
     const from = txData.from;
