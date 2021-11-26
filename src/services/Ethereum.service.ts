@@ -21,7 +21,8 @@ import Web3 from 'web3';
 // import Wallet from "lumi-web-core";
 import { ethers } from 'ethers';
 import { IToken } from '../models/token';
-import { getNumberFromDecimal } from '../utils/numbers';
+import { getBNFromDecimal } from '../utils/numbers';
+import { BigNumber } from 'bignumber.js';
 
 export class ethereumService implements IChainService {
   private web3: Web3;
@@ -69,12 +70,13 @@ export class ethereumService implements IChainService {
 
     const contract = new this.web3.eth.Contract(etherUSDTAbi as any, etherUSDTContractAddress);
     const result = await contract.methods.balanceOf(address).call();
-    const decimals = getNumberFromDecimal(+(await contract.methods.decimals().call()));
 
-    const USDTbalanceInUSD = Math.trunc((result / decimals) * 100) / 100;
+    const decimals = getBNFromDecimal(parseInt(await contract.methods.decimals().call(), 10));
+    const balance = new BigNumber(result).div(decimals).toNumber();
+    const USDTbalanceInUSD = Math.trunc(balance * 100) / 100;
 
     tokens.push({
-      balance: result / decimals,
+      balance,
       balanceInUSD: USDTbalanceInUSD,
       tokenId: '_',
       contractAddress: etherUSDTContractAddress,
@@ -156,9 +158,10 @@ export class ethereumService implements IChainService {
   async send20Token(data: ISendingTransactionData) {
     const tokenAddress = data.cotractAddress;
     const contract = new this.web3.eth.Contract(etherUSDTAbi as any, tokenAddress);
-    const decimals = getNumberFromDecimal(+(await contract.methods.decimals().call()));
+    const decimals = getBNFromDecimal(+(await contract.methods.decimals().call()));
+    const amount = new BigNumber(data.amount).multipliedBy(decimals).toNumber();
     const result = await contract.methods
-      .transfer(data.receiverAddress, this.web3.utils.numberToHex(data.amount * decimals))
+      .transfer(data.receiverAddress, this.web3.utils.toHex(amount))
       .send({ from: this.web3.eth.defaultAccount, gas: 100000 });
     console.log(result);
   }
@@ -211,10 +214,10 @@ export class ethereumService implements IChainService {
   private convertTransactionToCommonFormat(txData: any, address: string, ethToUSD: number): ITransaction {
     const to = txData.to,
       from = txData.from,
-      amount = +this.web3.utils.fromWei(txData.value),
+      amount = this.web3.utils.fromWei(txData.value),
       fee = +(+this.web3.utils.fromWei((txData.gasUsed * txData.gasPrice).toString())).toFixed(6),
       direction = from === address ? 'OUT' : 'IN',
-      amountInUSD = Math.trunc(amount * ethToUSD * 100) / 100;
+      amountInUSD = (Math.trunc(+amount * ethToUSD * 100) / 100).toString();
 
     return {
       to,
@@ -236,13 +239,17 @@ export class ethereumService implements IChainService {
    * @returns {ITransaction}
    */
   private convertUSDTTransactionToCommonFormat(txData: any, address: string): ITransaction {
-    const decimal = getNumberFromDecimal(txData.tokenDecimal);
+    const decimal = getBNFromDecimal(parseInt(txData.tokenDecimal, 10));
+    console.log(parseInt(txData.tokenDecimal, 10));
 
-    const to = txData.to,
-      from = txData.from,
-      amount = txData.value / +decimal,
-      fee = +(+this.web3.utils.fromWei((txData.gasUsed * txData.gasPrice).toString())).toFixed(6),
-      direction = from === address ? 'OUT' : 'IN';
+    console.log(decimal);
+
+    const to = txData.to;
+    const from = txData.from;
+    const amountInBN = new BigNumber(txData.value);
+    const amount = amountInBN.dividedBy(decimal).toFormat();
+    const fee = +(+this.web3.utils.fromWei((txData.gasUsed * txData.gasPrice).toString())).toFixed(6);
+    const direction = from === address ? 'OUT' : 'IN';
 
     return {
       to,

@@ -3,26 +3,19 @@ import { IFee, ISendingTransactionData } from '../models/transaction';
 import { IWalletKeys } from '../models/wallet';
 import { IChainService } from '../models/chainService';
 import { ITransaction } from '../models/transaction';
-// import { Transaction } from '@ethereumjs/tx';
+import { IToken } from '../models/token';
 
-import {
-  etherScanApi,
-  etherScanApiKey,
-  coinConverterApi,
-  binanceWeb3Provider,
-  binanceUSDTContractAddress,
-} from '../constants/providers';
+import { getBNFromDecimal, removeTrailingZeros } from '../utils/numbers';
+
+import { etherScanApiKey, coinConverterApi, binanceScanApi } from '../constants/providers';
+import { binanceWeb3Provider, binanceUSDTContractAddress } from '../constants/providers';
 import { bnbUSDTAbi } from '../constants/bnb-USDT.abi';
 
 // @ts-ignore
 import axios from 'axios';
 import Web3 from 'web3';
-// @ts-ignore
-// import Wallet from "lumi-web-core";
 import { ethers } from 'ethers';
-import { IToken } from '../models/token';
-import { getNumberFromDecimal } from '../utils/numbers';
-
+import { BigNumber } from 'bignumber.js';
 export class binanceService implements IChainService {
   private web3: Web3;
 
@@ -66,12 +59,12 @@ export class binanceService implements IChainService {
     const contract = new this.web3.eth.Contract(bnbUSDTAbi as any, binanceUSDTContractAddress);
     const result = await contract.methods.balanceOf(address).call();
 
-    const decimals = getNumberFromDecimal(parseInt(await contract.methods._decimals().call(), 10));
-
-    const USDTbalanceInUSD = Math.trunc((result / decimals) * 100) / 100;
+    const decimals = getBNFromDecimal(parseInt(await contract.methods._decimals().call(), 10));
+    const balance = new BigNumber(result).div(decimals).toNumber();
+    const USDTbalanceInUSD = Math.trunc(balance * 100) / 100;
 
     tokens.push({
-      balance: result / decimals,
+      balance,
       balanceInUSD: USDTbalanceInUSD,
       tokenId: '_',
       contractAddress: binanceUSDTContractAddress,
@@ -152,15 +145,12 @@ export class binanceService implements IChainService {
   }
 
   async send20Token(data: ISendingTransactionData) {
-    console.log(data);
-    console.log(this.web3.eth.defaultAccount);
-
     const tokenAddress = data.cotractAddress;
     const contract = new this.web3.eth.Contract(bnbUSDTAbi as any, tokenAddress);
-    const decimals = getNumberFromDecimal(+(await contract.methods._decimals().call()));
-
+    const decimals = getBNFromDecimal(+(await contract.methods._decimals().call()));
+    const amount = new BigNumber(data.amount).multipliedBy(decimals).toNumber();
     const result = await contract.methods
-      .transfer(data.receiverAddress, this.web3.utils.numberToHex(data.amount * decimals))
+      .transfer(data.receiverAddress, this.web3.utils.toHex(amount))
       .send({ from: this.web3.eth.defaultAccount, gas: 100000 });
     console.log(result);
   }
@@ -180,7 +170,7 @@ export class binanceService implements IChainService {
     // get last 200  transactions
 
     const { data: transactions } = await axios.get(
-      `${etherScanApi}?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&page=1&apikey=${etherScanApiKey}`
+      `${binanceScanApi}?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&page=1&apikey=${etherScanApiKey}`
     );
 
     return transactions.result.map((transaction: any) => {
@@ -194,7 +184,7 @@ export class binanceService implements IChainService {
    */
   private async getUSDTTransactions(address: string): Promise<ITransaction[]> {
     const { data: transactions } = await axios.get(
-      `${etherScanApi}?module=account&action=tokentx&address=${address}&startblock=0&endblock=99999999&page=1&apikey=${etherScanApiKey}`
+      `${binanceScanApi}?module=account&action=tokentx&address=${address}&startblock=0&endblock=99999999&page=1&apikey=${etherScanApiKey}`
     );
 
     return transactions.result.map((transaction: any) => {
@@ -213,10 +203,10 @@ export class binanceService implements IChainService {
   private convertTransactionToCommonFormat(txData: any, address: string, ethToUSD: number): ITransaction {
     const to = txData.to,
       from = txData.from,
-      amount = +this.web3.utils.fromWei(txData.value),
+      amount = this.web3.utils.fromWei(txData.value),
       fee = +(+this.web3.utils.fromWei((txData.gasUsed * txData.gasPrice).toString())).toFixed(6),
       direction = from === address ? 'OUT' : 'IN',
-      amountInUSD = Math.trunc(amount * ethToUSD * 100) / 100;
+      amountInUSD = (Math.trunc(+amount * ethToUSD * 100) / 100).toString();
 
     return {
       to,
@@ -225,7 +215,7 @@ export class binanceService implements IChainService {
       amountInUSD,
       txId: txData.hash,
       direction,
-      tokenName: 'ETH',
+      tokenName: 'BNB',
       timestamp: +txData.timeStamp,
       fee,
     };
@@ -238,19 +228,20 @@ export class binanceService implements IChainService {
    * @returns {ITransaction}
    */
   private convertUSDTTransactionToCommonFormat(txData: any, address: string): ITransaction {
-    const decimal = getNumberFromDecimal(txData.tokenDecimal);
+    const decimal = getBNFromDecimal(parseInt(txData.tokenDecimal, 10));
 
-    const to = txData.to,
-      from = txData.from,
-      amount = txData.value / +decimal,
-      fee = +(+this.web3.utils.fromWei((txData.gasUsed * txData.gasPrice).toString())).toFixed(6),
-      direction = from === address ? 'OUT' : 'IN';
+    const to = txData.to;
+    const from = txData.from;
+    const amountInBN = new BigNumber(txData.value);
+    const amount = amountInBN.dividedBy(decimal).toFormat();
+    const fee = +(+this.web3.utils.fromWei((txData.gasUsed * txData.gasPrice).toString())).toFixed(6);
+    const direction = from === address ? 'OUT' : 'IN';
 
     return {
       to,
       from,
-      amount,
-      amountInUSD: amount,
+      amount: removeTrailingZeros(amount),
+      amountInUSD: removeTrailingZeros(amount),
       txId: txData.hash,
       direction,
       tokenName: txData.tokenSymbol,

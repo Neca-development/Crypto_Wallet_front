@@ -17,6 +17,7 @@
     "@binance-chain/javascript-sdk": "^4.2.0",
     "@ethereumjs/tx": "^3.4.0",
     "axios": "^0.24.0",
+    "bignumber.js": "^9.0.1",
     "ethers": "^5.5.1",
     "tron-wallet-hd": "^1.0.2",
     "tronweb": "^4.0.0",

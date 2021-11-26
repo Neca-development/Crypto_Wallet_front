@@ -1,7 +1,7 @@
-import { IFee, ISendingTransactionData, ITransaction } from "../models/transaction";
-import { IWalletKeys } from "../models/wallet";
-import { IChainService } from "../models/chainService";
-import { IToken } from "../models/token";
+import { IFee, ISendingTransactionData, ITransaction } from '../models/transaction';
+import { IWalletKeys } from '../models/wallet';
+import { IChainService } from '../models/chainService';
+import { IToken } from '../models/token';
 export declare class tronService implements IChainService {
     Tron: any;
     constructor();

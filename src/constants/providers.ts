@@ -25,3 +25,5 @@ export const etherUSDTContractAddress = '0xd92e713d051c37ebb2561803a3b5fbabc4962
 export const binanceWeb3Provider = 'https://data-seed-prebsc-1-s1.binance.org:8545/';
 
 export const binanceUSDTContractAddress = '0x337610d27c682e347c9cd60bd4b3b107c9d34ddd';
+
+export const binanceScanApi = 'https://api-testnet.bscscan.com/api';

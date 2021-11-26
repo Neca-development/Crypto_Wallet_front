@@ -12,4 +12,5 @@ export declare const etherScanApiKey = "S18IGMPYTDRZ1CQJRHZIR5QE5F5AS2K16U";
 export declare const etherUSDTContractAddress = "0xd92e713d051c37ebb2561803a3b5fbabc4962431";
 export declare const binanceWeb3Provider = "https://data-seed-prebsc-1-s1.binance.org:8545/";
 export declare const binanceUSDTContractAddress = "0x337610d27c682e347c9cd60bd4b3b107c9d34ddd";
+export declare const binanceScanApi = "https://api-testnet.bscscan.com/api";
 //# sourceMappingURL=providers.d.ts.map
