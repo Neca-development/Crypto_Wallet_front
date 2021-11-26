@@ -2,15 +2,8 @@
   <vs-sidebar class="sidebar" fixed open v-model="activeWallet">
     <template #header><h2>Your Wallets</h2></template>
     <template v-if="wallets.length">
-      <vs-sidebar-item
-        v-for="wallet in wallets"
-        :id="wallet.address"
-        :key="wallet.publicKey"
-      >
-        <router-link
-          class="link"
-          :to="{ name: 'Wallet', params: { address: wallet.address } }"
-        >
+      <vs-sidebar-item v-for="wallet in wallets" :id="wallet.address + '&' + wallet.chainId" :key="wallet.publicKey">
+        <router-link class="link" :to="{ name: 'Wallet', params: { address: `${wallet.address}&${wallet.chainId}` } }">
           <div class="wallet">
             <img src="@/assets/tron.png" alt="" />
             <div class="wallet__txt">
@@ -123,27 +116,31 @@
         </vs-dialog>
       </vs-row>
     </template> -->
+    <template #footer>
+      <article>Total Balance in : {{ totallBalance }}<b> $</b></article>
+    </template>
   </vs-sidebar>
 </template>
 
 <script>
-import { mapGetters } from "vuex";
+import { mapGetters } from 'vuex';
 export default {
   data() {
     return {
-      prvKeyInput: "",
+      prvKeyInput: '',
 
       isNewWalletPopupOpen: false,
       isBackupModalOpen: false,
 
-      newWalletActiveTab: "create",
-      newWalletCurrency: "",
+      newWalletActiveTab: 'create',
+      newWalletCurrency: '',
       activeWallet: null,
-      secretKey: "",
+      secretKey: '',
+      totallBalance: 0,
     };
   },
   computed: {
-    ...mapGetters(["wallets"]),
+    ...mapGetters(['wallets']),
   },
   mounted() {
     const address = this.$route.params.address;
@@ -151,9 +148,26 @@ export default {
     if (address) {
       this.activeWallet = address;
     }
+
+    setInterval(() => {
+      this.setTotallBalance();
+    }, 60000);
+  },
+  watch: {
+    wallets() {
+      this.setTotallBalance();
+    },
   },
   methods: {
     // ...mapActions(["addWallet"]),
+    async setTotallBalance() {
+      let balance = 0;
+      for (const wallet of this.wallets) {
+        balance += await wallet.getTotalBalanceInUSD();
+      }
+
+      this.totallBalance = balance;
+    },
     // openNewWalletPopup() {
     //   this.isNewWalletPopupOpen = true;
     // },
@@ -309,11 +323,7 @@ export default {
 }
 
 .sidebar {
-  background: linear-gradient(
-    307deg,
-    rgba(25, 91, 255, 0) 17%,
-    rgb(9, 36, 105) 100%
-  );
+  background: linear-gradient(307deg, rgba(25, 91, 255, 0) 17%, rgb(9, 36, 105) 100%);
   max-width: 18rem;
 
   .vs-sidebar__item {

@@ -1,16 +1,19 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { IFee, ISendingTransactionData, ITransaction } from "../models/transaction";
-import { IWalletKeys } from "../models/wallet";
-import { IChainService } from "../models/chainService";
-import { IToken } from "../models/token";
+import { IFee, ISendingTransactionData, ITransaction } from '../models/transaction';
+import { IWalletKeys } from '../models/wallet';
+import { IChainService } from '../models/chainService';
+import { IToken } from '../models/token';
 
-import { tronGridApi, tronScanApi, tronWebProvider, coinConverterApi } from "../constants/providers";
+import { tronGridApi, tronScanApi, tronWebProvider, coinConverterApi } from '../constants/providers';
 
 // @ts-ignore
-import TronWeb from "tronweb";
+import TronWeb from 'tronweb';
 // @ts-ignore
-import hdWallet from "tron-wallet-hd";
-import axios from "axios";
+import hdWallet from 'tron-wallet-hd';
+import axios from 'axios';
+import { getBNFromDecimal, removeTrailingZeros } from '../utils/numbers';
+
+import { BigNumber } from 'bignumber.js';
 
 export class tronService implements IChainService {
   Tron: any;
@@ -19,7 +22,7 @@ export class tronService implements IChainService {
     this.Tron = new TronWeb(tronWebProvider);
   }
 
-  async createWallet(mnemonic: string): Promise<IWalletKeys> {
+  async createKeyPair(mnemonic: string): Promise<IWalletKeys> {
     const data: any = (await hdWallet.generateAccountsWithMnemonic(mnemonic, 1))[0];
 
     return {
@@ -37,7 +40,7 @@ export class tronService implements IChainService {
       const tokenPriceInUSD = Math.trunc(x.tokenPriceInTrx * trxToUSD.tron.usd * 1000) / 1000;
       const balance = +this.Tron.fromSun(x.balance);
       const balanceInUSD =
-        x.tokenAbbr.toLowerCase() === "usdt"
+        x.tokenAbbr.toLowerCase() === 'usdt'
           ? Math.trunc(balance * 100) / 100
           : Math.trunc(balance * trxToUSD.tron.usd * 100) / 100;
 
@@ -60,7 +63,7 @@ export class tronService implements IChainService {
   async getFeePriceOracle(): Promise<IFee> {
     const { data: trxToUSD } = await axios.get(`${coinConverterApi}/v3/simple/price?ids=tron&vs_currencies=usd`);
 
-    let value = "10";
+    let value = '10';
 
     const usd = Math.trunc(+value * trxToUSD.tron.usd * 100) / 100;
 
@@ -148,8 +151,6 @@ export class tronService implements IChainService {
   }
 
   /**
-   * 描述
-   * @date 2021-11-20
    * @param {any} txData:any
    * @param {string} address:string
    * @param {number} trxToUSD:number
@@ -162,9 +163,9 @@ export class tronService implements IChainService {
     );
     const from = this.Tron.address.fromHex(txData.raw_data.contract[0].parameter.value.owner_address);
     const type = txData.raw_data.contract[0].type;
-    const amount = +this.Tron.fromSun(txData.raw_data.contract[0].parameter.value.amount);
-    const direction = from === address ? "OUT" : "IN";
-    const amountInUSD = Math.trunc(amount * trxToUSD * 100) / 100;
+    const amount = this.Tron.fromSun(txData.raw_data.contract[0].parameter.value.amount);
+    const direction = from === address ? 'OUT' : 'IN';
+    const amountInUSD = (Math.trunc(amount * trxToUSD * 100) / 100).toString();
 
     return {
       to,
@@ -174,7 +175,7 @@ export class tronService implements IChainService {
       txId: txData.txID,
       direction,
       type,
-      tokenName: "TRX",
+      tokenName: 'TRX',
       timestamp: txData.block_timestamp,
       fee: 0,
     };
@@ -187,18 +188,16 @@ export class tronService implements IChainService {
    * @returns {ITransaction}
    */
   private convertUSDTTransactionToCommonFormat(txData: any, address: string): ITransaction {
-    let decimal = "1";
-    for (let i = 0; i < txData.token_info.decimals; i++) {
-      decimal += "0";
-    }
-
-    const direction = txData.to === address ? "IN" : "OUT";
+    const decimal = getBNFromDecimal(parseInt(txData.token_info.decimals, 10)),
+      amountInBN = new BigNumber(txData.value),
+      amount = amountInBN.dividedBy(decimal).toFormat(Number(txData.token_info.decimals)),
+      direction = txData.to === address ? 'IN' : 'OUT';
 
     return {
       to: txData.to,
       from: txData.from,
-      amount: txData.value / +decimal,
-      amountInUSD: txData.value / +decimal,
+      amount: removeTrailingZeros(amount),
+      amountInUSD: removeTrailingZeros(amount),
       txId: txData.transaction_id,
       direction,
       tokenName: txData.token_info.symbol,

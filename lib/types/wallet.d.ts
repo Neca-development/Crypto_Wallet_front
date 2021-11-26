@@ -1,6 +1,6 @@
-import { ChainIds } from "./models/enums";
-import { IToken } from "./models/token";
-import { IFee, ISendingTransactionData, ITransaction } from "./models/transaction";
+import { ChainIds } from './models/enums';
+import { IToken } from './models/token';
+import { IFee, ISendingTransactionData, ITransaction } from './models/transaction';
 export declare class Wallet {
     private service;
     private isInitialized;

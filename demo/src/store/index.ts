@@ -1,5 +1,5 @@
-import Vue from "vue";
-import Vuex from "vuex";
+import Vue from 'vue';
+import Vuex from 'vuex';
 
 Vue.use(Vuex);
 
@@ -20,7 +20,10 @@ export default new Vuex.Store({
     // @ts-ignore
     getWalletByAddress: (state) => (address) => {
       // @ts-ignore
-      return state.wallets.find((x) => x.address === address);
+      const publicKey = address.split('&')[0];
+      const chainId = address.split('&')[1];
+      // @ts-ignore
+      return state.wallets.find((x) => x.address === publicKey && x.chainId === chainId);
     },
   },
 });
