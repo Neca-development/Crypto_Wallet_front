@@ -355,11 +355,10 @@ export default {
     },
     async sendTrx() {
       try {
-        await this.wallet.sendMainToken({
+        const req = await this.wallet.sendMainToken({
           privateKey: this.wallet.privateKey,
           receiverAddress: this.sendTrxForm.receiver,
           amount: this.sendTrxForm.amount,
-          fee: this.fee.value,
         });
         this.isTrxSuccess = true;
         setTimeout(() => {
@@ -369,7 +368,7 @@ export default {
           color: 'success',
           title: 'Success',
           position: 'top-right',
-          text: 'Transaction was successfully sended',
+          text: `Transaction ${req} was successfully sended`,
         });
         this.clearSendTrxForm();
       } catch (error) {
@@ -390,7 +389,7 @@ export default {
         privateKey = this.wallet.privateKey;
 
       try {
-        await this.wallet.send20Token({
+        const req = await this.wallet.send20Token({
           receiverAddress,
           cotractAddress,
           amount,
@@ -401,7 +400,7 @@ export default {
           color: 'success',
           title: 'Success',
           position: 'top-right',
-          text: 'Token was successfully sended',
+          text: `Transaction ${req} was successfully sended`,
         });
         this.clearSendTokenForm();
       } catch (error) {

@@ -130,12 +130,11 @@ export class binanceService implements IChainService {
     return transactions;
   }
 
-  async sendMainToken(data: ISendingTransactionData) {
+  async sendMainToken(data: ISendingTransactionData): Promise<string> {
     const gasPrice = await this.web3.eth.getGasPrice();
-    const fee = await this.web3.eth.estimateGas({
+    const gasCount = await this.web3.eth.estimateGas({
       value: this.web3.utils.toWei(data.amount.toString()),
     });
-    const gasCount = Math.trunc(+this.web3.utils.toWei(fee.toString()) / +gasPrice);
 
     const result = await this.web3.eth.sendTransaction({
       from: this.web3.eth.defaultAccount,
@@ -144,10 +143,11 @@ export class binanceService implements IChainService {
       gasPrice: gasPrice,
       gas: gasCount,
     });
-    console.log(result);
+
+    return result.transactionHash;
   }
 
-  async send20Token(data: ISendingTransactionData) {
+  async send20Token(data: ISendingTransactionData): Promise<string> {
     const tokenAddress = data.cotractAddress;
     const contract = new this.web3.eth.Contract(bnbUSDTAbi as any, tokenAddress);
     const decimals = getBNFromDecimal(+(await contract.methods._decimals().call()));
@@ -156,6 +156,8 @@ export class binanceService implements IChainService {
       .transfer(data.receiverAddress, this.web3.utils.toHex(amount))
       .send({ from: this.web3.eth.defaultAccount, gas: 100000 });
     console.log(result);
+
+    return result.transactionHash;
   }
 
   getTokenContractAddress(tokens: any[], tokenAbbr: string) {

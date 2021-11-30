@@ -14,8 +14,8 @@ export declare class ethereumService implements IChainService {
      * @returns {any}
      */
     getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]>;
-    sendMainToken(data: ISendingTransactionData): Promise<void>;
-    send20Token(data: ISendingTransactionData): Promise<void>;
+    sendMainToken(data: ISendingTransactionData): Promise<string>;
+    send20Token(data: ISendingTransactionData): Promise<string>;
     getTokenContractAddress(tokens: any[], tokenAbbr: string): any;
     /**
      * @param {string} address:string

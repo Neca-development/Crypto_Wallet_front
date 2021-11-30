@@ -121,16 +121,24 @@ export class Wallet {
    * @param {ISendingTransactionData} data:ISendingTransactionData
    * @returns {Promise<void>}
    */
-  async sendMainToken(data: ISendingTransactionData): Promise<void> {
-    return await this.service.sendMainToken(data);
+  async sendMainToken(data: ISendingTransactionData): Promise<string> {
+    const txHash = await this.service.sendMainToken(data);
+    console.log(
+      '%cMyProject%cline:125%ctxHash',
+      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
+      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
+      'color:#fff;background:rgb(251, 178, 23);padding:3px;border-radius:2px',
+      txHash
+    );
+    return txHash;
   }
 
   /**
-   * send 20 token e.g. ERC-20 or TRC-20
+   * send 20 token e.g. ERC-20 or TRC-20. Return transaction hash
    * @param {ISendingTransactionData} data:ISendingTransactionData
-   * @returns {Promise<void>}
+   * @returns {Promise<string>}
    */
-  async send20Token(data: ISendingTransactionData): Promise<void> {
+  async send20Token(data: ISendingTransactionData): Promise<string> {
     return await this.service.send20Token({ ...data, privateKey: this.data.privateKey });
   }
 

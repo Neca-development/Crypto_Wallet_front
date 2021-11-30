@@ -106,8 +106,10 @@ export class tronService implements IChainService {
     this.Tron.setPrivateKey(data.privateKey);
 
     const address = this.Tron.address.toHex(data.receiverAddress);
+    const result = await this.Tron.trx.sendTransaction(address, this.Tron.toSun(data.amount), data.privateKey);
+    console.log(result);
 
-    await this.Tron.trx.sendTransaction(address, this.Tron.toSun(data.amount), data.privateKey);
+    return result.txid;
   }
 
   async send20Token(data: ISendingTransactionData) {
@@ -115,7 +117,7 @@ export class tronService implements IChainService {
     const contract = await this.Tron.contract().at(data.cotractAddress);
     //Use send to execute a non-pure or modify smart contract method on a given smart contract that modify or change values on the blockchain.
     // These methods consume resources(bandwidth and energy) to perform as the changes need to be broadcasted out to the network.
-    await contract
+    const result = await contract
       .transfer(
         data.receiverAddress, //address _to
         this.Tron.toSun(data.amount) //amount
@@ -123,6 +125,10 @@ export class tronService implements IChainService {
       .send({
         feeLimit: 10000000,
       });
+
+    console.log(result);
+
+    return result;
   }
 
   /**

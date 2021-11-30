@@ -150,7 +150,7 @@ export class ethereumService implements IChainService {
     return transactions;
   }
 
-  async sendMainToken(data: ISendingTransactionData) {
+  async sendMainToken(data: ISendingTransactionData): Promise<string> {
     // let gasPrice = await this.web3.eth.getGasPrice();
 
     // let gasCount = Math.trunc(+this.web3.utils.toWei(data.fee) / +gasPrice);
@@ -161,9 +161,11 @@ export class ethereumService implements IChainService {
       value: this.web3.utils.numberToHex(this.web3.utils.toWei(data.amount.toString())),
     });
     console.log(result);
+
+    return result.transactionHash;
   }
 
-  async send20Token(data: ISendingTransactionData) {
+  async send20Token(data: ISendingTransactionData): Promise<string> {
     const tokenAddress = data.cotractAddress;
     const contract = new this.web3.eth.Contract(etherUSDTAbi as any, tokenAddress);
     const decimals = getBNFromDecimal(+(await contract.methods.decimals().call()));
@@ -172,6 +174,8 @@ export class ethereumService implements IChainService {
       .transfer(data.receiverAddress, this.web3.utils.toHex(amount))
       .send({ from: this.web3.eth.defaultAccount, gas: 100000 });
     console.log(result);
+
+    return result.transactionHash;
   }
 
   getTokenContractAddress(tokens: any[], tokenAbbr: string) {

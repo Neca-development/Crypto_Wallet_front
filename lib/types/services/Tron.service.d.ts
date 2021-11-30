@@ -10,8 +10,8 @@ export declare class tronService implements IChainService {
     getTokensByAddress(address: string): Promise<IToken[]>;
     getFeePriceOracle(): Promise<IFee>;
     getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]>;
-    sendMainToken(data: ISendingTransactionData): Promise<void>;
-    send20Token(data: ISendingTransactionData): Promise<void>;
+    sendMainToken(data: ISendingTransactionData): Promise<any>;
+    send20Token(data: ISendingTransactionData): Promise<any>;
     /**
      * @param {string} address:string
      * @param {number} trxToUSD:number

@@ -62,13 +62,13 @@ export declare class Wallet {
      * @param {ISendingTransactionData} data:ISendingTransactionData
      * @returns {Promise<void>}
      */
-    sendMainToken(data: ISendingTransactionData): Promise<void>;
+    sendMainToken(data: ISendingTransactionData): Promise<string>;
     /**
-     * send 20 token e.g. ERC-20 or TRC-20
+     * send 20 token e.g. ERC-20 or TRC-20. Return transaction hash
      * @param {ISendingTransactionData} data:ISendingTransactionData
-     * @returns {Promise<void>}
+     * @returns {Promise<string>}
      */
-    send20Token(data: ISendingTransactionData): Promise<void>;
+    send20Token(data: ISendingTransactionData): Promise<string>;
     /**
      * select chain service for wallet
      * @param {chainId} chainId:ChainIds
