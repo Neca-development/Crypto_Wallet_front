@@ -107,7 +107,6 @@ export class tronService implements IChainService {
 
     const address = this.Tron.address.toHex(data.receiverAddress);
     const result = await this.Tron.trx.sendTransaction(address, this.Tron.toSun(data.amount), data.privateKey);
-    console.log(result);
 
     return result.txid;
   }
@@ -125,8 +124,6 @@ export class tronService implements IChainService {
       .send({
         feeLimit: 10000000,
       });
-
-    console.log(result);
 
     return result;
   }

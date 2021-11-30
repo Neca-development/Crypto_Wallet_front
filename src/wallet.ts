@@ -122,15 +122,7 @@ export class Wallet {
    * @returns {Promise<void>}
    */
   async sendMainToken(data: ISendingTransactionData): Promise<string> {
-    const txHash = await this.service.sendMainToken(data);
-    console.log(
-      '%cMyProject%cline:125%ctxHash',
-      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
-      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
-      'color:#fff;background:rgb(251, 178, 23);padding:3px;border-radius:2px',
-      txHash
-    );
-    return txHash;
+    return await this.service.sendMainToken(data);
   }
 
   /**
