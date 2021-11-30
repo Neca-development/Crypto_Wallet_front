@@ -131,7 +131,7 @@ export class Wallet {
    * @returns {Promise<void>}
    */
   async send20Token(data: ISendingTransactionData): Promise<void> {
-    return await this.service.send20Token(data);
+    return await this.service.send20Token({ ...data, privateKey: this.data.privateKey });
   }
 
   /**

@@ -8,6 +8,11 @@ export declare class WalletFactory {
      * @returns {Promise<Wallet[]>}
      */
     createWallets(mnemonic?: string): Promise<ICreateWalletsData>;
+    /**
+     * @desc Create a single Tron wallet
+     * @param {string} privateKey:string
+     * @returns {Promise<Wallet>}
+     */
     createTronWallet(privateKey: string): Promise<Wallet>;
 }
 //# sourceMappingURL=wallet-factory.d.ts.map

@@ -8,7 +8,7 @@ export declare class ethereumService implements IChainService {
     constructor();
     generateKeyPair(mnemonic: string): Promise<IWalletKeys>;
     getTokensByAddress(address: string): Promise<IToken[]>;
-    getFeePriceOracle(from: string, to: string): Promise<IFee>;
+    getFeePriceOracle(from: string): Promise<IFee>;
     /**
      * @param {ISendingTransactionData} data:ISendingTransactionData
      * @returns {any}

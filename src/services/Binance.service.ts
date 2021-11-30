@@ -132,7 +132,10 @@ export class binanceService implements IChainService {
 
   async sendMainToken(data: ISendingTransactionData) {
     const gasPrice = await this.web3.eth.getGasPrice();
-    const gasCount = Math.trunc(+this.web3.utils.toWei(data.fee) / +gasPrice);
+    const fee = await this.web3.eth.estimateGas({
+      value: this.web3.utils.toWei(data.amount.toString()),
+    });
+    const gasCount = Math.trunc(+this.web3.utils.toWei(fee.toString()) / +gasPrice);
 
     const result = await this.web3.eth.sendTransaction({
       from: this.web3.eth.defaultAccount,

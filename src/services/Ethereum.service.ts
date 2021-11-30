@@ -11,6 +11,7 @@ import {
   ethWeb3Provider,
   coinConverterApi,
   etherUSDTContractAddress,
+  etherGasPrice,
 } from '../constants/providers';
 import { etherUSDTAbi } from '../constants/eth-USDT.abi';
 
@@ -90,18 +91,25 @@ export class ethereumService implements IChainService {
     return tokens;
   }
 
-  async getFeePriceOracle(from: string, to: string): Promise<IFee> {
+  async getFeePriceOracle(from: string): Promise<IFee> {
     const { data: ethToUSD } = await axios.get(
       `${coinConverterApi}/v3/simple/price?ids=ethereum&vs_currencies=usd,tether`
     );
 
     const fee = await this.web3.eth.estimateGas({
       from,
-      to,
+      value: this.web3.utils.toWei('1'),
     });
 
-    let value = await this.web3.eth.getGasPrice();
-    value = (+this.web3.utils.fromWei(value) * fee).toString();
+    let { data: price } = await axios.get(etherGasPrice);
+    console.log(price);
+
+    price = price.fast / 10000000000;
+
+    console.log({ price, fee });
+
+    const value = (price.fast * fee).toString();
+    console.log(value);
 
     const usd = Math.trunc(+value * ethToUSD.ethereum.usd * 100) / 100;
 

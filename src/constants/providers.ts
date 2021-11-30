@@ -20,6 +20,9 @@ export const etherScanApiKey = 'S18IGMPYTDRZ1CQJRHZIR5QE5F5AS2K16U';
 
 export const etherUSDTContractAddress = '0xd92e713d051c37ebb2561803a3b5fbabc4962431';
 
+export const etherGasPrice =
+  'https://ethgasstation.info/api/ethgasAPI.json?api-key=d1c0caed8c46a0969ed707db1b8c6b08aab8861f223997cca266ee6ac5cc';
+
 // --- Binance ---
 
 export const binanceWeb3Provider = 'https://data-seed-prebsc-1-s1.binance.org:8545/';

@@ -1,11 +1,13 @@
 export interface ISendingTransactionData {
-    privateKey: string;
+    /**
+     * @desc is inserted automatically from the wallet instance, you do not need to transfer it manually
+     */
+    privateKey?: string;
     receiverAddress: string;
     amount: number;
     /**
      * @desc take fee in main chain token
      */
-    fee: string;
     cotractAddress?: string;
 }
 export interface ITransaction {
