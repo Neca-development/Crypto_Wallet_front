@@ -58,7 +58,7 @@ export declare class Wallet {
      */
     getFeePriceOracle(receiverAddress: string): Promise<IFee>;
     /**
-     * send current chain main token e.g. ETH, BTC or TRX
+     * send current chain main token e.g. ETH, BTC or TRX. Retutn transaction hash
      * @param {ISendingTransactionData} data:ISendingTransactionData
      * @returns {Promise<void>}
      */
