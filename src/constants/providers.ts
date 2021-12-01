@@ -1,5 +1,9 @@
 export const coinConverterApi = 'https://api.coingecko.com/api';
 
+export const bitqueryApi = 'https://graphql.bitquery.io/';
+
+export const bitqueryKey = 'BQYdGdxbwuM6UFxXp1brtTt7iXqyf9bl';
+
 // --- Tron ---
 export const tronWebProvider = {
   fullHost: 'https://api.trongrid.io',

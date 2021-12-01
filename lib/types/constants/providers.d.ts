@@ -1,4 +1,6 @@
 export declare const coinConverterApi = "https://api.coingecko.com/api";
+export declare const bitqueryApi = "https://graphql.bitquery.io/";
+export declare const bitqueryKey = "BQYdGdxbwuM6UFxXp1brtTt7iXqyf9bl";
 export declare const tronWebProvider: {
     fullHost: string;
     solidityNode: string;
