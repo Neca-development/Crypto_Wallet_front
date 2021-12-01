@@ -12,6 +12,10 @@ export class WalletFactory {
    * @returns {Promise<Wallet[]>}
    */
   async createWallets(mnemonic?: string): Promise<ICreateWalletsData> {
+    if (mnemonic !== undefined && hdWallet.validateMnemonic(mnemonic) === false) {
+      throw new Error('Invalid mnemonic seed provided!');
+    }
+
     if (mnemonic === undefined) {
       mnemonic = hdWallet.generateMnemonic();
     }
