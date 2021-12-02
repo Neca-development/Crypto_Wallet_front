@@ -50,39 +50,27 @@ export class ethereumService implements IChainService {
       `${coinConverterApi}/v3/simple/price?ids=ethereum&vs_currencies=usd,tether`
     );
 
-    const { data: mainToken } = await axios.get(
-      `${etherScanApi}?module=account&action=balance&address=${address}&tag=latest&apikey=${etherScanApiKey}`
+    const nativeTokensBalance = await this.web3.eth.getBalance(address);
+    const USDTTokenBalance = await this.getCustomTokenBalance(address, etherUSDTContractAddress);
+
+    tokens.push(
+      this.generateTokenObject(
+        Number(this.web3.utils.fromWei(nativeTokensBalance)),
+        'TRX',
+        'native',
+        ethToUSD.ethereum.usd
+      )
     );
 
-    const mainTokenBalanceInUSD =
-      Math.trunc(+this.web3.utils.fromWei(mainToken.result) * ethToUSD.ethereum.usd * 100) / 100;
-
-    tokens.push({
-      balance: +this.web3.utils.fromWei(mainToken.result),
-      balanceInUSD: mainTokenBalanceInUSD,
-      contractAddress: '_',
-      tokenName: 'ETH',
-      tokenType: 'mainToken',
-      tokenLogo: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880',
-      tokenPriceInUSD: ethToUSD.ethereum.usd,
-    });
-
-    const contract = new this.web3.eth.Contract(etherUSDTAbi as any, etherUSDTContractAddress);
-    const result = await contract.methods.balanceOf(address).call();
-
-    const decimals = getBNFromDecimal(parseInt(await contract.methods.decimals().call(), 10));
-    const balance = new BigNumber(result).div(decimals).toNumber();
-    const USDTbalanceInUSD = Math.trunc(balance * 100) / 100;
-
-    tokens.push({
-      balance,
-      balanceInUSD: USDTbalanceInUSD,
-      contractAddress: etherUSDTContractAddress,
-      tokenName: 'USD Tether',
-      tokenType: 'smartToken',
-      tokenLogo: 'https://s2.coinmarketcap.com/static/img/coins/64x64/825.png',
-      tokenPriceInUSD: 1,
-    });
+    tokens.push(
+      this.generateTokenObject(
+        USDTTokenBalance,
+        'Tether USDT',
+        'custom',
+        ethToUSD.ethereum.usd,
+        etherUSDTContractAddress
+      )
+    );
 
     return tokens;
   }
@@ -174,10 +162,39 @@ export class ethereumService implements IChainService {
     return result.transactionHash;
   }
 
-  getTokenContractAddress(tokens: any[], tokenAbbr: string) {
-    const token = tokens.find((x: any) => x.tokenAbbr === tokenAbbr);
+  // -------------------------------------------------
+  // ********** PRIVATE METHODS SECTION **************
+  // -------------------------------------------------
 
-    return token.tokenId;
+  private async getCustomTokenBalance(address: string, contractAddress: string): Promise<number> {
+    const contract = new this.web3.eth.Contract(etherUSDTAbi as any, contractAddress);
+    const decimals = getBNFromDecimal(await contract.methods.decimals().call());
+
+    let balance = await contract.balanceOf(address).call();
+    balance = new BigNumber(balance.toNumber()).div(decimals);
+
+    return balance.toNumber();
+  }
+
+  private generateTokenObject(
+    balance: number,
+    tokenName: string,
+    tokenType: 'native' | 'custom',
+    trxToUSD: number,
+    contractAddress?: string
+  ): IToken {
+    const tokenPriceInUSD = tokenType === 'custom' ? 1 : trxToUSD;
+    const balanceInUSD =
+      tokenType === 'custom' ? Math.trunc(balance * 100) / 100 : Math.trunc(balance * trxToUSD * 100) / 100;
+
+    return {
+      balance,
+      balanceInUSD,
+      contractAddress,
+      tokenName,
+      tokenType,
+      tokenPriceInUSD,
+    };
   }
 
   /**

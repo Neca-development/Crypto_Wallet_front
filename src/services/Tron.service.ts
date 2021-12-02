@@ -12,7 +12,7 @@ import TronWeb from 'tronweb';
 // @ts-ignore
 import hdWallet from 'tron-wallet-hd';
 import axios from 'axios';
-import { getBNFromDecimal, removeTrailingZeros } from '../utils/numbers';
+import { getBNFromDecimal } from '../utils/numbers';
 
 import { BigNumber } from 'bignumber.js';
 
