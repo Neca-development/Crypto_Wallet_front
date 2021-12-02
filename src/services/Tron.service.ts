@@ -4,7 +4,7 @@ import { IWalletKeys } from '../models/wallet';
 import { IChainService } from '../models/chainService';
 import { IToken } from '../models/token';
 
-import { tronGridApi, tronScanApi, tronWebProvider } from '../constants/providers';
+import { tronWebProvider } from '../constants/providers';
 import { coinConverterApi, bitqueryApi, bitqueryKey } from '../constants/providers';
 
 // @ts-ignore
@@ -17,7 +17,7 @@ import { getBNFromDecimal, removeTrailingZeros } from '../utils/numbers';
 import { BigNumber } from 'bignumber.js';
 
 export class tronService implements IChainService {
-  Tron: any;
+  Tron: TronWeb;
 
   constructor() {
     this.Tron = new TronWeb(tronWebProvider);
@@ -31,6 +31,7 @@ export class tronService implements IChainService {
 
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
     const data: any = (await hdWallet.generateAccountsWithMnemonic(mnemonic, 1))[0];
+    this.Tron.setPrivateKey(data.privateKey);
 
     return {
       privateKey: data.privateKey,
@@ -39,30 +40,22 @@ export class tronService implements IChainService {
   }
 
   async getTokensByAddress(address: string): Promise<IToken[]> {
-    const { data } = await axios.get(`${tronScanApi}/account?address=${address}`);
-
+    const tokens: IToken[] = [];
     const { data: trxToUSD } = await axios.get(`${coinConverterApi}/v3/simple/price?ids=tron&vs_currencies=usd`);
 
-    const tokens: IToken[] = data.tokens.map((x: any): IToken => {
-      const tokenPriceInUSD = Math.trunc(x.tokenPriceInTrx * trxToUSD.tron.usd * 1000) / 1000;
-      const balance = +this.Tron.fromSun(x.balance);
-      const balanceInUSD =
-        x.tokenAbbr.toLowerCase() === 'usdt'
-          ? Math.trunc(balance * 100) / 100
-          : Math.trunc(balance * trxToUSD.tron.usd * 100) / 100;
+    const nativeTokensBalance = await this.Tron.trx.getBalance(address);
+    const USDTTokenBalance = await this.getCustomTokenBalance(address, 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t');
 
-      return {
-        balance,
-        balanceInUSD,
-        tokenId: x.tokenId,
-        contractAddress: x.tokenId,
-        tokenAbbr: x.tokenAbbr,
-        tokenName: x.tokenName,
-        tokenType: x.tokenType,
-        tokenLogo: x.tokenLogo,
-        tokenPriceInUSD,
-      };
-    });
+    tokens.push(this.generateTokenObject(this.Tron.fromSun(nativeTokensBalance), 'TRX', 'native', trxToUSD.tron.usd));
+    tokens.push(
+      this.generateTokenObject(
+        USDTTokenBalance,
+        'Tether USDT',
+        'custom',
+        trxToUSD.tron.usd,
+        'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t'
+      )
+    );
 
     return tokens;
   }
@@ -166,6 +159,41 @@ export class tronService implements IChainService {
     return result;
   }
 
+  // -------------------------------------------------
+  // ********** PRIVATE METHODS SECTION **************
+  // -------------------------------------------------
+
+  private async getCustomTokenBalance(address: string, contractAddress: string): Promise<number> {
+    const contract = await this.Tron.contract().at(contractAddress);
+    const decimals = getBNFromDecimal(await contract.decimals().call());
+
+    let balance = await contract.balanceOf(address).call();
+    balance = new BigNumber(balance.toNumber()).div(decimals);
+
+    return balance.toNumber();
+  }
+
+  private generateTokenObject(
+    balance: number,
+    tokenName: string,
+    tokenType: 'native' | 'custom',
+    trxToUSD: number,
+    contractAddress?: string
+  ): IToken {
+    const tokenPriceInUSD = tokenType === 'custom' ? 1 : trxToUSD;
+    const balanceInUSD =
+      tokenType === 'custom' ? Math.trunc(balance * 100) / 100 : Math.trunc(balance * trxToUSD * 100) / 100;
+
+    return {
+      balance,
+      balanceInUSD,
+      contractAddress,
+      tokenName,
+      tokenType,
+      tokenPriceInUSD,
+    };
+  }
+
   private generateTransactionsQuery(address: string, direction: 'receiver' | 'sender') {
     return `
       query{
@@ -214,8 +242,6 @@ export class tronService implements IChainService {
     const direction = from === address ? 'OUT' : 'IN';
     const amountInUSD =
       txData.currency.symbol.toLowerCase() === 'trx' ? (Math.trunc(amount * trxToUSD * 100) / 100).toString() : amount;
-
-    console.log(txData);
 
     return {
       to,

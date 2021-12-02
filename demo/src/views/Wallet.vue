@@ -23,7 +23,7 @@
             <div class="token__name">
               <img :src="token.tokenLogo" alt="" />
               <div>
-                <abbr>{{ token.tokenAbbr }}</abbr> <br />
+                <abbr>{{ token.tokenName }}</abbr> <br />
                 <b>{{ wallet.chainId }}</b>
               </div>
             </div>

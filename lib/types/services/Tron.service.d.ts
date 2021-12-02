@@ -2,8 +2,9 @@ import { IFee, ISendingTransactionData, ITransaction } from '../models/transacti
 import { IWalletKeys } from '../models/wallet';
 import { IChainService } from '../models/chainService';
 import { IToken } from '../models/token';
+import TronWeb from 'tronweb';
 export declare class tronService implements IChainService {
-    Tron: any;
+    Tron: TronWeb;
     constructor();
     generatePublicKey(privateKey: string): Promise<string>;
     generateKeyPair(mnemonic: string): Promise<IWalletKeys>;
@@ -12,6 +13,8 @@ export declare class tronService implements IChainService {
     getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]>;
     sendMainToken(data: ISendingTransactionData): Promise<any>;
     send20Token(data: ISendingTransactionData): Promise<any>;
+    private getCustomTokenBalance;
+    private generateTokenObject;
     private generateTransactionsQuery;
     /**
      * @param {any} txData:any

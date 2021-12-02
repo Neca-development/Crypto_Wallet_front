@@ -60,9 +60,7 @@ export class ethereumService implements IChainService {
     tokens.push({
       balance: +this.web3.utils.fromWei(mainToken.result),
       balanceInUSD: mainTokenBalanceInUSD,
-      tokenId: '_',
       contractAddress: '_',
-      tokenAbbr: 'ETH',
       tokenName: 'ETH',
       tokenType: 'mainToken',
       tokenLogo: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880',
@@ -79,9 +77,7 @@ export class ethereumService implements IChainService {
     tokens.push({
       balance,
       balanceInUSD: USDTbalanceInUSD,
-      tokenId: '_',
       contractAddress: etherUSDTContractAddress,
-      tokenAbbr: 'USDT',
       tokenName: 'USD Tether',
       tokenType: 'smartToken',
       tokenLogo: 'https://s2.coinmarketcap.com/static/img/coins/64x64/825.png',
