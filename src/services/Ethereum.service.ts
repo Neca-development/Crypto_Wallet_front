@@ -168,10 +168,15 @@ export class ethereumService implements IChainService {
 
   private async getCustomTokenBalance(address: string, contractAddress: string): Promise<number> {
     const contract = new this.web3.eth.Contract(etherUSDTAbi as any, contractAddress);
-    const decimals = getBNFromDecimal(await contract.methods.decimals().call());
+    const decimals = getBNFromDecimal(Number(await contract.methods.decimals().call()));
 
-    let balance = await contract.balanceOf(address).call();
-    balance = new BigNumber(balance.toNumber()).div(decimals);
+    let balance = await contract.methods.balanceOf(address).call();
+    console.log({ decimals });
+    console.log(decimals.toNumber());
+
+    balance = new BigNumber(balance).dividedBy(decimals);
+    console.log({ balance });
+    console.log(balance.toNumber());
 
     return balance.toNumber();
   }

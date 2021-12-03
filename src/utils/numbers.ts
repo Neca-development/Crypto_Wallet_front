@@ -5,6 +5,9 @@ import { BigNumber } from 'bignumber.js';
  * @returns {number}
  */
 export function getBNFromDecimal(decimalLength: number): BigNumber {
+  if (typeof decimalLength !== 'number') {
+    throw new Error('length must be a number!');
+  }
   return new BigNumber('1'.padEnd(decimalLength + 1, '0'));
 }
 
