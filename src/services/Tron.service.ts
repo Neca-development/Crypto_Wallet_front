@@ -4,7 +4,7 @@ import { IWalletKeys } from '../models/wallet';
 import { IChainService } from '../models/chainService';
 import { IToken } from '../models/token';
 
-import { tronWebProvider } from '../constants/providers';
+import { tronWebProvider, tronUSDTContractAddress } from '../constants/providers';
 import { coinConverterApi, bitqueryApi, bitqueryKey } from '../constants/providers';
 
 // @ts-ignore
@@ -44,17 +44,11 @@ export class tronService implements IChainService {
     const { data: trxToUSD } = await axios.get(`${coinConverterApi}/v3/simple/price?ids=tron&vs_currencies=usd`);
 
     const nativeTokensBalance = await this.Tron.trx.getBalance(address);
-    const USDTTokenBalance = await this.getCustomTokenBalance(address, 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t');
+    const USDTTokenBalance = await this.getCustomTokenBalance(address, tronUSDTContractAddress);
 
     tokens.push(this.generateTokenObject(this.Tron.fromSun(nativeTokensBalance), 'TRX', 'native', trxToUSD.tron.usd));
     tokens.push(
-      this.generateTokenObject(
-        USDTTokenBalance,
-        'Tether USDT',
-        'custom',
-        trxToUSD.tron.usd,
-        'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t'
-      )
+      this.generateTokenObject(USDTTokenBalance, 'Tether USDT', 'custom', trxToUSD.tron.usd, tronUSDTContractAddress)
     );
 
     return tokens;

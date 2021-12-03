@@ -56,7 +56,7 @@ export class ethereumService implements IChainService {
     tokens.push(
       this.generateTokenObject(
         Number(this.web3.utils.fromWei(nativeTokensBalance)),
-        'TRX',
+        'ETH',
         'native',
         ethToUSD.ethereum.usd
       )
@@ -171,12 +171,7 @@ export class ethereumService implements IChainService {
     const decimals = getBNFromDecimal(Number(await contract.methods.decimals().call()));
 
     let balance = await contract.methods.balanceOf(address).call();
-    console.log({ decimals });
-    console.log(decimals.toNumber());
-
     balance = new BigNumber(balance).dividedBy(decimals);
-    console.log({ balance });
-    console.log(balance.toNumber());
 
     return balance.toNumber();
   }

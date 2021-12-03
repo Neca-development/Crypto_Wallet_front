@@ -36,40 +36,32 @@ export class binanceService implements IChainService {
 
   async getTokensByAddress(address: string) {
     const tokens: Array<IToken> = [];
-    const nativeToken = this.web3.utils.fromWei(await this.web3.eth.getBalance(address));
 
     const { data: bnbToUSD } = await axios.get(
       `${coinConverterApi}/v3/simple/price?ids=binancecoin&vs_currencies=usd,tether`
     );
 
-    const mainTokenBalanceInUSD = Math.trunc(+nativeToken * bnbToUSD.binancecoin.usd * 100) / 100;
+    const nativeTokensBalance = await this.web3.eth.getBalance(address);
+    const USDTTokenBalance = await this.getCustomTokenBalance(address, binanceUSDTContractAddress);
 
-    tokens.push({
-      balance: +nativeToken,
-      balanceInUSD: mainTokenBalanceInUSD,
-      contractAddress: '_',
-      tokenName: 'Binance Coin',
-      tokenType: 'mainToken',
-      tokenLogo: 'https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png',
-      tokenPriceInUSD: bnbToUSD.binancecoin.usd,
-    });
+    tokens.push(
+      this.generateTokenObject(
+        Number(this.web3.utils.fromWei(nativeTokensBalance)),
+        'BNB',
+        'native',
+        bnbToUSD.binancecoin.usd
+      )
+    );
 
-    const contract = new this.web3.eth.Contract(bnbUSDTAbi as any, binanceUSDTContractAddress);
-    const result = await contract.methods.balanceOf(address).call();
-
-    const decimals = getBNFromDecimal(parseInt(await contract.methods._decimals().call(), 10));
-    const balance = new BigNumber(result).div(decimals).toNumber();
-    const USDTbalanceInUSD = Math.trunc(balance * 100) / 100;
-
-    tokens.push({
-      balance,
-      balanceInUSD: USDTbalanceInUSD,
-      contractAddress: binanceUSDTContractAddress,
-      tokenName: 'USD Tether',
-      tokenType: 'smartToken',
-      tokenLogo: 'https://s2.coinmarketcap.com/static/img/coins/64x64/825.png',
-      tokenPriceInUSD: 1,
-    });
+    tokens.push(
+      this.generateTokenObject(
+        USDTTokenBalance,
+        'Tether USDT',
+        'custom',
+        bnbToUSD.binancecoin.usd,
+        binanceUSDTContractAddress
+      )
+    );
 
     return tokens;
   }
@@ -156,10 +148,39 @@ export class binanceService implements IChainService {
     return result.transactionHash;
   }
 
-  getTokenContractAddress(tokens: any[], tokenAbbr: string) {
-    const token = tokens.find((x: any) => x.tokenAbbr === tokenAbbr);
+  // -------------------------------------------------
+  // ********** PRIVATE METHODS SECTION **************
+  // -------------------------------------------------
 
-    return token.tokenId;
+  private async getCustomTokenBalance(address: string, contractAddress: string): Promise<number> {
+    const contract = new this.web3.eth.Contract(bnbUSDTAbi as any, contractAddress);
+    const decimals = getBNFromDecimal(Number(await contract.methods.decimals().call()));
+
+    let balance = await contract.methods.balanceOf(address).call();
+    balance = new BigNumber(balance).dividedBy(decimals);
+
+    return balance.toNumber();
+  }
+
+  private generateTokenObject(
+    balance: number,
+    tokenName: string,
+    tokenType: 'native' | 'custom',
+    trxToUSD: number,
+    contractAddress?: string
+  ): IToken {
+    const tokenPriceInUSD = tokenType === 'custom' ? 1 : trxToUSD;
+    const balanceInUSD =
+      tokenType === 'custom' ? Math.trunc(balance * 100) / 100 : Math.trunc(balance * trxToUSD * 100) / 100;
+
+    return {
+      balance,
+      balanceInUSD,
+      contractAddress,
+      tokenName,
+      tokenType,
+      tokenPriceInUSD,
+    };
   }
 
   /**
