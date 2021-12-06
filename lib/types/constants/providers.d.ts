@@ -1,4 +1,6 @@
 export declare const coinConverterApi = "https://api.coingecko.com/api";
+export declare const bitqueryApi = "https://graphql.bitquery.io/";
+export declare const bitqueryKey = "BQYdGdxbwuM6UFxXp1brtTt7iXqyf9bl";
 export declare const tronWebProvider: {
     fullHost: string;
     solidityNode: string;
@@ -6,6 +8,7 @@ export declare const tronWebProvider: {
 };
 export declare const tronGridApi = "https://api.trongrid.io/v1";
 export declare const tronScanApi = "https://apilist.tronscan.org/api";
+export declare const tronUSDTContractAddress = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
 export declare const ethWeb3Provider = "https://rinkeby.infura.io/v3/522b462c9a1d45fb9b3b18b5fda51c05";
 export declare const etherScanApi = "https://api-rinkeby.etherscan.io/api";
 export declare const etherScanApiKey = "S18IGMPYTDRZ1CQJRHZIR5QE5F5AS2K16U";

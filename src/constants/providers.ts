@@ -1,5 +1,9 @@
 export const coinConverterApi = 'https://api.coingecko.com/api';
 
+export const bitqueryApi = 'https://graphql.bitquery.io/';
+
+export const bitqueryKey = 'BQYdGdxbwuM6UFxXp1brtTt7iXqyf9bl';
+
 // --- Tron ---
 export const tronWebProvider = {
   fullHost: 'https://api.trongrid.io',
@@ -11,6 +15,7 @@ export const tronGridApi = 'https://api.trongrid.io/v1';
 
 export const tronScanApi = 'https://apilist.tronscan.org/api';
 
+export const tronUSDTContractAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
 // --- Ether ---
 export const ethWeb3Provider = 'https://rinkeby.infura.io/v3/522b462c9a1d45fb9b3b18b5fda51c05';
 

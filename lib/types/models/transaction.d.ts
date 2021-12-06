@@ -19,7 +19,7 @@ export interface ITransaction {
     txId: string;
     tokenName: string;
     timestamp: number;
-    status?: 'CONFIRMED' | 'UNCOMFIRMED';
+    status?: boolean;
     type?: 'TransferContract' | 'TriggerSmartContract';
     fee: number;
 }

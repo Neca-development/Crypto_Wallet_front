@@ -23,7 +23,7 @@
             <div class="token__name">
               <img :src="token.tokenLogo" alt="" />
               <div>
-                <abbr>{{ token.tokenAbbr }}</abbr> <br />
+                <abbr>{{ token.tokenName }}</abbr> <br />
                 <b>{{ wallet.chainId }}</b>
               </div>
             </div>
@@ -63,7 +63,7 @@
     <div v-if="tokens" class="grid-row">
       <section class="wallet-page__send-trx">
         <form @submit.prevent="sendTrx">
-          <h2 class="subtitle">Send {{ tokens[0].tokenAbbr }}</h2>
+          <h2 class="subtitle">Send {{ tokens[0].tokenName }}</h2>
           <vs-input
             class="input"
             label="To"
@@ -91,15 +91,15 @@
         <form @submit.prevent="sendToken">
           <vs-row>
             <h2 class="subtitle">Send Token</h2>
-            <vs-select class="token-selector" placeholder="Select Token" v-model="sendTokenForm.tokenAbbr">
+            <vs-select class="token-selector" placeholder="Select Token" v-model="sendTokenForm.tokenName">
               <template #message-danger>
-                {{ sendTokenForm.tokenAbbr ? '' : 'Required' }}
+                {{ sendTokenForm.tokenName ? '' : 'Required' }}
               </template>
               <vs-option
                 v-for="(token, idx) of $options.filters.filterTrc20Tokens(tokens)"
                 :key="idx"
                 :label="token.tokenName"
-                :value="token.tokenAbbr"
+                :value="token.tokenName"
                 class="token-selector__option"
               >
                 <img class="token-selector__logo" :src="token.tokenLogo" alt="" />
@@ -123,7 +123,7 @@
           <div class="send-trx">
             <b v-if="isTrxSuccess">✓</b>
             <vs-button
-              :disabled="!sendTokenForm.tokenAbbr || !sendTokenForm.receiver || !sendTokenForm.amount"
+              :disabled="!sendTokenForm.tokenName || !sendTokenForm.receiver || !sendTokenForm.amount"
               v-else
               gradient
               success
@@ -225,7 +225,7 @@ export default {
         amount: '',
       },
       sendTokenForm: {
-        tokenAbbr: '',
+        tokenName: '',
         receiver: '',
         amount: '',
       },
@@ -327,7 +327,7 @@ export default {
     },
     clearSendTokenForm() {
       this.sendTokenForm = {
-        tokenAbbr: '',
+        tokenName: '',
         receiver: '',
         amount: '',
       };
@@ -382,7 +382,7 @@ export default {
       }
     },
     async sendToken() {
-      const token = this.tokens.find((x) => x.tokenAbbr === this.sendTokenForm.tokenAbbr),
+      const token = this.tokens.find((x) => x.tokenName === this.sendTokenForm.tokenName),
         receiverAddress = this.sendTokenForm.receiver,
         cotractAddress = token.contractAddress,
         amount = this.sendTokenForm.amount,

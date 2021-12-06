@@ -11,22 +11,27 @@ export class WalletFactory {
    * @param {string} mnemonic
    * @returns {Promise<Wallet[]>}
    */
-  async createWallets(mnemonic?: string): Promise<ICreateWalletsData> {
-    if (mnemonic !== undefined && hdWallet.validateMnemonic(mnemonic) === false) {
+  async createWallets(mnemonic?: string, chainId?: ChainIds): Promise<ICreateWalletsData> {
+    if (mnemonic !== undefined && mnemonic !== null && hdWallet.validateMnemonic(mnemonic) === false) {
       throw new Error('Invalid mnemonic seed provided!');
     }
 
-    if (mnemonic === undefined) {
+    if (mnemonic === undefined || mnemonic === null) {
       mnemonic = hdWallet.generateMnemonic();
+    }
+
+    if (chainId !== undefined && chainId !== null) {
+      const wallet = new Wallet(chainId as unknown as ChainIds, mnemonic);
+      return { mnemonic, wallets: [wallet] };
     }
 
     const wallets: Wallet[] = [];
 
-    for (const chainId in ChainIds) {
-      const isValueProperty = parseInt(chainId, 10) >= 0;
+    for (const id in ChainIds) {
+      const isValueProperty = parseInt(id, 10) >= 0;
 
       if (isValueProperty) {
-        wallets.push(new Wallet(chainId as unknown as ChainIds, mnemonic));
+        wallets.push(new Wallet(id as unknown as ChainIds, mnemonic));
       }
     }
 
