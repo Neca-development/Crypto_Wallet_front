@@ -47,8 +47,8 @@ export class WalletFactory {
    * @param {string} privateKey:string
    * @returns {Promise<Wallet>}
    */
-  async createTronWallet(privateKey: string): Promise<Wallet> {
-    const tronWallet = new Wallet(ChainIds.Tron, null, privateKey);
+  async createWalletByPrivateKey(privateKey: string, chainId: ChainIds): Promise<Wallet> {
+    const tronWallet = new Wallet(ChainIds[chainId] as unknown as ChainIds, null, privateKey);
     await tronWallet.init();
     return tronWallet;
   }

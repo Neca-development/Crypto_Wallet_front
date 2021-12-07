@@ -14,6 +14,6 @@ export declare class WalletFactory {
      * @param {string} privateKey:string
      * @returns {Promise<Wallet>}
      */
-    createTronWallet(privateKey: string): Promise<Wallet>;
+    createWalletByPrivateKey(privateKey: string, chainId: ChainIds): Promise<Wallet>;
 }
 //# sourceMappingURL=wallet-factory.d.ts.map
