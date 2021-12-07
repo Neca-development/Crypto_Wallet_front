@@ -7,6 +7,7 @@ export declare class ethereumService implements IChainService {
     private web3;
     constructor();
     generateKeyPair(mnemonic: string): Promise<IWalletKeys>;
+    generatePublicKey(privateKey: string): Promise<string>;
     getTokensByAddress(address: string): Promise<IToken[]>;
     getFeePriceOracle(from: string): Promise<IFee>;
     /**

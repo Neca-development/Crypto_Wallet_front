@@ -23,7 +23,7 @@ export default {
   },
   async created() {
     const wf = new WalletFactory();
-    const data = await wf.createWallets();
+    const data = await wf.createWallets('');
     console.log(data);
     this.$store.commit('ADD_WALLETS', data.wallets);
   },

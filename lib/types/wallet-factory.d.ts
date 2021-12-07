@@ -1,4 +1,5 @@
 import { Wallet } from './wallet';
+import { ChainIds } from './models/enums';
 import { ICreateWalletsData } from './models/wallet';
 export declare class WalletFactory {
     /**
@@ -7,12 +8,12 @@ export declare class WalletFactory {
      * @param {string} mnemonic
      * @returns {Promise<Wallet[]>}
      */
-    createWallets(mnemonic?: string): Promise<ICreateWalletsData>;
+    createWallets(mnemonic?: string, chainId?: ChainIds): Promise<ICreateWalletsData>;
     /**
      * @desc Create a single Tron wallet
      * @param {string} privateKey:string
      * @returns {Promise<Wallet>}
      */
-    createTronWallet(privateKey: string): Promise<Wallet>;
+    createWalletByPrivateKey(privateKey: string, chainId: ChainIds): Promise<Wallet>;
 }
 //# sourceMappingURL=wallet-factory.d.ts.map

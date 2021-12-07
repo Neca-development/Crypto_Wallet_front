@@ -34,6 +34,11 @@ export class binanceService implements IChainService {
     };
   }
 
+  async generatePublicKey(privateKey: string): Promise<string> {
+    const { address } = this.web3.eth.accounts.privateKeyToAccount(privateKey);
+    return address;
+  }
+
   async getTokensByAddress(address: string) {
     const tokens: Array<IToken> = [];
 

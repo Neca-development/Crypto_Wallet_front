@@ -7,6 +7,7 @@ export declare class binanceService implements IChainService {
     private web3;
     constructor();
     generateKeyPair(mnemonic: string): Promise<IWalletKeys>;
+    generatePublicKey(privateKey: string): Promise<string>;
     getTokensByAddress(address: string): Promise<IToken[]>;
     getFeePriceOracle(from: string, to: string): Promise<IFee>;
     /**
