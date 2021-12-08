@@ -9,7 +9,6 @@ import {
   etherScanApi,
   etherScanApiKey,
   ethWeb3Provider,
-  coinConverterApi,
   etherUSDTContractAddress,
   etherGasPrice,
   backendApi,
@@ -80,9 +79,11 @@ export class ethereumService implements IChainService {
   }
 
   async getFeePriceOracle(from: string): Promise<IFee> {
-    const { data: ethToUSD } = await axios.get(
-      `${coinConverterApi}/v3/simple/price?ids=ethereum&vs_currencies=usd,tether`
-    );
+    const { data: ethToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/ETH`, {
+      headers: {
+        'auth-client-key': backendApiKey,
+      },
+    });
 
     const fee = await this.web3.eth.estimateGas({
       from,
@@ -99,7 +100,7 @@ export class ethereumService implements IChainService {
     const value = (price.fast * fee).toString();
     console.log(value);
 
-    const usd = Math.trunc(+value * ethToUSD.ethereum.usd * 100) / 100;
+    const usd = Math.trunc(+value * Number(ethToUSD.data.usd) * 100) / 100;
 
     return {
       value,
@@ -113,13 +114,15 @@ export class ethereumService implements IChainService {
    */
   async getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]> {
     address = address.toLowerCase();
-    const { data: ethToUSD } = await axios.get(
-      `${coinConverterApi}/v3/simple/price?ids=ethereum&vs_currencies=usd,tether`
-    );
+    const { data: ethToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/ETH`, {
+      headers: {
+        'auth-client-key': backendApiKey,
+      },
+    });
 
     const transactions = [];
 
-    const trxTransactions = await this.getNormalTransactions(address, ethToUSD.ethereum.usd);
+    const trxTransactions = await this.getNormalTransactions(address, Number(ethToUSD.data.usd));
 
     const usdtTransactions = await this.getUSDTTransactions(address);
 

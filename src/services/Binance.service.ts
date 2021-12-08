@@ -7,7 +7,7 @@ import { ICryptoCurrency, IToken } from '../models/token';
 
 import { getBNFromDecimal, removeTrailingZeros } from '../utils/numbers';
 
-import { etherScanApiKey, coinConverterApi, binanceScanApi, backendApi, backendApiKey } from '../constants/providers';
+import { etherScanApiKey, binanceScanApi, backendApi, backendApiKey } from '../constants/providers';
 import { binanceWeb3Provider, binanceUSDTContractAddress } from '../constants/providers';
 import { bnbUSDTAbi } from '../constants/bnb-USDT.abi';
 
@@ -70,9 +70,11 @@ export class binanceService implements IChainService {
   }
 
   async getFeePriceOracle(from: string, to: string): Promise<IFee> {
-    const { data: bnbToUSD } = await axios.get(
-      `${coinConverterApi}/v3/simple/price?ids=ethereum&vs_currencies=usd,tether`
-    );
+    const { data: bnbToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/BNB`, {
+      headers: {
+        'auth-client-key': backendApiKey,
+      },
+    });
 
     const fee = await this.web3.eth.estimateGas({
       from,
@@ -82,7 +84,7 @@ export class binanceService implements IChainService {
     let value = await this.web3.eth.getGasPrice();
     value = (+this.web3.utils.fromWei(value) * fee).toString();
 
-    const usd = Math.trunc(+value * bnbToUSD.ethereum.usd * 100) / 100;
+    const usd = Math.trunc(+value * Number(bnbToUSD.data.usd) * 100) / 100;
 
     return {
       value,
@@ -96,13 +98,15 @@ export class binanceService implements IChainService {
    */
   async getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]> {
     address = address.toLowerCase();
-    const { data: bnbToUSD } = await axios.get(
-      `${coinConverterApi}/v3/simple/price?ids=ethereum&vs_currencies=usd,tether`
-    );
+    const { data: bnbToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/BNB`, {
+      headers: {
+        'auth-client-key': backendApiKey,
+      },
+    });
 
     const transactions = [];
 
-    const trxTransactions = await this.getNormalTransactions(address, bnbToUSD.ethereum.usd);
+    const trxTransactions = await this.getNormalTransactions(address, Number(bnbToUSD.data.usd));
 
     const usdtTransactions = await this.getUSDTTransactions(address);
 

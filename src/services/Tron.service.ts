@@ -6,7 +6,6 @@ import { ICryptoCurrency, IToken } from '../models/token';
 import { IResponse } from '../models/response';
 
 import { tronWebProvider, tronUSDTContractAddress, backendApi, imagesURL } from '../constants/providers';
-import { coinConverterApi, bitqueryApi, bitqueryKey } from '../constants/providers';
 
 // @ts-ignore
 import TronWeb from 'tronweb';
@@ -17,6 +16,7 @@ import { getBNFromDecimal } from '../utils/numbers';
 
 import { BigNumber } from 'bignumber.js';
 import { backendApiKey } from './../constants/providers';
+import { bitqueryProxy } from './../constants/providers';
 
 export class tronService implements IChainService {
   Tron: TronWeb;
@@ -77,11 +77,15 @@ export class tronService implements IChainService {
   }
 
   async getFeePriceOracle(): Promise<IFee> {
-    const { data: trxToUSD } = await axios.get(`${coinConverterApi}/v3/simple/price?ids=tron&vs_currencies=usd`);
+    const { data: trxToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/TRX`, {
+      headers: {
+        'auth-client-key': backendApiKey,
+      },
+    });
 
     let value = '10';
 
-    const usd = Math.trunc(+value * trxToUSD.tron.usd * 100) / 100;
+    const usd = Math.trunc(+value * Number(trxToUSD.data.usd) * 100) / 100;
 
     return {
       value,
@@ -90,51 +94,50 @@ export class tronService implements IChainService {
   }
 
   async getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]> {
-    const { data: trxToUSD } = await axios.get(`${coinConverterApi}/v3/simple/price?ids=tron&vs_currencies=usd`);
+    const { data: trxToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/TRX`, {
+      headers: {
+        'auth-client-key': backendApiKey,
+      },
+    });
 
     const receiverQuery = this.generateTransactionsQuery(address, 'receiver');
     const senderQuery = this.generateTransactionsQuery(address, 'sender');
 
     const { data: receivingTransactions } = await axios.post(
-      bitqueryApi,
+      bitqueryProxy,
       {
-        query: receiverQuery,
-        variables: {
-          id: 2,
-          city: 'Test',
-        },
+        body: { query: receiverQuery, variables: {} },
       },
       {
         headers: {
-          'Content-Type': 'application/json',
-          'X-API-KEY': bitqueryKey,
+          'auth-client-key': backendApiKey,
         },
       }
     );
 
     const { data: sendingTransactions } = await axios.post(
-      bitqueryApi,
+      bitqueryProxy,
       {
-        query: senderQuery,
-        variables: {
-          id: 2,
-          city: 'Test',
+        body: {
+          query: senderQuery,
+          variables: {},
         },
       },
       {
         headers: {
-          'Content-Type': 'application/json',
-          'X-API-KEY': bitqueryKey,
+          'auth-client-key': backendApiKey,
         },
       }
     );
 
     let transactions: ITransaction[] = [
-      ...receivingTransactions.data.tron.outbound,
-      ...sendingTransactions.data.tron.outbound,
+      ...receivingTransactions.data.data.tron.outbound,
+      ...sendingTransactions.data.data.tron.outbound,
     ];
 
-    transactions = transactions.map((el: any) => this.convertTransactionToCommonFormat(el, address, trxToUSD.tron.usd));
+    transactions = transactions.map((el: any) =>
+      this.convertTransactionToCommonFormat(el, address, Number(trxToUSD.data.usd))
+    );
 
     transactions.sort((a, b) => {
       if (a.timestamp > b.timestamp) {
