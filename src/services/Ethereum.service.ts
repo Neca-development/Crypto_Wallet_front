@@ -2,8 +2,8 @@
 import { IFee, ISendingTransactionData } from '../models/transaction';
 import { IWalletKeys } from '../models/wallet';
 import { IChainService } from '../models/chainService';
+import { IResponse } from '../models/response';
 import { ITransaction } from '../models/transaction';
-// import { Transaction } from '@ethereumjs/tx';
 
 import {
   etherScanApi,
@@ -12,7 +12,9 @@ import {
   coinConverterApi,
   etherUSDTContractAddress,
   etherGasPrice,
+  backendApi,
 } from '../constants/providers';
+import { backendApiKey } from './../constants/providers';
 import { etherUSDTAbi } from '../constants/eth-USDT.abi';
 
 // @ts-ignore
@@ -21,7 +23,7 @@ import Web3 from 'web3';
 // @ts-ignore
 // import Wallet from "lumi-web-core";
 import { ethers } from 'ethers';
-import { IToken } from '../models/token';
+import { ICryptoCurrency, IToken } from '../models/token';
 import { getBNFromDecimal } from '../utils/numbers';
 import { BigNumber } from 'bignumber.js';
 
@@ -50,21 +52,17 @@ export class ethereumService implements IChainService {
 
   async getTokensByAddress(address: string) {
     const tokens: Array<IToken> = [];
-
-    const { data: ethToUSD } = await axios.get(
-      `${coinConverterApi}/v3/simple/price?ids=ethereum&vs_currencies=usd,tether`
-    );
+    const { data: ethToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/TRX`, {
+      headers: {
+        'auth-client-key': backendApiKey,
+      },
+    });
 
     const nativeTokensBalance = await this.web3.eth.getBalance(address);
     const USDTTokenBalance = await this.getCustomTokenBalance(address, etherUSDTContractAddress);
 
     tokens.push(
-      this.generateTokenObject(
-        Number(this.web3.utils.fromWei(nativeTokensBalance)),
-        'ETH',
-        'native',
-        ethToUSD.ethereum.usd
-      )
+      this.generateTokenObject(Number(this.web3.utils.fromWei(nativeTokensBalance)), 'ETH', 'native', ethToUSD.data.usd)
     );
 
     tokens.push(
@@ -72,7 +70,8 @@ export class ethereumService implements IChainService {
         USDTTokenBalance,
         'Tether USDT',
         'custom',
-        ethToUSD.ethereum.usd,
+        ethToUSD.data.usd,
+        ethToUSD.data.usdt,
         etherUSDTContractAddress
       )
     );
@@ -185,12 +184,14 @@ export class ethereumService implements IChainService {
     balance: number,
     tokenName: string,
     tokenType: 'native' | 'custom',
-    trxToUSD: number,
+    ethToUSD: string,
+    ethToCustomToken?: string,
     contractAddress?: string
   ): IToken {
-    const tokenPriceInUSD = tokenType === 'custom' ? 1 : trxToUSD;
-    const balanceInUSD =
-      tokenType === 'custom' ? Math.trunc(balance * 100) / 100 : Math.trunc(balance * trxToUSD * 100) / 100;
+    let tokenPriceInUSD = tokenType === 'custom' ? (1 / Number(ethToCustomToken)) * Number(ethToUSD) : Number(ethToUSD);
+    tokenPriceInUSD = Math.trunc(tokenPriceInUSD * 100) / 100;
+
+    const balanceInUSD = Math.trunc(balance * tokenPriceInUSD * 100) / 100;
 
     return {
       balance,
@@ -236,7 +237,7 @@ export class ethereumService implements IChainService {
   /**
    * @param {any} txData:any
    * @param {string} address:string
-   * @param {number} trxToUSD:number
+   * @param {number} ethToUSD:number
    * @returns {ITransaction}
    */
   private convertTransactionToCommonFormat(txData: any, address: string, ethToUSD: number): ITransaction {
@@ -263,7 +264,7 @@ export class ethereumService implements IChainService {
   /**
    * @param {any} txData:any
    * @param {string} address:string
-   * @param {number} trxToUSD:number
+   * @param {number} ethToUSD:number
    * @returns {ITransaction}
    */
   private convertUSDTTransactionToCommonFormat(txData: any, address: string): ITransaction {
