@@ -2,9 +2,10 @@
 import { IFee, ISendingTransactionData, ITransaction } from '../models/transaction';
 import { IWalletKeys } from '../models/wallet';
 import { IChainService } from '../models/chainService';
-import { IToken } from '../models/token';
+import { ICryptoCurrency, IToken } from '../models/token';
+import { IResponse } from '../models/response';
 
-import { tronWebProvider, tronUSDTContractAddress } from '../constants/providers';
+import { tronWebProvider, tronUSDTContractAddress, backendApi } from '../constants/providers';
 import { coinConverterApi, bitqueryApi, bitqueryKey } from '../constants/providers';
 
 // @ts-ignore
@@ -15,6 +16,7 @@ import axios from 'axios';
 import { getBNFromDecimal } from '../utils/numbers';
 
 import { BigNumber } from 'bignumber.js';
+import { backendApiKey } from './../constants/providers';
 
 export class tronService implements IChainService {
   Tron: TronWeb;
@@ -41,14 +43,25 @@ export class tronService implements IChainService {
 
   async getTokensByAddress(address: string): Promise<IToken[]> {
     const tokens: IToken[] = [];
-    const { data: trxToUSD } = await axios.get(`${coinConverterApi}/v3/simple/price?ids=tron&vs_currencies=usd`);
+    const { data: trxToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/TRX`, {
+      headers: {
+        'auth-client-key': backendApiKey,
+      },
+    });
 
     const nativeTokensBalance = await this.Tron.trx.getBalance(address);
     const USDTTokenBalance = await this.getCustomTokenBalance(address, tronUSDTContractAddress);
 
-    tokens.push(this.generateTokenObject(this.Tron.fromSun(nativeTokensBalance), 'TRX', 'native', trxToUSD.tron.usd));
+    tokens.push(this.generateTokenObject(this.Tron.fromSun(nativeTokensBalance), 'TRX', 'native', trxToUSD.data.usd));
     tokens.push(
-      this.generateTokenObject(USDTTokenBalance, 'Tether USDT', 'custom', trxToUSD.tron.usd, tronUSDTContractAddress)
+      this.generateTokenObject(
+        USDTTokenBalance,
+        'Tether USDT',
+        'custom',
+        trxToUSD.data.usd,
+        trxToUSD.data.usdt,
+        tronUSDTContractAddress
+      )
     );
 
     return tokens;
@@ -171,12 +184,14 @@ export class tronService implements IChainService {
     balance: number,
     tokenName: string,
     tokenType: 'native' | 'custom',
-    trxToUSD: number,
+    trxToUSD: string,
+    trxToCustomToken?: string,
     contractAddress?: string
   ): IToken {
-    const tokenPriceInUSD = tokenType === 'custom' ? 1 : trxToUSD;
-    const balanceInUSD =
-      tokenType === 'custom' ? Math.trunc(balance * 100) / 100 : Math.trunc(balance * trxToUSD * 100) / 100;
+    let tokenPriceInUSD = tokenType === 'custom' ? (1 / Number(trxToCustomToken)) * Number(trxToUSD) : Number(trxToUSD);
+    tokenPriceInUSD = Math.trunc(tokenPriceInUSD * 100) / 100;
+
+    const balanceInUSD = Math.trunc(balance * tokenPriceInUSD * 100) / 100;
 
     return {
       balance,
