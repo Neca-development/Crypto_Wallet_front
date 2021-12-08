@@ -285,7 +285,6 @@ export default {
     },
   },
   mounted() {
-    this.updateWalletInfo();
     this.clearForms();
 
     this.updateInterval = setInterval(() => {

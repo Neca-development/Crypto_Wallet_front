@@ -33,14 +33,14 @@ export declare class ethereumService implements IChainService {
     /**
      * @param {any} txData:any
      * @param {string} address:string
-     * @param {number} trxToUSD:number
+     * @param {number} ethToUSD:number
      * @returns {ITransaction}
      */
     private convertTransactionToCommonFormat;
     /**
      * @param {any} txData:any
      * @param {string} address:string
-     * @param {number} trxToUSD:number
+     * @param {number} ethToUSD:number
      * @returns {ITransaction}
      */
     private convertUSDTTransactionToCommonFormat;

@@ -7,4 +7,10 @@ export interface IToken {
     tokenType?: string;
     tokenLogo?: string;
 }
+export interface ICryptoCurrency {
+    coinName: string;
+    id: number;
+    usd: string;
+    usdt?: string;
+}
 //# sourceMappingURL=token.d.ts.map

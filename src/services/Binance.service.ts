@@ -3,11 +3,11 @@ import { IFee, ISendingTransactionData } from '../models/transaction';
 import { IWalletKeys } from '../models/wallet';
 import { IChainService } from '../models/chainService';
 import { ITransaction } from '../models/transaction';
-import { IToken } from '../models/token';
+import { ICryptoCurrency, IToken } from '../models/token';
 
 import { getBNFromDecimal, removeTrailingZeros } from '../utils/numbers';
 
-import { etherScanApiKey, coinConverterApi, binanceScanApi } from '../constants/providers';
+import { etherScanApiKey, coinConverterApi, binanceScanApi, backendApi, backendApiKey } from '../constants/providers';
 import { binanceWeb3Provider, binanceUSDTContractAddress } from '../constants/providers';
 import { bnbUSDTAbi } from '../constants/bnb-USDT.abi';
 
@@ -16,6 +16,7 @@ import axios from 'axios';
 import Web3 from 'web3';
 import { ethers } from 'ethers';
 import { BigNumber } from 'bignumber.js';
+import { IResponse } from '../models/response';
 export class binanceService implements IChainService {
   private web3: Web3;
 
@@ -41,21 +42,17 @@ export class binanceService implements IChainService {
 
   async getTokensByAddress(address: string) {
     const tokens: Array<IToken> = [];
-
-    const { data: bnbToUSD } = await axios.get(
-      `${coinConverterApi}/v3/simple/price?ids=binancecoin&vs_currencies=usd,tether`
-    );
+    const { data: bnbToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/TRX`, {
+      headers: {
+        'auth-client-key': backendApiKey,
+      },
+    });
 
     const nativeTokensBalance = await this.web3.eth.getBalance(address);
     const USDTTokenBalance = await this.getCustomTokenBalance(address, binanceUSDTContractAddress);
 
     tokens.push(
-      this.generateTokenObject(
-        Number(this.web3.utils.fromWei(nativeTokensBalance)),
-        'BNB',
-        'native',
-        bnbToUSD.binancecoin.usd
-      )
+      this.generateTokenObject(Number(this.web3.utils.fromWei(nativeTokensBalance)), 'BNB', 'native', bnbToUSD.data.usd)
     );
 
     tokens.push(
@@ -63,7 +60,8 @@ export class binanceService implements IChainService {
         USDTTokenBalance,
         'Tether USDT',
         'custom',
-        bnbToUSD.binancecoin.usd,
+        bnbToUSD.data.usd,
+        bnbToUSD.data.usdt,
         binanceUSDTContractAddress
       )
     );
@@ -72,7 +70,7 @@ export class binanceService implements IChainService {
   }
 
   async getFeePriceOracle(from: string, to: string): Promise<IFee> {
-    const { data: ethToUSD } = await axios.get(
+    const { data: bnbToUSD } = await axios.get(
       `${coinConverterApi}/v3/simple/price?ids=ethereum&vs_currencies=usd,tether`
     );
 
@@ -84,7 +82,7 @@ export class binanceService implements IChainService {
     let value = await this.web3.eth.getGasPrice();
     value = (+this.web3.utils.fromWei(value) * fee).toString();
 
-    const usd = Math.trunc(+value * ethToUSD.ethereum.usd * 100) / 100;
+    const usd = Math.trunc(+value * bnbToUSD.ethereum.usd * 100) / 100;
 
     return {
       value,
@@ -98,13 +96,13 @@ export class binanceService implements IChainService {
    */
   async getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]> {
     address = address.toLowerCase();
-    const { data: ethToUSD } = await axios.get(
+    const { data: bnbToUSD } = await axios.get(
       `${coinConverterApi}/v3/simple/price?ids=ethereum&vs_currencies=usd,tether`
     );
 
     const transactions = [];
 
-    const trxTransactions = await this.getNormalTransactions(address, ethToUSD.ethereum.usd);
+    const trxTransactions = await this.getNormalTransactions(address, bnbToUSD.ethereum.usd);
 
     const usdtTransactions = await this.getUSDTTransactions(address);
 
@@ -171,12 +169,14 @@ export class binanceService implements IChainService {
     balance: number,
     tokenName: string,
     tokenType: 'native' | 'custom',
-    trxToUSD: number,
+    bnbToUSD: string,
+    bnbToCustomToken?: string,
     contractAddress?: string
   ): IToken {
-    const tokenPriceInUSD = tokenType === 'custom' ? 1 : trxToUSD;
-    const balanceInUSD =
-      tokenType === 'custom' ? Math.trunc(balance * 100) / 100 : Math.trunc(balance * trxToUSD * 100) / 100;
+    let tokenPriceInUSD = tokenType === 'custom' ? (1 / Number(bnbToCustomToken)) * Number(bnbToUSD) : Number(bnbToUSD);
+    tokenPriceInUSD = Math.trunc(tokenPriceInUSD * 100) / 100;
+
+    const balanceInUSD = Math.trunc(balance * tokenPriceInUSD * 100) / 100;
 
     return {
       balance,
@@ -190,10 +190,10 @@ export class binanceService implements IChainService {
 
   /**
    * @param {string} address:string
-   * @param {number} ethToUSD:number
+   * @param {number} bnbToUSD:number
    * @returns {Promise<ITransaction[]>}
    */
-  private async getNormalTransactions(address: string, ethToUSD: number): Promise<ITransaction[]> {
+  private async getNormalTransactions(address: string, bnbToUSD: number): Promise<ITransaction[]> {
     // get last 200  transactions
 
     const { data: transactions } = await axios.get(
@@ -201,7 +201,7 @@ export class binanceService implements IChainService {
     );
 
     return transactions.result.map((transaction: any) => {
-      return this.convertTransactionToCommonFormat(transaction, address, ethToUSD);
+      return this.convertTransactionToCommonFormat(transaction, address, bnbToUSD);
     });
   }
 
@@ -225,13 +225,13 @@ export class binanceService implements IChainService {
    * @param {number} trxToUSD:number
    * @returns {ITransaction}
    */
-  private convertTransactionToCommonFormat(txData: any, address: string, ethToUSD: number): ITransaction {
+  private convertTransactionToCommonFormat(txData: any, address: string, bnbToUSD: number): ITransaction {
     const to = txData.to,
       from = txData.from,
       amount = this.web3.utils.fromWei(txData.value),
       fee = +(+this.web3.utils.fromWei((txData.gasUsed * txData.gasPrice).toString())).toFixed(6),
       direction = from === address ? 'OUT' : 'IN',
-      amountInUSD = (Math.trunc(+amount * ethToUSD * 100) / 100).toString();
+      amountInUSD = (Math.trunc(+amount * bnbToUSD * 100) / 100).toString();
 
     return {
       to,
