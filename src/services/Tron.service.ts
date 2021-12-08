@@ -56,7 +56,7 @@ export class tronService implements IChainService {
       this.generateTokenObject(
         this.Tron.fromSun(nativeTokensBalance),
         'TRX',
-        imagesURL + 'trx.svg',
+        imagesURL + 'TRX.svg',
         'native',
         trxToUSD.data.usd
       )
@@ -65,7 +65,7 @@ export class tronService implements IChainService {
       this.generateTokenObject(
         USDTTokenBalance,
         'Tether USDT',
-        imagesURL + 'usdt.svg',
+        imagesURL + 'USDT.svg',
         'custom',
         trxToUSD.data.usd,
         trxToUSD.data.usdt,
