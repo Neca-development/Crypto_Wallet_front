@@ -3,6 +3,7 @@ export declare const bitqueryApi = "https://graphql.bitquery.io/";
 export declare const backendApiKey = "ba9713548726a8b17bcd316e7044c20d";
 export declare const bitqueryKey = "BQYdGdxbwuM6UFxXp1brtTt7iXqyf9bl";
 export declare const backendApi = "http://135.181.216.90:49352/api/";
+export declare const imagesURL: string;
 export declare const tronWebProvider: {
     fullHost: string;
     solidityNode: string;

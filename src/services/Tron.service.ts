@@ -5,7 +5,7 @@ import { IChainService } from '../models/chainService';
 import { ICryptoCurrency, IToken } from '../models/token';
 import { IResponse } from '../models/response';
 
-import { tronWebProvider, tronUSDTContractAddress, backendApi } from '../constants/providers';
+import { tronWebProvider, tronUSDTContractAddress, backendApi, imagesURL } from '../constants/providers';
 import { coinConverterApi, bitqueryApi, bitqueryKey } from '../constants/providers';
 
 // @ts-ignore
@@ -52,11 +52,20 @@ export class tronService implements IChainService {
     const nativeTokensBalance = await this.Tron.trx.getBalance(address);
     const USDTTokenBalance = await this.getCustomTokenBalance(address, tronUSDTContractAddress);
 
-    tokens.push(this.generateTokenObject(this.Tron.fromSun(nativeTokensBalance), 'TRX', 'native', trxToUSD.data.usd));
+    tokens.push(
+      this.generateTokenObject(
+        this.Tron.fromSun(nativeTokensBalance),
+        'TRX',
+        imagesURL + 'trx.svg',
+        'native',
+        trxToUSD.data.usd
+      )
+    );
     tokens.push(
       this.generateTokenObject(
         USDTTokenBalance,
         'Tether USDT',
+        imagesURL + 'usdt.svg',
         'custom',
         trxToUSD.data.usd,
         trxToUSD.data.usdt,
@@ -183,6 +192,7 @@ export class tronService implements IChainService {
   private generateTokenObject(
     balance: number,
     tokenName: string,
+    tokenLogo: string,
     tokenType: 'native' | 'custom',
     trxToUSD: string,
     trxToCustomToken?: string,
@@ -200,6 +210,7 @@ export class tronService implements IChainService {
       tokenName,
       tokenType,
       tokenPriceInUSD,
+      tokenLogo,
     };
   }
 

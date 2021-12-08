@@ -8,6 +8,8 @@ export const bitqueryKey = 'BQYdGdxbwuM6UFxXp1brtTt7iXqyf9bl';
 
 export const backendApi = 'http://135.181.216.90:49352/api/';
 
+export const imagesURL = `${backendApi}images/`;
+
 // --- Tron ---
 export const tronWebProvider = {
   fullHost: 'https://api.trongrid.io',

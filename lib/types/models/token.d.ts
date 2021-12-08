@@ -4,7 +4,7 @@ export interface IToken {
     tokenPriceInUSD: number;
     tokenName: string;
     contractAddress?: string;
-    tokenType?: string;
+    tokenType?: 'native' | 'custom';
     tokenLogo?: string;
 }
 export interface ICryptoCurrency {
