@@ -21,7 +21,7 @@ export declare class binanceService implements IChainService {
     private generateTokenObject;
     /**
      * @param {string} address:string
-     * @param {number} ethToUSD:number
+     * @param {number} bnbToUSD:number
      * @returns {Promise<ITransaction[]>}
      */
     private getNormalTransactions;
