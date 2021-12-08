@@ -52,7 +52,7 @@ export class ethereumService implements IChainService {
 
   async getTokensByAddress(address: string) {
     const tokens: Array<IToken> = [];
-    const { data: ethToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/TRX`, {
+    const { data: ethToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/ETH`, {
       headers: {
         'auth-client-key': backendApiKey,
       },

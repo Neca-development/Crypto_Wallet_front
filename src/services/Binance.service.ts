@@ -42,7 +42,7 @@ export class binanceService implements IChainService {
 
   async getTokensByAddress(address: string) {
     const tokens: Array<IToken> = [];
-    const { data: bnbToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/TRX`, {
+    const { data: bnbToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/BNB`, {
       headers: {
         'auth-client-key': backendApiKey,
       },
