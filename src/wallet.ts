@@ -151,9 +151,9 @@ export class Wallet {
       case ChainIds['Binance']:
         this.service = new binanceService();
         break;
-      // case ChainIds['Bitcoin']:
-      //   this.service = new bitcoinService();
-      //   break;
+      case ChainIds['Bitcoin']:
+        this.service = new bitcoinService();
+        break;
 
       default:
         break;
