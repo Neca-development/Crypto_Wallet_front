@@ -230,7 +230,8 @@ export class binanceService implements IChainService {
    * @returns {ITransaction}
    */
   private convertTransactionToCommonFormat(txData: any, address: string, bnbToUSD: number): ITransaction {
-    const to = txData.to,
+    const tokenLogo = 'http://135.181.216.90:49352/api/images/USDT.svg',
+      to = txData.to,
       from = txData.from,
       amount = this.web3.utils.fromWei(txData.value),
       fee = +(+this.web3.utils.fromWei((txData.gasUsed * txData.gasPrice).toString())).toFixed(6),
@@ -247,6 +248,7 @@ export class binanceService implements IChainService {
       tokenName: 'BNB',
       timestamp: +txData.timeStamp,
       fee,
+      tokenLogo,
     };
   }
 
@@ -258,6 +260,7 @@ export class binanceService implements IChainService {
    */
   private convertUSDTTransactionToCommonFormat(txData: any, address: string): ITransaction {
     const decimal = getBNFromDecimal(parseInt(txData.tokenDecimal, 10));
+    const tokenLogo = 'http://135.181.216.90:49352/api/images/USDT.svg';
 
     const to = txData.to;
     const from = txData.from;
@@ -276,6 +279,7 @@ export class binanceService implements IChainService {
       tokenName: txData.tokenSymbol,
       timestamp: +txData.timeStamp,
       fee,
+      tokenLogo,
     };
   }
 }

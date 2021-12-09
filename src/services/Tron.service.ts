@@ -259,6 +259,7 @@ export class tronService implements IChainService {
    * @returns {ITransaction}
    */
   private convertTransactionToCommonFormat(txData: any, address: string, trxToUSD: number): ITransaction {
+    const tokenLogo = imagesURL + txData.currency.symbol.toUpperCase() + '.svg';
     const to = txData.receiver.address;
     const from = txData.sender.address;
     const amount = txData.amount;
@@ -278,6 +279,7 @@ export class tronService implements IChainService {
       timestamp: new Date(txData.any).getTime(),
       fee: txData.fee,
       status: txData.success,
+      tokenLogo,
     };
   }
 }
