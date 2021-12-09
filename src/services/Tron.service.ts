@@ -101,40 +101,27 @@ export class tronService implements IChainService {
       },
     });
 
-    const receiverQuery = this.generateTransactionsQuery(address, 'receiver');
-    const senderQuery = this.generateTransactionsQuery(address, 'sender');
+    const queries = [];
+    let transactions = [];
 
-    const { data: receivingTransactions } = await axios.post(
-      bitqueryProxy,
-      {
-        body: { query: receiverQuery, variables: {} },
-      },
-      {
-        headers: {
-          'auth-client-key': backendApiKey,
-        },
-      }
-    );
+    queries.push(this.generateTransactionsQuery(address, 'receiver'));
+    queries.push(this.generateTransactionsQuery(address, 'sender'));
 
-    const { data: sendingTransactions } = await axios.post(
-      bitqueryProxy,
-      {
-        body: {
-          query: senderQuery,
-          variables: {},
+    for (const query of queries) {
+      let { data: resp } = await axios.post(
+        bitqueryProxy,
+        {
+          body: { query: query, variables: {} },
         },
-      },
-      {
-        headers: {
-          'auth-client-key': backendApiKey,
-        },
-      }
-    );
+        {
+          headers: {
+            'auth-client-key': backendApiKey,
+          },
+        }
+      );
 
-    let transactions: ITransaction[] = [
-      ...receivingTransactions.data.data.tron.outbound,
-      ...sendingTransactions.data.data.tron.outbound,
-    ];
+      transactions.push(...resp.data.data.tron.outbound);
+    }
 
     transactions = transactions.map((el: any) =>
       this.convertTransactionToCommonFormat(el, address, Number(trxToUSD.data.usd))

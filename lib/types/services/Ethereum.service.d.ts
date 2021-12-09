@@ -19,30 +19,13 @@ export declare class ethereumService implements IChainService {
     send20Token(data: ISendingTransactionData): Promise<string>;
     private getCustomTokenBalance;
     private generateTokenObject;
-    /**
-     * @param {string} address:string
-     * @param {number} ethToUSD:number
-     * @returns {Promise<ITransaction[]>}
-     */
-    private getNormalTransactions;
-    /**
-     * @param {string} address:string
-     * @returns {Promise<ITransaction[]>}
-     */
-    private getUSDTTransactions;
+    private generateTransactionsQuery;
     /**
      * @param {any} txData:any
      * @param {string} address:string
-     * @param {number} ethToUSD:number
+     * @param {number} trxToUSD:number
      * @returns {ITransaction}
      */
     private convertTransactionToCommonFormat;
-    /**
-     * @param {any} txData:any
-     * @param {string} address:string
-     * @param {number} ethToUSD:number
-     * @returns {ITransaction}
-     */
-    private convertUSDTTransactionToCommonFormat;
 }
 //# sourceMappingURL=Ethereum.service.d.ts.map

@@ -23,17 +23,18 @@ export default {
   },
   async created() {
     const wf = new WalletFactory();
-    // const data = await wf.createWallets('light afraid crawl solve chicken receive sound prize figure turn punch angry');
+    const data = await wf.createWallets('light afraid crawl solve chicken receive sound prize figure turn punch angry');
     const data1 = await wf.createWalletByPrivateKey(
-      '91979cd28d855231ff46f52280d375a8f598aab1ce81814030ed182b4e796827',
+      '86E4A2D8C28F5F448175500EA545E58372F26FEBB71F82EA268BA7FB382C7462',
       'Tron'
     );
     const data2 = await wf.createWalletByPrivateKey(
-      '9e654f4bf0eb90b1cab13e405d5379219e5cff23c6f720ede03fcecba76f1010',
+      'aafdd04dd28d1fed7ca6a2ea5ede0453d94a21336a5bee8998ac1255e6e60941',
       'Tron'
     );
-    // console.log(data);
-    this.$store.commit('ADD_WALLETS', [data1, data2]);
+    console.log({ data, data1, data2 });
+    // this.$store.commit('ADD_WALLETS', [data1, data2]);
+    this.$store.commit('ADD_WALLETS', data.wallets);
   },
   beforeDestroy() {
     clearInterval(this.coinsToUSDIntervalID);

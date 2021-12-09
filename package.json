@@ -19,6 +19,7 @@
     "axios": "^0.24.0",
     "bignumber.js": "^9.0.1",
     "ethers": "^5.5.1",
+    "lumi-web-core": "^1.9.2",
     "tron-wallet-hd": "^1.0.2",
     "tronweb": "^4.0.0",
     "typedoc": "^0.22.9",

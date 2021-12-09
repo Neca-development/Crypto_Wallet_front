@@ -7,7 +7,7 @@ export declare const tronWebProvider: {
     solidityNode: string;
     eventServer: string;
 };
-export declare const tronUSDTContractAddress = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
+export declare const tronUSDTContractAddress = "TXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj";
 export declare const ethWeb3Provider = "https://rinkeby.infura.io/v3/522b462c9a1d45fb9b3b18b5fda51c05";
 export declare const etherScanApi = "https://api-rinkeby.etherscan.io/api";
 export declare const etherScanApiKey = "S18IGMPYTDRZ1CQJRHZIR5QE5F5AS2K16U";

@@ -10,26 +10,12 @@ export declare class binanceService implements IChainService {
     generatePublicKey(privateKey: string): Promise<string>;
     getTokensByAddress(address: string): Promise<IToken[]>;
     getFeePriceOracle(from: string, to: string): Promise<IFee>;
-    /**
-     * @param {ISendingTransactionData} data:ISendingTransactionData
-     * @returns {any}
-     */
     getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]>;
     sendMainToken(data: ISendingTransactionData): Promise<string>;
     send20Token(data: ISendingTransactionData): Promise<string>;
     private getCustomTokenBalance;
     private generateTokenObject;
-    /**
-     * @param {string} address:string
-     * @param {number} bnbToUSD:number
-     * @returns {Promise<ITransaction[]>}
-     */
-    private getNormalTransactions;
-    /**
-     * @param {string} address:string
-     * @returns {Promise<ITransaction[]>}
-     */
-    private getUSDTTransactions;
+    private generateTransactionsQuery;
     /**
      * @param {any} txData:any
      * @param {string} address:string
@@ -37,12 +23,5 @@ export declare class binanceService implements IChainService {
      * @returns {ITransaction}
      */
     private convertTransactionToCommonFormat;
-    /**
-     * @param {any} txData:any
-     * @param {string} address:string
-     * @param {number} trxToUSD:number
-     * @returns {ITransaction}
-     */
-    private convertUSDTTransactionToCommonFormat;
 }
 //# sourceMappingURL=Binance.service.d.ts.map
