@@ -27,6 +27,7 @@ export class tronService implements IChainService {
 
   async generatePublicKey(privateKey: string): Promise<string> {
     const data = await hdWallet.getAccountFromPrivateKey(privateKey);
+    this.Tron.setPrivateKey(privateKey);
 
     return data;
   }
