@@ -2,10 +2,10 @@
 import { IFee, ISendingTransactionData, ITransaction } from '../models/transaction';
 import { IWalletKeys } from '../models/wallet';
 import { IChainService } from '../models/chainService';
-import { IToken } from '../models/token';
+import { ICryptoCurrency, IToken } from '../models/token';
+import { IResponse } from '../models/response';
 
-import { tronWebProvider, tronUSDTContractAddress } from '../constants/providers';
-import { coinConverterApi, bitqueryApi, bitqueryKey } from '../constants/providers';
+import { tronWebProvider, tronUSDTContractAddress, backendApi, imagesURL } from '../constants/providers';
 
 // @ts-ignore
 import TronWeb from 'tronweb';
@@ -15,6 +15,8 @@ import axios from 'axios';
 import { getBNFromDecimal } from '../utils/numbers';
 
 import { BigNumber } from 'bignumber.js';
+import { backendApiKey } from './../constants/providers';
+import { bitqueryProxy } from './../constants/providers';
 
 export class tronService implements IChainService {
   Tron: TronWeb;
@@ -25,6 +27,7 @@ export class tronService implements IChainService {
 
   async generatePublicKey(privateKey: string): Promise<string> {
     const data = await hdWallet.getAccountFromPrivateKey(privateKey);
+    this.Tron.setPrivateKey(privateKey);
 
     return data;
   }
@@ -41,25 +44,49 @@ export class tronService implements IChainService {
 
   async getTokensByAddress(address: string): Promise<IToken[]> {
     const tokens: IToken[] = [];
-    const { data: trxToUSD } = await axios.get(`${coinConverterApi}/v3/simple/price?ids=tron&vs_currencies=usd`);
+    const { data: trxToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/TRX`, {
+      headers: {
+        'auth-client-key': backendApiKey,
+      },
+    });
 
     const nativeTokensBalance = await this.Tron.trx.getBalance(address);
     const USDTTokenBalance = await this.getCustomTokenBalance(address, tronUSDTContractAddress);
 
-    tokens.push(this.generateTokenObject(this.Tron.fromSun(nativeTokensBalance), 'TRX', 'native', trxToUSD.tron.usd));
     tokens.push(
-      this.generateTokenObject(USDTTokenBalance, 'Tether USDT', 'custom', trxToUSD.tron.usd, tronUSDTContractAddress)
+      this.generateTokenObject(
+        this.Tron.fromSun(nativeTokensBalance),
+        'TRX',
+        imagesURL + 'TRX.svg',
+        'native',
+        trxToUSD.data.usd
+      )
+    );
+    tokens.push(
+      this.generateTokenObject(
+        USDTTokenBalance,
+        'Tether USDT',
+        imagesURL + 'USDT.svg',
+        'custom',
+        trxToUSD.data.usd,
+        trxToUSD.data.usdt,
+        tronUSDTContractAddress
+      )
     );
 
     return tokens;
   }
 
   async getFeePriceOracle(): Promise<IFee> {
-    const { data: trxToUSD } = await axios.get(`${coinConverterApi}/v3/simple/price?ids=tron&vs_currencies=usd`);
+    const { data: trxToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/TRX`, {
+      headers: {
+        'auth-client-key': backendApiKey,
+      },
+    });
 
     let value = '10';
 
-    const usd = Math.trunc(+value * trxToUSD.tron.usd * 100) / 100;
+    const usd = Math.trunc(+value * Number(trxToUSD.data.usd) * 100) / 100;
 
     return {
       value,
@@ -68,51 +95,37 @@ export class tronService implements IChainService {
   }
 
   async getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]> {
-    const { data: trxToUSD } = await axios.get(`${coinConverterApi}/v3/simple/price?ids=tron&vs_currencies=usd`);
-
-    const receiverQuery = this.generateTransactionsQuery(address, 'receiver');
-    const senderQuery = this.generateTransactionsQuery(address, 'sender');
-
-    const { data: receivingTransactions } = await axios.post(
-      bitqueryApi,
-      {
-        query: receiverQuery,
-        variables: {
-          id: 2,
-          city: 'Test',
-        },
+    const { data: trxToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/TRX`, {
+      headers: {
+        'auth-client-key': backendApiKey,
       },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-KEY': bitqueryKey,
+    });
+
+    const queries = [];
+    let transactions = [];
+
+    queries.push(this.generateTransactionsQuery(address, 'receiver'));
+    queries.push(this.generateTransactionsQuery(address, 'sender'));
+
+    for (const query of queries) {
+      let { data: resp } = await axios.post(
+        bitqueryProxy,
+        {
+          body: { query: query, variables: {} },
         },
-      }
+        {
+          headers: {
+            'auth-client-key': backendApiKey,
+          },
+        }
+      );
+
+      transactions.push(...resp.data.data.tron.outbound);
+    }
+
+    transactions = transactions.map((el: any) =>
+      this.convertTransactionToCommonFormat(el, address, Number(trxToUSD.data.usd))
     );
-
-    const { data: sendingTransactions } = await axios.post(
-      bitqueryApi,
-      {
-        query: senderQuery,
-        variables: {
-          id: 2,
-          city: 'Test',
-        },
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-KEY': bitqueryKey,
-        },
-      }
-    );
-
-    let transactions: ITransaction[] = [
-      ...receivingTransactions.data.tron.outbound,
-      ...sendingTransactions.data.tron.outbound,
-    ];
-
-    transactions = transactions.map((el: any) => this.convertTransactionToCommonFormat(el, address, trxToUSD.tron.usd));
 
     transactions.sort((a, b) => {
       if (a.timestamp > b.timestamp) {
@@ -170,13 +183,16 @@ export class tronService implements IChainService {
   private generateTokenObject(
     balance: number,
     tokenName: string,
+    tokenLogo: string,
     tokenType: 'native' | 'custom',
-    trxToUSD: number,
+    trxToUSD: string,
+    trxToCustomToken?: string,
     contractAddress?: string
   ): IToken {
-    const tokenPriceInUSD = tokenType === 'custom' ? 1 : trxToUSD;
-    const balanceInUSD =
-      tokenType === 'custom' ? Math.trunc(balance * 100) / 100 : Math.trunc(balance * trxToUSD * 100) / 100;
+    let tokenPriceInUSD = tokenType === 'custom' ? (1 / Number(trxToCustomToken)) * Number(trxToUSD) : Number(trxToUSD);
+    tokenPriceInUSD = Math.trunc(tokenPriceInUSD * 100) / 100;
+
+    const balanceInUSD = Math.trunc(balance * tokenPriceInUSD * 100) / 100;
 
     return {
       balance,
@@ -185,6 +201,7 @@ export class tronService implements IChainService {
       tokenName,
       tokenType,
       tokenPriceInUSD,
+      tokenLogo,
     };
   }
 
@@ -230,6 +247,7 @@ export class tronService implements IChainService {
    * @returns {ITransaction}
    */
   private convertTransactionToCommonFormat(txData: any, address: string, trxToUSD: number): ITransaction {
+    const tokenLogo = imagesURL + txData.currency.symbol.toUpperCase() + '.svg';
     const to = txData.receiver.address;
     const from = txData.sender.address;
     const amount = txData.amount;
@@ -249,6 +267,7 @@ export class tronService implements IChainService {
       timestamp: new Date(txData.any).getTime(),
       fee: txData.fee,
       status: txData.success,
+      tokenLogo,
     };
   }
 }

@@ -21,6 +21,7 @@ export interface ITransaction {
     timestamp: number;
     status?: boolean;
     type?: 'TransferContract' | 'TriggerSmartContract';
+    tokenLogo: string;
     fee: number;
 }
 export interface IFee {

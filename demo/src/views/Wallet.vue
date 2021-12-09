@@ -159,7 +159,10 @@
             :data="tr"
           >
             <vs-td>
-              {{ tr.tokenName }}
+              <vs-row align="center">
+                <img :src="tr.tokenLogo" alt="" height="35" /> &nbsp;
+                {{ tr.tokenName }}
+              </vs-row>
             </vs-td>
             <vs-td>
               {{ tr.txId | cropLongString }}
@@ -285,7 +288,6 @@ export default {
     },
   },
   mounted() {
-    this.updateWalletInfo();
     this.clearForms();
 
     this.updateInterval = setInterval(() => {
