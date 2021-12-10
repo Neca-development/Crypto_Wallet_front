@@ -1,6 +1,6 @@
 export const backendApiKey = 'ba9713548726a8b17bcd316e7044c20d';
 
-export const backendApi = 'https://wallet-api.sawe.dev/api/';
+export const backendApi = 'http://135.181.216.90:49354/api/';
 
 export const imagesURL = `${backendApi}images/`;
 
