@@ -19,7 +19,13 @@ import { BigNumber } from 'bignumber.js';
 import { IResponse } from '../models/response';
 
 // @ts-ignore
-import WALLET from 'lumi-web-core';
+import Mnemonic from 'bitcore-mnemonic';
+
+// @ts-ignore
+import * as bitcore from 'bitcore';
+
+// @ts-ignore
+import * as bitcoinjs from 'bitcoinjs-lib';
 
 export class bitcoinService implements IChainService {
   private web3: Web3;
@@ -29,22 +35,15 @@ export class bitcoinService implements IChainService {
   }
 
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
-    const CORE = await WALLET.createByMnemonic(mnemonic);
-    console.log(
-      '%cMyProject%cline:32%cCORE',
-      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
-      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
-      'color:#fff;background:rgb(229, 187, 129);padding:3px;border-radius:2px',
-      CORE
-    );
-
-    const wallet = ethers.Wallet.fromMnemonic(mnemonic);
-    this.web3.eth.accounts.wallet.add(this.web3.eth.accounts.privateKeyToAccount(wallet.privateKey));
-    this.web3.eth.defaultAccount = wallet.address;
+    var code = new Mnemonic(mnemonic);
+    var hdPrivateKey = code.toHDPrivateKey();
+    var derived = hdPrivateKey.derive("m/0'");
+    var address = derived.privateKey.toAddress();
+    console.log(hdPrivateKey.toString(), hdPrivateKey.publicKey.toString());
 
     return {
-      privateKey: wallet.privateKey,
-      publicKey: wallet.address,
+      privateKey: hdPrivateKey.toString(),
+      publicKey: address.toString(),
     };
   }
 
