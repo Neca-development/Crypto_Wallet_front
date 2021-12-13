@@ -22,7 +22,8 @@ import { IResponse } from '../models/response';
 import Mnemonic from 'bitcore-mnemonic';
 
 // @ts-ignore
-import * as bitcore from 'bitcore';
+import bitcore from 'bitcore-lib';
+import { ECPair } from 'ecpair';
 
 // @ts-ignore
 import * as bitcoinjs from 'bitcoinjs-lib';
@@ -37,13 +38,29 @@ export class bitcoinService implements IChainService {
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
     var code = new Mnemonic(mnemonic);
     var hdPrivateKey = code.toHDPrivateKey();
-    var derived = hdPrivateKey.derive("m/0'");
-    var address = derived.privateKey.toAddress();
-    console.log(hdPrivateKey.toString(), hdPrivateKey.publicKey.toString());
+
+    var derived = hdPrivateKey.derive("m/84'/0'/0'/0");
+
+    var privateKey = new bitcore.PrivateKey(derived.privateKey.toString(), bitcore.Networks.livenet).toString();
+
+    const keyPair = ECPair.fromPrivateKey(Buffer.from(hdPrivateKey.privateKey.toString(), 'hex'));
+
+    const { address } = bitcoinjs.payments.p2wpkh({
+      pubkey: keyPair.publicKey,
+      network: bitcoinjs.networks.bitcoin,
+    });
+
+    console.log(
+      '%cMyProject%cline:65%caddress',
+      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
+      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
+      'color:#fff;background:rgb(60, 79, 57);padding:3px;border-radius:2px',
+      address
+    );
 
     return {
-      privateKey: hdPrivateKey.toString(),
-      publicKey: address.toString(),
+      privateKey: privateKey,
+      publicKey: address as string,
     };
   }
 
