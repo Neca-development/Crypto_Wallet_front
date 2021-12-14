@@ -18,6 +18,8 @@
     "@ethereumjs/tx": "^3.4.0",
     "axios": "^0.24.0",
     "bignumber.js": "^9.0.1",
+    "bitcore-lib": "^8.25.25",
+    "coinkey": "^3.0.0",
     "ethers": "^5.5.1",
     "lumi-web-core": "^1.9.2",
     "tron-wallet-hd": "^1.0.2",
