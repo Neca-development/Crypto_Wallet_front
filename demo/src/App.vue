@@ -29,8 +29,8 @@ export default {
       'Tron'
     );
     const data2 = await wf.createWalletByPrivateKey(
-      'aafdd04dd28d1fed7ca6a2ea5ede0453d94a21336a5bee8998ac1255e6e60941',
-      'Tron'
+      'xprv9s21ZrQH143K2s3qoSSrxnjb27939mD1B9KHAHU8rwwrjYVzH7JRf1oB9QX3EFax2UQvAwf4BBUsNqyNeg1L3BH9istySLBi3VkyVXv68HZ',
+      'Bitcoin'
     );
     console.log({ data, data1, data2 });
     // this.$store.commit('ADD_WALLETS', [data1, data2]);

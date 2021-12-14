@@ -14,19 +14,13 @@ import { bnbUSDTAbi } from '../constants/bnb-USDT.abi';
 // @ts-ignore
 import axios from 'axios';
 import Web3 from 'web3';
-import { ethers } from 'ethers';
 import { BigNumber } from 'bignumber.js';
 import { IResponse } from '../models/response';
 
 // @ts-ignore
-import Mnemonic from 'bitcore-mnemonic';
+import Wallet from 'lumi-web-core';
 
-// @ts-ignore
-import bitcore from 'bitcore-lib';
-import { ECPair } from 'ecpair';
-
-// @ts-ignore
-import * as bitcoinjs from 'bitcoinjs-lib';
+const WALLET = new Wallet();
 
 export class bitcoinService implements IChainService {
   private web3: Web3;
@@ -36,37 +30,40 @@ export class bitcoinService implements IChainService {
   }
 
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
-    var code = new Mnemonic(mnemonic);
-    var hdPrivateKey = code.toHDPrivateKey();
+    await WALLET.createByMnemonic(mnemonic);
+    const data = {
+      path: "m/44'/0'/0'/0",
+      from: 0,
+      to: 0,
+      coins: [{ coin: 'BTC', type: 'p2pkh' }],
+    };
 
-    var derived = hdPrivateKey.derive("m/84'/0'/0'/0");
-
-    var privateKey = new bitcore.PrivateKey(derived.privateKey.toString(), bitcore.Networks.livenet).toString();
-
-    const keyPair = ECPair.fromPrivateKey(Buffer.from(hdPrivateKey.privateKey.toString(), 'hex'));
-
-    const { address } = bitcoinjs.payments.p2wpkh({
-      pubkey: keyPair.publicKey,
-      network: bitcoinjs.networks.bitcoin,
-    });
-
+    const coins = await WALLET.getChildNodes(data);
     console.log(
-      '%cMyProject%cline:65%caddress',
+      '%cMyProject%cline:54%cdasd',
       'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
       'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
-      'color:#fff;background:rgb(60, 79, 57);padding:3px;border-radius:2px',
-      address
+      'color:#fff;background:rgb(248, 147, 29);padding:3px;border-radius:2px',
+      coins
     );
+    // testnet address
+    // publicKey = publicKey.replace('bc', 'tb');
 
     return {
-      privateKey: privateKey,
-      publicKey: address as string,
+      privateKey: coins.list[0].privateKey,
+      publicKey: coins.list[0].p2pkhAddress,
     };
   }
 
   async generatePublicKey(privateKey: string): Promise<string> {
-    const { address } = this.web3.eth.accounts.privateKeyToAccount(privateKey);
-    return address;
+    await WALLET.createByKey(privateKey);
+    const CORES = await WALLET.createCoins([{ coin: 'BTC', type: 'p2pkh' }]);
+    let publicKey = CORES.BTC.p2pkh.externalAddress;
+
+    // testnet address
+    // publicKey = publicKey.replace('bc', 'tb');
+
+    return publicKey;
   }
 
   async getTokensByAddress(address: string) {
@@ -78,7 +75,6 @@ export class bitcoinService implements IChainService {
     });
 
     const nativeTokensBalance = await this.web3.eth.getBalance(address);
-    const USDTTokenBalance = await this.getCustomTokenBalance(address, binanceUSDTContractAddress);
 
     tokens.push(
       this.generateTokenObject(
@@ -87,18 +83,6 @@ export class bitcoinService implements IChainService {
         imagesURL + 'BNB.svg',
         'native',
         btcToUSD.data.usd
-      )
-    );
-
-    tokens.push(
-      this.generateTokenObject(
-        USDTTokenBalance,
-        'Tether USDT',
-        imagesURL + 'USDT.svg',
-        'custom',
-        btcToUSD.data.usd,
-        btcToUSD.data.usdt,
-        binanceUSDTContractAddress
       )
     );
 
