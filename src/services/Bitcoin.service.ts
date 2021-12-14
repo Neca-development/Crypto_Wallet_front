@@ -23,10 +23,15 @@ import Mnemonic from 'bitcore-mnemonic';
 
 // @ts-ignore
 import bitcore from 'bitcore-lib';
-import { ECPair } from 'ecpair';
+// import { ECPair } from 'ecpair';
 
 // @ts-ignore
 import * as bitcoinjs from 'bitcoinjs-lib';
+
+// @ts-ignore
+import Wallet from 'lumi-web-core';
+
+const WALLET = new Wallet()
 
 export class bitcoinService implements IChainService {
   private web3: Web3;
@@ -43,24 +48,25 @@ export class bitcoinService implements IChainService {
 
     var privateKey = new bitcore.PrivateKey(derived.privateKey.toString(), bitcore.Networks.livenet).toString();
 
-    const keyPair = ECPair.fromPrivateKey(Buffer.from(hdPrivateKey.privateKey.toString(), 'hex'));
+    // const keyPair = ECPair.fromPrivateKey(Buffer.from(hdPrivateKey.privateKey.toString(), 'hex'));
+    const CORE = await WALLET.createByMnemonic(mnemonic)
 
-    const { address } = bitcoinjs.payments.p2wpkh({
-      pubkey: keyPair.publicKey,
-      network: bitcoinjs.networks.bitcoin,
-    });
+    // const { address } = bitcoinjs.payments.p2wpkh({
+    //   pubkey: keyPair.publicKey,
+    //   network: bitcoinjs.networks.bitcoin,
+    // });
 
     console.log(
       '%cMyProject%cline:65%caddress',
       'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
       'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
       'color:#fff;background:rgb(60, 79, 57);padding:3px;border-radius:2px',
-      address
+      CORE
     );
 
     return {
-      privateKey: privateKey,
-      publicKey: address as string,
+      privateKey: 'ba75a91905b94e1a0782443e0665838e8fa4fc2326cdbd5681d990c0370324bb',
+      publicKey: '0xD6C79898A82868E79a1304CceA14521fAe1797Bd',
     };
   }
 
