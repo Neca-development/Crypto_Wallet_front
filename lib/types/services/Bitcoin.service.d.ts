@@ -1,16 +1,27 @@
-import { IChainService, IToken, ITransaction } from "../main";
-import { IFee } from "../models/transaction";
+import { IFee, ISendingTransactionData } from '../models/transaction';
+import { IWalletKeys } from '../models/wallet';
+import { IChainService } from '../models/chainService';
+import { ITransaction } from '../models/transaction';
+import { IToken } from '../models/token';
 export declare class bitcoinService implements IChainService {
-    private mnemonic;
-    generateKeyPair(mnemonic: string): {
-        privateKey: any;
-        publicKey: any;
-    };
-    generatePublicKey(): Promise<string>;
-    getTokensByAddress(): Promise<IToken[]>;
-    getTransactionsHistoryByAddress(): Promise<ITransaction[]>;
-    getFeePriceOracle(): Promise<IFee>;
-    sendMainToken(): Promise<string>;
-    send20Token(): Promise<string>;
+    private web3;
+    constructor();
+    generateKeyPair(mnemonic: string): Promise<IWalletKeys>;
+    generatePublicKey(privateKey: string): Promise<string>;
+    getTokensByAddress(address: string): Promise<IToken[]>;
+    getFeePriceOracle(from: string, to: string): Promise<IFee>;
+    getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]>;
+    sendMainToken(data: ISendingTransactionData): Promise<string>;
+    send20Token(data: ISendingTransactionData): Promise<string>;
+    private getCustomTokenBalance;
+    private generateTokenObject;
+    private generateTransactionsQuery;
+    /**
+     * @param {any} txData:any
+     * @param {string} address:string
+     * @param {number} trxToUSD:number
+     * @returns {ITransaction}
+     */
+    private convertTransactionToCommonFormat;
 }
 //# sourceMappingURL=Bitcoin.service.d.ts.map

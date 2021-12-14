@@ -9,7 +9,6 @@ const Wallet = () => {
   const wallets = useAppSelector((state) => state.wallets.wallets);
   const [currentWallet, setCurrentWallet] = useState(null);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const getWalletbyAddress = () => {
     const publicKey = address?.split('&')[0];
     const chainId = address?.split('&')[1];

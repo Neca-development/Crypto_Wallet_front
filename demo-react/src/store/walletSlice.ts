@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
-const initialState = {
-  wallets: [] as any
+const initialState: any = {
+  wallets: [],
 }
 
 export const walletSlice = createSlice({
