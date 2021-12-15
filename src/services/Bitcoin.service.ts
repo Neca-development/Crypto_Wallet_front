@@ -20,17 +20,69 @@ import { IResponse } from '../models/response';
 // @ts-ignore
 import Wallet from 'lumi-web-core';
 
-const WALLET = new Wallet();
+// @ts-ignore
+import Mnemonic from 'bitcore-mnemonic';
+
+// @ts-ignore
+import bitcore from 'bitcore-explorers/node_modules/bitcore-lib';
 
 export class bitcoinService implements IChainService {
   private web3: Web3;
+  private lumiWallet: any;
 
   constructor() {
     this.web3 = new Web3(binanceWeb3Provider);
   }
 
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
-    await WALLET.createByMnemonic(mnemonic);
+    // this.lumiWallet = new Wallet();
+
+    const addrFromMnemonic = new Mnemonic(mnemonic);
+    console.log(
+      '%cMyProject%cline:40%caddrFromMnemonic',
+      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
+      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
+      'color:#fff;background:rgb(114, 83, 52);padding:3px;border-radius:2px',
+      addrFromMnemonic.toHDPrivateKey()
+        .xpub661MyMwAqRbcFM8JuTysKvgKa8yXZDvrYNEsxfskRHUqcLq8pecgCp7ezgcnvET7E4aaJHZiReVLigkhudkyjiEoFAt6EXarAcGLnfB6gXx
+    );
+
+    const utxo = await axios.get(
+      'https://blockchain.info/unspent?active=' +
+        addrFromMnemonic.toHDPrivateKey().privateKey.toAddress('testnet').toString()
+    );
+    console.log(
+      '%cMyProject%cline:52%cutxo',
+      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
+      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
+      'color:#fff;background:rgb(118, 77, 57);padding:3px;border-radius:2px',
+      utxo
+    );
+
+    // const address = new bitcore.PrivateKe();
+
+    // await this.lumiWallet.createByMnemonic(mnemonic);
+    // const data = {
+    //   path: "m/44'/0'/0'/0",
+    //   from: 0,
+    //   to: 0,
+    //   coins: [{ coin: 'BTC', type: 'p2pkh' }],
+    // };
+
+    // const coins = await this.lumiWallet.getChildNodes(data);
+
+    // return {
+    //   privateKey: coins.list[0].privateKey,
+    //   publicKey: coins.list[0].p2pkhAddress,
+    // };
+    return {
+      privateKey: addrFromMnemonic.toHDPrivateKey().privateKey.toString(),
+      publicKey: addrFromMnemonic.toHDPrivateKey().privateKey.toAddress('testnet').toString(),
+    };
+  }
+
+  async generatePublicKey(privateKey: string): Promise<string> {
+    await this.lumiWallet.createByKey(privateKey);
     const data = {
       path: "m/44'/0'/0'/0",
       from: 0,
@@ -38,32 +90,12 @@ export class bitcoinService implements IChainService {
       coins: [{ coin: 'BTC', type: 'p2pkh' }],
     };
 
-    const coins = await WALLET.getChildNodes(data);
-    console.log(
-      '%cMyProject%cline:54%cdasd',
-      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
-      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
-      'color:#fff;background:rgb(248, 147, 29);padding:3px;border-radius:2px',
-      coins
-    );
-    // testnet address
-    // publicKey = publicKey.replace('bc', 'tb');
-
-    return {
-      privateKey: coins.list[0].privateKey,
-      publicKey: coins.list[0].p2pkhAddress,
-    };
-  }
-
-  async generatePublicKey(privateKey: string): Promise<string> {
-    await WALLET.createByKey(privateKey);
-    const CORES = await WALLET.createCoins([{ coin: 'BTC', type: 'p2pkh' }]);
-    let publicKey = CORES.BTC.p2pkh.externalAddress;
+    const coins = await this.lumiWallet.getChildNodes(data);
 
     // testnet address
     // publicKey = publicKey.replace('bc', 'tb');
 
-    return publicKey;
+    return coins.list[0].p2pkhAddress;
   }
 
   async getTokensByAddress(address: string) {
