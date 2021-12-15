@@ -23,6 +23,7 @@
     "bip39": "^3.0.4",
     "bip39-checker": "^1.1.7",
     "bitcoinjs-lib": "^6.0.1",
+    "bitcore-explorers": "^1.0.1",
     "bitcore-lib": "^8.25.25",
     "bitcore-mnemonic": "^8.25.25",
     "ecpair": "^1.0.1",
