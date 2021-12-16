@@ -7,6 +7,7 @@ import { IFee, ISendingTransactionData, ITransaction } from './models/transactio
 import { tronService } from './services/Tron.service';
 import { ethereumService } from './services/Ethereum.service';
 import { binanceService } from './services/Binance.service';
+import { solanaService } from './services/Solana.service';
 
 export class Wallet {
   private service: IChainService;
@@ -150,7 +151,9 @@ export class Wallet {
       case ChainIds['Binance']:
         this.service = new binanceService();
         break;
-
+      case ChainIds['Solana']:
+        this.service = new solanaService();
+        break;
       default:
         break;
     }
