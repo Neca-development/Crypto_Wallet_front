@@ -21,6 +21,9 @@ import { IResponse } from '../models/response';
 import Wallet from 'lumi-web-core';
 
 // @ts-ignore
+import { Insight } from 'bitcore-insight';
+
+// @ts-ignore
 import Mnemonic from 'bitcore-mnemonic';
 
 // @ts-ignore
@@ -28,7 +31,7 @@ import bitcore from 'bitcore-explorers/node_modules/bitcore-lib';
 
 export class bitcoinService implements IChainService {
   private web3: Web3;
-  private lumiWallet: any;
+  private keys: IWalletKeys;
 
   constructor() {
     this.web3 = new Web3(binanceWeb3Provider);
@@ -38,84 +41,53 @@ export class bitcoinService implements IChainService {
     // this.lumiWallet = new Wallet();
 
     const addrFromMnemonic = new Mnemonic(mnemonic);
-    console.log(
-      '%cMyProject%cline:40%caddrFromMnemonic',
-      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
-      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
-      'color:#fff;background:rgb(114, 83, 52);padding:3px;border-radius:2px',
-      addrFromMnemonic.toHDPrivateKey()
-        .xpub661MyMwAqRbcFM8JuTysKvgKa8yXZDvrYNEsxfskRHUqcLq8pecgCp7ezgcnvET7E4aaJHZiReVLigkhudkyjiEoFAt6EXarAcGLnfB6gXx
-    );
 
-    const utxo = await axios.get(
-      'https://blockchain.info/unspent?active=' +
-        addrFromMnemonic.toHDPrivateKey().privateKey.toAddress('testnet').toString()
-    );
-    console.log(
-      '%cMyProject%cline:52%cutxo',
-      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
-      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
-      'color:#fff;background:rgb(118, 77, 57);padding:3px;border-radius:2px',
-      utxo
-    );
+    const privateKey = addrFromMnemonic.toHDPrivateKey().privateKey.toString();
+    const publicKey = addrFromMnemonic.toHDPrivateKey().privateKey.toAddress('testnet').toString();
 
-    // const address = new bitcore.PrivateKe();
-
-    // await this.lumiWallet.createByMnemonic(mnemonic);
-    // const data = {
-    //   path: "m/44'/0'/0'/0",
-    //   from: 0,
-    //   to: 0,
-    //   coins: [{ coin: 'BTC', type: 'p2pkh' }],
-    // };
-
-    // const coins = await this.lumiWallet.getChildNodes(data);
-
-    // return {
-    //   privateKey: coins.list[0].privateKey,
-    //   publicKey: coins.list[0].p2pkhAddress,
-    // };
-    return {
-      privateKey: addrFromMnemonic.toHDPrivateKey().privateKey.toString(),
-      publicKey: addrFromMnemonic.toHDPrivateKey().privateKey.toAddress('testnet').toString(),
+    this.keys = {
+      privateKey,
+      publicKey,
     };
+
+    return this.keys;
   }
 
   async generatePublicKey(privateKey: string): Promise<string> {
-    await this.lumiWallet.createByKey(privateKey);
-    const data = {
-      path: "m/44'/0'/0'/0",
-      from: 0,
-      to: 0,
-      coins: [{ coin: 'BTC', type: 'p2pkh' }],
+    const publicKey = bitcore.PrivateKey(privateKey).toAddress('testnet').toString();
+
+    this.keys = {
+      privateKey,
+      publicKey,
     };
 
-    const coins = await this.lumiWallet.getChildNodes(data);
-
-    // testnet address
-    // publicKey = publicKey.replace('bc', 'tb');
-
-    return coins.list[0].p2pkhAddress;
+    return publicKey;
   }
 
   async getTokensByAddress(address: string) {
     const tokens: Array<IToken> = [];
-    const { data: btcToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/BNB`, {
-      headers: {
-        'auth-client-key': backendApiKey,
-      },
-    });
+    let btcToUSD: IResponse<ICryptoCurrency>;
+    try {
+      btcToUSD = (
+        await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/BTC`, {
+          headers: {
+            'auth-client-key': backendApiKey,
+          },
+        })
+      ).data;
+    } catch (error) {
+      console.log('server was dropped');
+    }
 
-    const nativeTokensBalance = await this.web3.eth.getBalance(address);
+    const sochain_network = 'BTCTEST';
+
+    let { data: utxos } = await axios.get(`https://sochain.com/api/v2/get_tx_unspent/${sochain_network}/${address}`);
+    utxos = utxos.data.txs;
+
+    const nativeTokensBalance = utxos.reduce((accum: number, elem: any) => (accum += Number(elem.value)), 0);
 
     tokens.push(
-      this.generateTokenObject(
-        Number(this.web3.utils.fromWei(nativeTokensBalance)),
-        'BNB',
-        imagesURL + 'BNB.svg',
-        'native',
-        btcToUSD.data.usd
-      )
+      this.generateTokenObject(nativeTokensBalance, 'BTC', imagesURL + 'BTC.svg', 'native', btcToUSD.data.usd)
     );
 
     return tokens;
@@ -191,20 +163,64 @@ export class bitcoinService implements IChainService {
   }
 
   async sendMainToken(data: ISendingTransactionData): Promise<string> {
-    const gasPrice = await this.web3.eth.getGasPrice();
-    const gasCount = await this.web3.eth.estimateGas({
-      value: this.web3.utils.toWei(data.amount.toString()),
+    const sochain_network = 'BTCTEST';
+    const privateKey = '';
+    const sourceAddress = 'data.address';
+    const satoshiToSend = data.amount * 100000000;
+    let fee = 0;
+    let inputCount = 0;
+    let outputCount = 2;
+    const utxos = await axios.get(`https://sochain.com/api/v2/get_tx_unspent/${sochain_network}/${sourceAddress}`);
+    const transaction = new bitcore.Transaction();
+    let totalAmountAvailable = 0;
+
+    let inputs: any[] = [];
+    utxos.data.data.txs.forEach(async (element: any) => {
+      let utxo: any = {};
+      utxo.satoshis = Math.floor(Number(element.value) * 100000000);
+      utxo.script = element.script_hex;
+      utxo.address = utxos.data.data.address;
+      utxo.txId = element.txid;
+      utxo.outputIndex = element.output_no;
+      totalAmountAvailable += utxo.satoshis;
+      inputCount += 1;
+      inputs.push(utxo);
     });
 
-    const result = await this.web3.eth.sendTransaction({
-      from: this.web3.eth.defaultAccount,
-      to: data.receiverAddress,
-      value: this.web3.utils.numberToHex(this.web3.utils.toWei(data.amount.toString())),
-      gasPrice: gasPrice,
-      gas: gasCount,
-    });
+    let transactionSize = inputCount * 146 + outputCount * 34 + 10 - inputCount;
+    // Check if we have enough funds to cover the transaction and the fees assuming we want to pay 20 satoshis per byte
 
-    return result.transactionHash;
+    fee = transactionSize * 20;
+    if (totalAmountAvailable - satoshiToSend - fee < 0) {
+      throw new Error('Balance is too low for this transaction');
+    }
+
+    //Set transaction input
+    transaction.from(inputs);
+
+    // set the recieving address and the amount to send
+    transaction.to(data.receiverAddress, satoshiToSend);
+
+    // Set change address - Address to receive the left over funds after transfer
+    transaction.change(sourceAddress);
+
+    //manually set transaction fees: 20 satoshis per byte
+    transaction.fee(fee * 20);
+
+    // Sign transaction with your private key
+    transaction.sign(privateKey);
+
+    // serialize Transactions
+    const serializedTransaction = transaction.serialize();
+    // Send transaction
+    const result = await axios({
+      method: 'POST',
+      url: `https://sochain.com/api/v2/send_tx/${sochain_network}`,
+      data: {
+        tx_hex: serializedTransaction,
+      },
+    });
+    return result.data.data;
   }
 
   async send20Token(data: ISendingTransactionData): Promise<string> {

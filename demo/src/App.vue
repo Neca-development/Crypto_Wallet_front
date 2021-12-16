@@ -29,7 +29,7 @@ export default {
       'Tron'
     );
     const data2 = await wf.createWalletByPrivateKey(
-      'xprv9s21ZrQH143K2s3qoSSrxnjb27939mD1B9KHAHU8rwwrjYVzH7JRf1oB9QX3EFax2UQvAwf4BBUsNqyNeg1L3BH9istySLBi3VkyVXv68HZ',
+      'efbfd14f3a00e033ba8a6958d27aa6180a0f59992fcca65844dccf5bc1f48c9f',
       'Bitcoin'
     );
     console.log({ data, data1, data2 });
