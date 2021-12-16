@@ -1,13 +1,12 @@
 import { IChainService, ISendingTransactionData, IToken, ITransaction } from "../main";
 import { IFee } from "../models/transaction";
-import * as solanaWeb3 from '@solana/web3.js';
 export declare class solanaService implements IChainService {
     private address;
     private connection;
     constructor();
     generateKeyPair(mnemonic: string): {
         privateKey: string;
-        publicKey: solanaWeb3.PublicKey;
+        publicKey: string;
     };
     generatePublicKey(privateKey: string): Promise<string>;
     getTokensByAddress(address: string): Promise<IToken[]>;

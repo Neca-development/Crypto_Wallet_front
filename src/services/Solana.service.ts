@@ -19,7 +19,7 @@ export class solanaService implements IChainService {
   }
 
   generateKeyPair(mnemonic: string) {
-    const derivePath = "m/44'/501'/0'/0'";
+    const derivePath = "m/44'/501'";
 
     const seed = bip39.mnemonicToSeedSync(mnemonic);
     const derivedSeed = ed25519.derivePath(derivePath, seed.toString('hex')).key;
@@ -28,10 +28,16 @@ export class solanaService implements IChainService {
     const enc = new TextDecoder("utf-8");
     let secretKey = enc.decode(this.address.secretKey)
 
+    // const randomKeypair = Keypair.generate()
+
     return {
       privateKey: secretKey,
-      publicKey: this.address.publicKey
+      publicKey: this.address.publicKey.toString()
     }
+    // return {
+    //   privateKey: randomKeypair.secretKey.toString(),
+    //   publicKey: randomKeypair.publicKey.toString()
+    // }
   }
 
   generatePublicKey(privateKey: string): Promise<string> {
@@ -62,7 +68,6 @@ export class solanaService implements IChainService {
         solToUSD.data.usd
       )
     );
-
     return tokens
   }
 
@@ -99,12 +104,12 @@ export class solanaService implements IChainService {
 
   send20Token(data: ISendingTransactionData): Promise<string> {
     console.log(data);
-    throw new Error("Method not implemented.");
+    return null
   }
 
   async getTransactionsHistoryByAddress(address: any): Promise<ITransaction[]> {
-    const history = this.connection.getConfirmedSignaturesForAddress2(address, { limit: 20 })
-    console.log(history);
+    // const history = this.connection.getConfirmedSignaturesForAddress2(address, { limit: 20 })
+    // console.log(history);
 
     const { data: solToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/SOL`, {
       headers: {
@@ -131,7 +136,7 @@ export class solanaService implements IChainService {
         }
       );
 
-      transactions.push(...resp.data.data.ethereum.transfers);
+      transactions.push(...resp.data.data.solana.transfers);
     }
 
     transactions = transactions.map((el: any) =>
@@ -172,43 +177,40 @@ export class solanaService implements IChainService {
     return {
       balance,
       balanceInUSD,
-      contractAddress,
       tokenName,
       tokenType,
       tokenPriceInUSD,
       tokenLogo,
+      contractAddress
     };
   }
 
   private generateTransactionsQuery(address: string, direction: 'receiver' | 'sender') {
+    console.log(address, direction)
     return `
       query{
       solana(network: solana) {
-        outbound: transfers(${direction}: {is: "${address}"}, options: {desc: "any"}) {
-          txHash
-          currency {
-            symbol
-            decimals
-            address
-            name
-            tokenType
-          }
-          date {
-            date(format: "YYYY.MM.DDThh:mm:ss")
-            dayOfMonth
-            year
-            month
-          }
-          amount
-          sender {
-            address
-          }
+        transfers(
+          options: {desc: "any", limit: 1000}
+          receiverAddress: {is: "PinYvHqMTZVrRTpwK9x3dB9vL7tsGtGedSz8EqeynuA"} 
+        ) {
+          any(of: time)
           receiver {
             address
           }
-          fee
-          success
-          any(of: time)
+          sender {
+            address
+          }
+          transaction {
+            fee
+            recentBlockHash
+            success
+          }
+          currency {
+            symbol
+            address
+          }
+          amount
         }
       }
     }
@@ -235,13 +237,13 @@ export class solanaService implements IChainService {
       from,
       amount,
       amountInUSD,
-      txId: txData.txHash,
+      txId: txData.transaction.recentBlockHash,
       direction,
       type: txData.tokenType,
       tokenName: txData.currency.symbol,
       timestamp: new Date(txData.any).getTime(),
-      fee: txData.fee,
-      status: txData.success,
+      fee: txData.transaction.fee,
+      status: txData.transaction.success,
       tokenLogo,
     };
   }
