@@ -24,18 +24,15 @@ export class solanaService implements IChainService {
     const derivedSeed = ed25519.derivePath(derivePath, seed.toString('hex')).key;
     this.address = Keypair.fromSeed(derivedSeed)
 
-    const enc = new TextDecoder("utf-8");
-    let secretKey = enc.decode(this.address.secretKey)
-
     return {
-      privateKey: secretKey,
+      privateKey: this.address.secretKey.toString(),
       publicKey: this.address.publicKey.toString()
     }
   }
 
   generatePublicKey(privateKey: string): Promise<string> {
-    const enc = new TextEncoder()
-    const secretKey = enc.encode(privateKey)
+    const arr = privateKey.split(',').map(Number)
+    let secretKey = Uint8Array.from(arr)
     const address = Keypair.fromSecretKey(secretKey)
     // @ts-ignore
     return address.publicKey
