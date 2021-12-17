@@ -2,7 +2,7 @@ import { IChainService, ISendingTransactionData, IToken, ITransaction } from "..
 import { IFee } from "../models/transaction";
 
 import * as solanaWeb3 from '@solana/web3.js';
-import { Keypair, LAMPORTS_PER_SOL, Connection, clusterApiUrl, } from "@solana/web3.js";
+import { Keypair, LAMPORTS_PER_SOL, Connection, clusterApiUrl, PublicKey } from "@solana/web3.js";
 import * as bip39 from 'bip39';
 import * as ed25519 from 'ed25519-hd-key';
 import axios from "axios";
@@ -19,8 +19,7 @@ export class solanaService implements IChainService {
   }
 
   generateKeyPair(mnemonic: string) {
-    const derivePath = "m/44'/501'";
-
+    const derivePath = "m/44'/501'/0'/0'";
     const seed = bip39.mnemonicToSeedSync(mnemonic);
     const derivedSeed = ed25519.derivePath(derivePath, seed.toString('hex')).key;
     this.address = Keypair.fromSeed(derivedSeed)
@@ -28,16 +27,10 @@ export class solanaService implements IChainService {
     const enc = new TextDecoder("utf-8");
     let secretKey = enc.decode(this.address.secretKey)
 
-    // const randomKeypair = Keypair.generate()
-
     return {
       privateKey: secretKey,
       publicKey: this.address.publicKey.toString()
     }
-    // return {
-    //   privateKey: randomKeypair.secretKey.toString(),
-    //   publicKey: randomKeypair.publicKey.toString()
-    // }
   }
 
   generatePublicKey(privateKey: string): Promise<string> {
@@ -49,7 +42,6 @@ export class solanaService implements IChainService {
   }
 
   async getTokensByAddress(address: string): Promise<IToken[]> {
-    console.log(address)
     const tokens: Array<IToken> = [];
     const { data: solToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/SOL`, {
       headers: {
@@ -57,7 +49,11 @@ export class solanaService implements IChainService {
       },
     });
 
-    const balance = await this.connection.getBalance(this.address.publicKey)
+    const balance = await this.connection.getBalance(new PublicKey(address))
+    // const USDTTokenBalance = await this.connection.getTokenAccountBalance(new solanaWeb3.PublicKey(address))
+    // console.log(USDTTokenBalance)
+    const info = await this.connection.getTokenAccountsByOwner(new PublicKey(address), { mint: new PublicKey('4KFsUz9t45VhPhJZTfzZAC3FuXkzwPu9vbAfKv4c71Ct') })
+    console.log(info)
 
     tokens.push(
       this.generateTokenObject(
@@ -72,7 +68,7 @@ export class solanaService implements IChainService {
   }
 
   async getFeePriceOracle(from: string, to: string): Promise<IFee> {
-    console.log(from, to);
+    console.log(from, to)
     const { data: solToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/SOL`, {
       headers: {
         'auth-client-key': backendApiKey,
@@ -93,8 +89,8 @@ export class solanaService implements IChainService {
     const transaction = new solanaWeb3.Transaction().add(
       solanaWeb3.SystemProgram.transfer({
         fromPubkey: this.address.publicKey,
-        toPubkey: new solanaWeb3.PublicKey(data.receiverAddress),
-        lamports: data.amount * solanaWeb3.LAMPORTS_PER_SOL,
+        toPubkey: new PublicKey(data.receiverAddress),
+        lamports: data.amount * LAMPORTS_PER_SOL,
       }),
     );
 
