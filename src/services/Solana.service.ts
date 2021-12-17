@@ -108,9 +108,6 @@ export class solanaService implements IChainService {
   }
 
   async getTransactionsHistoryByAddress(address: any): Promise<ITransaction[]> {
-    // const history = this.connection.getConfirmedSignaturesForAddress2(address, { limit: 20 })
-    // console.log(history);
-
     const { data: solToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/SOL`, {
       headers: {
         'auth-client-key': backendApiKey,
@@ -186,13 +183,12 @@ export class solanaService implements IChainService {
   }
 
   private generateTransactionsQuery(address: string, direction: 'receiver' | 'sender') {
-    console.log(address, direction)
     return `
       query{
       solana(network: solana) {
         transfers(
           options: {desc: "any", limit: 1000}
-          receiverAddress: {is: "PinYvHqMTZVrRTpwK9x3dB9vL7tsGtGedSz8EqeynuA"} 
+          ${direction}Address: {is: "PinYvHqMTZVrRTpwK9x3dB9vL7tsGtGedSz8EqeynuA"}
         ) {
           any(of: time)
           receiver {
@@ -203,12 +199,13 @@ export class solanaService implements IChainService {
           }
           transaction {
             fee
-            recentBlockHash
+            transactionIndex
             success
           }
           currency {
             symbol
-            address
+            name
+            tokenType
           }
           amount
         }
@@ -237,9 +234,9 @@ export class solanaService implements IChainService {
       from,
       amount,
       amountInUSD,
-      txId: txData.transaction.recentBlockHash,
+      txId: txData.transaction.transactionIndex,
       direction,
-      type: txData.tokenType,
+      type: txData.currency.tokenType,
       tokenName: txData.currency.symbol,
       timestamp: new Date(txData.any).getTime(),
       fee: txData.transaction.fee,
