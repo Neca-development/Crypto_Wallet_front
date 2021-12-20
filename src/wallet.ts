@@ -12,13 +12,15 @@ import { solanaService } from './services/Solana.service';
 
 export class Wallet {
   private service: IChainService;
-
+  private tokensRequestInterval = 0;
   private isInitialized = false;
+
   private data: IWalletData = {
     privateKey: null,
     publicKey: null,
     chainId: null,
     mnemonic: null,
+    tokens: [],
   };
 
   /**
@@ -88,15 +90,18 @@ export class Wallet {
    */
   async getTotalBalanceInUSD(): Promise<number> {
     try {
-      const tokens = await this.getTokensByAddress();
+      const requestInterval = Date.now() - this.tokensRequestInterval;
+
+      // throttle tokens request
+      const tokens = requestInterval > 60000 ? await this.getTokensByAddress() : this.data.tokens;
       const balance = tokens.reduce((balance, x) => balance + x.balanceInUSD, 0);
 
       return Math.trunc(balance * 100) / 100;
     } catch (error: any) {
       throw new CustomError(
         `An error occurred while receiving balance info from ${this.chainId} network`,
-        0,
-        ErrorsTypes['Unknown error'],
+        4,
+        ErrorsTypes['Network error'],
         error
       );
     }
@@ -107,7 +112,19 @@ export class Wallet {
    * @returns {Promise<IToken[]>}
    */
   async getTokensByAddress(): Promise<IToken[]> {
-    return await this.service.getTokensByAddress(this.data.publicKey);
+    try {
+      this.data.tokens = await this.service.getTokensByAddress(this.data.publicKey);
+      this.tokensRequestInterval = Date.now();
+
+      return this.data.tokens;
+    } catch (error: any) {
+      throw new CustomError(
+        `An error occurred while receiving wallet tokens info from ${this.chainId} network`,
+        3,
+        ErrorsTypes['Network error'],
+        error
+      );
+    }
   }
 
   /**
@@ -115,7 +132,16 @@ export class Wallet {
    * @returns {Promise<ITransaction[]>}
    */
   async getTransactionsHistoryByAddress(): Promise<ITransaction[]> {
-    return await this.service.getTransactionsHistoryByAddress(this.data.publicKey);
+    try {
+      return await this.service.getTransactionsHistoryByAddress(this.data.publicKey);
+    } catch (error: any) {
+      throw new CustomError(
+        `An error occurred while receiving wallet transactions history info from ${this.chainId} network`,
+        5,
+        ErrorsTypes['Network error'],
+        error
+      );
+    }
   }
 
   /**
@@ -124,7 +150,16 @@ export class Wallet {
    * @returns {Promise<IFee>}
    */
   async getFeePriceOracle(receiverAddress: string): Promise<IFee> {
-    return await this.service.getFeePriceOracle(this.data.publicKey, receiverAddress);
+    try {
+      return await this.service.getFeePriceOracle(this.data.publicKey, receiverAddress);
+    } catch (error: any) {
+      throw new CustomError(
+        `An error occurred while calculating transaction fee price for ${this.chainId} network`,
+        6,
+        ErrorsTypes['Network error'],
+        error
+      );
+    }
   }
 
   /**
@@ -133,7 +168,24 @@ export class Wallet {
    * @returns {Promise<void>}
    */
   async sendMainToken(data: ISendingTransactionData): Promise<string> {
-    return await this.service.sendMainToken(data);
+    if (data.amount === null || data.amount === undefined) {
+      throw new CustomError(`You have not passed the amount of native tokens to send`, 7, ErrorsTypes['Insufficient data']);
+    }
+
+    if (data.receiverAddress === null || data.receiverAddress === undefined) {
+      throw new CustomError(`You have not passed receiver address`, 8, ErrorsTypes['Insufficient data']);
+    }
+
+    try {
+      return await this.service.sendMainToken(data);
+    } catch (error: any) {
+      throw new CustomError(
+        `An error occurred while sending native tokens in ${this.chainId} network`,
+        9,
+        ErrorsTypes['Network error'],
+        error
+      );
+    }
   }
 
   /**
@@ -142,7 +194,28 @@ export class Wallet {
    * @returns {Promise<string>}
    */
   async send20Token(data: ISendingTransactionData): Promise<string> {
-    return await this.service.send20Token({ ...data, privateKey: this.data.privateKey });
+    if (data.amount === null || data.amount === undefined) {
+      throw new CustomError(`You have not passed the amount of custom tokens to send`, 10, ErrorsTypes['Insufficient data']);
+    }
+
+    if (data.receiverAddress === null || data.receiverAddress === undefined) {
+      throw new CustomError(`You have not passed receiver address`, 11, ErrorsTypes['Insufficient data']);
+    }
+
+    if (data.cotractAddress === null || data.cotractAddress === undefined) {
+      throw new CustomError(`You have not passed contract address of custom token`, 12, ErrorsTypes['Insufficient data']);
+    }
+
+    try {
+      return await this.service.send20Token({ ...data, privateKey: this.data.privateKey });
+    } catch (error: any) {
+      throw new CustomError(
+        `An error occurred while sending custom tokens in ${this.chainId} network`,
+        13,
+        ErrorsTypes['Network error'],
+        error
+      );
+    }
   }
 
   /**
@@ -171,7 +244,7 @@ export class Wallet {
     } catch (error: any) {
       throw new CustomError(
         `An error occurred while generating keys for ${this.chainId}`,
-        0,
+        2,
         ErrorsTypes['Unknown error'],
         error
       );
@@ -196,7 +269,7 @@ export class Wallet {
     } catch (error: any) {
       throw new CustomError(
         `An error occurred while generating keys for ${this.chainId}`,
-        0,
+        1,
         ErrorsTypes['Unknown error'],
         error
       );
