@@ -1,4 +1,4 @@
-import { ChainIds } from './models/enums';
+import { ChainIds, ErrorsTypes } from './models/enums';
 import { IChainService } from './models/chainService';
 import { IToken } from './models/token';
 import { IWalletData } from './models/wallet';
@@ -7,6 +7,7 @@ import { IFee, ISendingTransactionData, ITransaction } from './models/transactio
 import { tronService } from './services/Tron.service';
 import { ethereumService } from './services/Ethereum.service';
 import { binanceService } from './services/Binance.service';
+import { CustomError } from './errors';
 
 export class Wallet {
   private service: IChainService;
@@ -78,6 +79,7 @@ export class Wallet {
     await this.createKeys();
 
     this.isInitialized = true;
+    throw new CustomError('test', 1, ErrorsTypes['Insufficient data'], new Error('sd'));
   }
 
   /**

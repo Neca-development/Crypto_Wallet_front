@@ -35,8 +35,12 @@ export class WalletFactory {
       }
     }
 
-    for (const wallet of wallets) {
-      await wallet.init();
+    try {
+      for (const wallet of wallets) {
+        await wallet.init();
+      }
+    } catch (error) {
+      console.log(error);
     }
 
     return { mnemonic, wallets };
