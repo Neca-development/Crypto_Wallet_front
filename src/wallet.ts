@@ -168,11 +168,13 @@ export class Wallet {
    * @returns {Promise<void>}
    */
   async sendMainToken(data: ISendingTransactionData): Promise<string> {
+    console.log(data);
+
     if (data.amount === null || data.amount === undefined) {
       throw new CustomError(`You have not passed the amount of native tokens to send`, 7, ErrorsTypes['Insufficient data']);
     }
 
-    if (data.receiverAddress === null || data.receiverAddress === undefined) {
+    if (data.receiverAddress === null || data.receiverAddress === undefined || data.receiverAddress.trim() === '') {
       throw new CustomError(`You have not passed receiver address`, 8, ErrorsTypes['Insufficient data']);
     }
 
@@ -198,11 +200,11 @@ export class Wallet {
       throw new CustomError(`You have not passed the amount of custom tokens to send`, 10, ErrorsTypes['Insufficient data']);
     }
 
-    if (data.receiverAddress === null || data.receiverAddress === undefined) {
+    if (data.receiverAddress === null || data.receiverAddress === undefined || data.receiverAddress.trim() === '') {
       throw new CustomError(`You have not passed receiver address`, 11, ErrorsTypes['Insufficient data']);
     }
 
-    if (data.cotractAddress === null || data.cotractAddress === undefined) {
+    if (data.cotractAddress === null || data.cotractAddress === undefined || data.cotractAddress.trim() === '') {
       throw new CustomError(`You have not passed contract address of custom token`, 12, ErrorsTypes['Insufficient data']);
     }
 
