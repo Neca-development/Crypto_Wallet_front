@@ -4,10 +4,10 @@ export declare class solanaService implements IChainService {
     private address;
     private connection;
     constructor();
-    generateKeyPair(mnemonic: string): {
+    generateKeyPair(mnemonic: string): Promise<{
         privateKey: string;
         publicKey: string;
-    };
+    }>;
     generatePublicKey(privateKey: string): Promise<string>;
     getTokensByAddress(address: string): Promise<IToken[]>;
     getFeePriceOracle(from: string, to: string): Promise<IFee>;

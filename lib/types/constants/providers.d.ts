@@ -16,4 +16,5 @@ export declare const etherGasPrice = "https://ethgasstation.info/api/ethgasAPI.j
 export declare const binanceWeb3Provider = "https://data-seed-prebsc-1-s1.binance.org:8545/";
 export declare const binanceUSDTContractAddress = "0x337610d27c682e347c9cd60bd4b3b107c9d34ddd";
 export declare const binanceScanApi = "https://api-testnet.bscscan.com/api";
+export declare const solanaUSDTContractAddress = "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB";
 //# sourceMappingURL=providers.d.ts.map
