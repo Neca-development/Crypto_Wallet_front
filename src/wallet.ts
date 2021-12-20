@@ -79,7 +79,6 @@ export class Wallet {
     await this.createKeys();
 
     this.isInitialized = true;
-    throw new CustomError('test', 1, ErrorsTypes['Insufficient data'], new Error('sd'));
   }
 
   /**
@@ -87,10 +86,19 @@ export class Wallet {
    * @returns {number}
    */
   async getTotalBalanceInUSD(): Promise<number> {
-    const tokens = await this.getTokensByAddress();
-    const balance = tokens.reduce((balance, x) => balance + x.balanceInUSD, 0);
+    try {
+      const tokens = await this.getTokensByAddress();
+      const balance = tokens.reduce((balance, x) => balance + x.balanceInUSD, 0);
 
-    return Math.trunc(balance * 100) / 100;
+      return Math.trunc(balance * 100) / 100;
+    } catch (error: any) {
+      throw new CustomError(
+        `An error occurred while receiving balance info from ${this.chainId} network`,
+        0,
+        ErrorsTypes['Unknown error'],
+        error
+      );
+    }
   }
 
   /**
@@ -142,19 +150,28 @@ export class Wallet {
    * @returns {void}
    */
   private selectChainService(chainId: ChainIds): void {
-    switch (+chainId) {
-      case ChainIds['Ethereum']:
-        this.service = new ethereumService();
-        break;
-      case ChainIds['Tron']:
-        this.service = new tronService();
-        break;
-      case ChainIds['Binance']:
-        this.service = new binanceService();
-        break;
+    try {
+      switch (+chainId) {
+        case ChainIds['Ethereum']:
+          this.service = new ethereumService();
+          break;
+        case ChainIds['Tron']:
+          this.service = new tronService();
+          break;
+        case ChainIds['Binance']:
+          this.service = new binanceService();
+          break;
 
-      default:
-        break;
+        default:
+          break;
+      }
+    } catch (error: any) {
+      throw new CustomError(
+        `An error occurred while generating keys for ${this.chainId}`,
+        0,
+        ErrorsTypes['Unknown error'],
+        error
+      );
     }
   }
 
@@ -162,15 +179,24 @@ export class Wallet {
    * set main wallet data like address and private key
    */
   private async createKeys(): Promise<void> {
-    if (this.data.privateKey) {
-      const pubKey = await this.service.generatePublicKey(this.data.privateKey);
-      this.data.publicKey = pubKey;
+    try {
+      if (this.data.privateKey) {
+        const pubKey = await this.service.generatePublicKey(this.data.privateKey);
+        this.data.publicKey = pubKey;
 
-      return;
+        return;
+      }
+
+      const data = await this.service.generateKeyPair(this.data.mnemonic);
+      this.data.privateKey = data.privateKey;
+      this.data.publicKey = data.publicKey;
+    } catch (error: any) {
+      throw new CustomError(
+        `An error occurred while generating keys for ${this.chainId}`,
+        0,
+        ErrorsTypes['Unknown error'],
+        error
+      );
     }
-
-    const data = await this.service.generateKeyPair(this.data.mnemonic);
-    this.data.privateKey = data.privateKey;
-    this.data.publicKey = data.publicKey;
   }
 }
