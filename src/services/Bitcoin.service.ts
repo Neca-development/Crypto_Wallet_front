@@ -8,7 +8,7 @@ import { ICryptoCurrency, IToken } from '../models/token';
 import { getBNFromDecimal } from '../utils/numbers';
 
 import { imagesURL, backendApi, backendApiKey, bitqueryProxy } from '../constants/providers';
-import { binanceWeb3Provider, binanceUSDTContractAddress } from '../constants/providers';
+import { binanceWeb3Provider } from '../constants/providers';
 import { bnbUSDTAbi } from '../constants/bnb-USDT.abi';
 
 // @ts-ignore
@@ -18,14 +18,10 @@ import { BigNumber } from 'bignumber.js';
 import { IResponse } from '../models/response';
 
 // @ts-ignore
-import Mnemonic from 'bitcore-mnemonic';
+// import Mnemonic from 'bitcore-mnemonic';
 
 // @ts-ignore
-import bitcore from 'bitcore-mnemonic/node_modules/bitcore-lib';
-// @ts-ignore
-import * as bitcoreUnspentOutput from 'bitcore-mnemonic/node_modules/bitcore-lib/lib/transaction/unspentoutput';
-// @ts-ignore
-import * as bitcoreInput from 'bitcore-mnemonic/node_modules/bitcore-lib/lib/transaction/input/input';
+import bitcore from 'bitcore-lib';
 
 export class bitcoinService implements IChainService {
   private web3: Web3;
@@ -36,19 +32,20 @@ export class bitcoinService implements IChainService {
   }
 
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
+    console.log(mnemonic);
+
     // this.lumiWallet = new Wallet();
-    console.log(bitcoreUnspentOutput);
 
-    const addrFromMnemonic = new Mnemonic(mnemonic);
+    // // const addrFromMnemonic = new Mnemonic(mnemonic);
 
-    const privateKey = addrFromMnemonic.toHDPrivateKey().privateKey.toString();
-    const publicKey = addrFromMnemonic.toHDPrivateKey().privateKey.toAddress('testnet').toString();
+    // const privateKey = addrFromMnemonic.toHDPrivateKey().privateKey.toString();
+    // const publicKey = addrFromMnemonic.toHDPrivateKey().privateKey.toAddress('testnet').toString();
 
-    console.log(new bitcore.PrivateKey(privateKey, 'testnet'));
+    // console.log(new bitcore.PrivateKey(privateKey, 'testnet'));
 
     this.keys = {
-      privateKey,
-      publicKey,
+      privateKey: 'e0bb96fdc926ebd9e73e22e0af50fd099ff04d0e123496bccca41596c5b5e655',
+      publicKey: 'mgwxD7adVibhV1eGrw4BqVotyvzp8twCHz',
     };
 
     return this.keys;
@@ -179,7 +176,7 @@ export class bitcoinService implements IChainService {
       inputs.push({
         txid: element.txid,
         outputIndex: element.output_no,
-        address: this.keys.publicKey,
+        address: sourceAddress,
         script: element.script_hex,
         satoshis: Math.floor(Number(element.value) * 100000000),
       });
@@ -200,9 +197,9 @@ export class bitcoinService implements IChainService {
     }
 
     //Set transaction input
-    // inputs.forEach((input: any) => {
-    transaction.from(new bitcoreUnspentOutput(inputs[0]));
-    // });
+    inputs.forEach((input: any) => {
+      transaction.from(input);
+    });
 
     // set the recieving address and the amount to send
     transaction.to(data.receiverAddress, satoshiToSend);
