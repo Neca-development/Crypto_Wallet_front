@@ -1,10 +1,12 @@
-import { Wallet } from "../wallet";
-import { ChainIds } from "./enums";
+import { Wallet } from '../wallet';
+import { ChainIds } from './enums';
+import { IToken } from './token';
 export interface IWalletData {
     privateKey: string;
     publicKey: string;
     mnemonic: string;
     chainId: ChainIds;
+    tokens: IToken[];
 }
 export interface IWalletKeys {
     privateKey: string;

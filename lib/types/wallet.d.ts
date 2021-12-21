@@ -3,6 +3,7 @@ import { IToken } from './models/token';
 import { IFee, ISendingTransactionData, ITransaction } from './models/transaction';
 export declare class Wallet {
     private service;
+    private tokensRequestInterval;
     private isInitialized;
     private data;
     /**
