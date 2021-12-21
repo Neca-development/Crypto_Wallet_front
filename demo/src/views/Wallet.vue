@@ -12,14 +12,14 @@
         </vs-tooltip>
       </h2>
       <vs-row justify="space-between">
-        <div class="chain-info">
+        <div v-if="balance" class="chain-info">
           <h3>
             Total Balance:
             <small>
               <b> ≈ {{ totalBalance }} $</b>
             </small>
           </h3>
-          <article v-for="(token, idx) of tokens" :key="idx" class="token">
+          <article v-for="token of balance.tokens" :key="token.tokenName" class="token">
             <div class="token__name">
               <img :src="token.tokenLogo" alt="" />
               <div>
@@ -60,10 +60,10 @@
         </vs-button>
       </vs-row>
     </section>
-    <div v-if="tokens" class="grid-row">
+    <div v-if="balance" class="grid-row">
       <section class="wallet-page__send-trx">
         <form @submit.prevent="sendTrx">
-          <h2 class="subtitle">Send {{ tokens[0].tokenName }}</h2>
+          <h2 class="subtitle">Send {{ balance.tokens[0].tokenName }}</h2>
           <vs-input
             class="input"
             label="To"
@@ -96,7 +96,7 @@
                 {{ sendTokenForm.tokenName ? '' : 'Required' }}
               </template>
               <vs-option
-                v-for="(token, idx) of $options.filters.filterTrc20Tokens(tokens)"
+                v-for="(token, idx) of $options.filters.filterTrc20Tokens(balance.tokens)"
                 :key="idx"
                 :label="token.tokenName"
                 :value="token.tokenName"
@@ -107,13 +107,7 @@
               </vs-option>
             </vs-select>
           </vs-row>
-          <vs-input
-            class="input"
-            label="To"
-            name="receiver"
-            placeholder="Receiver Address"
-            v-model="sendTokenForm.receiver"
-          >
+          <vs-input class="input" label="To" name="receiver" placeholder="Receiver Address" v-model="sendTokenForm.receiver">
             <template v-if="!sendTokenForm.receiver" #message-danger> Required </template>
           </vs-input>
           <br />
@@ -153,11 +147,7 @@
           </vs-tr>
         </template>
         <template #tbody>
-          <vs-tr
-            :key="i"
-            v-for="(tr, i) in $vs.getPage(transactions, transactionsPage, transactionsPerPage)"
-            :data="tr"
-          >
+          <vs-tr :key="i" v-for="(tr, i) in $vs.getPage(transactions, transactionsPage, transactionsPerPage)" :data="tr">
             <vs-td>
               <vs-row align="center">
                 <img :src="tr.tokenLogo" alt="" height="35" /> &nbsp;
@@ -238,7 +228,7 @@ export default {
       transactions: [],
       transactionsPage: 1,
       transactionsPerPage: 8,
-      tokens: null,
+      balance: null,
       totalBalance: 0,
       fee: null,
     };
@@ -346,11 +336,11 @@ export default {
         return;
       }
       this.getTransactions();
-      this.getWalletTokens();
-      this.totalBalance = await this.wallet.getTotalBalanceInUSD();
+      await this.getWalletTokens();
+      this.totalBalance = await this.balance.totalBalanceInUSD;
     },
     async getWalletTokens() {
-      this.tokens = await this.wallet.getTokensByAddress();
+      this.balance = await this.wallet.getTokensByAddress();
     },
     async getTransactions() {
       this.transactions = await this.wallet.getTransactionsHistoryByAddress();
@@ -384,7 +374,7 @@ export default {
       }
     },
     async sendToken() {
-      const token = this.tokens.find((x) => x.tokenName === this.sendTokenForm.tokenName),
+      const token = this.balance.tokens.find((x) => x.tokenName === this.sendTokenForm.tokenName),
         receiverAddress = this.sendTokenForm.receiver,
         cotractAddress = token.contractAddress,
         amount = this.sendTokenForm.amount,

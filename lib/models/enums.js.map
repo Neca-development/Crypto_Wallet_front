@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 {"version":3,"file":"enums.js","sourceRoot":"","sources":["../../src/models/enums.ts"],"names":[],"mappings":"AAAA,MAAM,CAAN,IAAY,QAKX;AALD,WAAY,QAAQ;IAClB,uCAAM,CAAA;IACN,+CAAU,CAAA;IACV,6CAAS,CAAA;IACT,6CAAS,CAAA;AACX,CAAC,EALW,QAAQ,KAAR,QAAQ,QAKnB"}
+=======
+{"version":3,"file":"enums.js","sourceRoot":"","sources":["../../src/models/enums.ts"],"names":[],"mappings":"AAAA,MAAM,CAAN,IAAY,QAKX;AALD,WAAY,QAAQ;IAClB,uCAAM,CAAA;IACN,+CAAU,CAAA;IACV,6CAAS,CAAA;IACT,2CAAQ,CAAA;AACV,CAAC,EALW,QAAQ,KAAR,QAAQ,QAKnB;AAED,MAAM,CAAN,IAAY,WAKX;AALD,WAAY,WAAW;IACrB,6DAAc,CAAA;IACd,uEAAmB,CAAA;IACnB,+DAAe,CAAA;IACf,+DAAe,CAAA;AACjB,CAAC,EALW,WAAW,KAAX,WAAW,QAKtB"}
+>>>>>>> master

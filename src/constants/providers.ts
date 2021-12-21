@@ -8,13 +8,13 @@ export const bitqueryProxy = `${backendApi}bitquery`;
 
 // --- Tron ---
 export const tronWebProvider = {
-  fullHost: 'https://nile.trongrid.io',
-  solidityNode: 'https://nile.trongrid.io',
-  eventServer: 'https://nile.trongrid.io',
+  fullHost: 'https://api.trongrid.io',
+  solidityNode: 'https://api.trongrid.io',
+  eventServer: 'https://api.trongrid.io',
 };
 
-export const tronUSDTContractAddress = 'TXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj';
-// export const tronUSDTContractAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
+// export const tronUSDTContractAddress = 'TXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj';
+export const tronUSDTContractAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
 
 // --- Ether ---
 export const ethWeb3Provider = 'https://rinkeby.infura.io/v3/522b462c9a1d45fb9b3b18b5fda51c05';
@@ -35,3 +35,7 @@ export const binanceWeb3Provider = 'https://data-seed-prebsc-1-s1.binance.org:85
 export const binanceUSDTContractAddress = '0x337610d27c682e347c9cd60bd4b3b107c9d34ddd';
 
 export const binanceScanApi = 'https://api-testnet.bscscan.com/api';
+
+// --- Solana ---
+
+export const solanaUSDTContractAddress = 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB'
