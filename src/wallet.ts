@@ -1,7 +1,7 @@
 import { ChainIds, ErrorsTypes } from './models/enums';
 import { IChainService } from './models/chainService';
 import { IToken } from './models/token';
-import { IWalletData } from './models/wallet';
+import { IBalanceInfo, IWalletData } from './models/wallet';
 import { IFee, ISendingTransactionData, ITransaction } from './models/transaction';
 
 import { tronService } from './services/Tron.service';
@@ -12,7 +12,6 @@ import { solanaService } from './services/Solana.service';
 
 export class Wallet {
   private service: IChainService;
-  private tokensRequestInterval = 0;
   private isInitialized = false;
 
   private data: IWalletData = {
@@ -20,7 +19,6 @@ export class Wallet {
     publicKey: null,
     chainId: null,
     mnemonic: null,
-    tokens: [],
   };
 
   /**
@@ -85,38 +83,19 @@ export class Wallet {
   }
 
   /**
-   * return total wallet balance in USD
-   * @returns {number}
-   */
-  async getTotalBalanceInUSD(): Promise<number> {
-    try {
-      const requestInterval = Date.now() - this.tokensRequestInterval;
-
-      // throttle tokens request
-      const tokens = requestInterval > 60000 ? await this.getTokensByAddress() : this.data.tokens;
-      const balance = tokens.reduce((balance, x) => balance + x.balanceInUSD, 0);
-
-      return Math.trunc(balance * 100) / 100;
-    } catch (error: any) {
-      throw new CustomError(
-        `An error occurred while receiving balance info from ${this.chainId} network`,
-        4,
-        ErrorsTypes['Network error'],
-        error
-      );
-    }
-  }
-
-  /**
    * Return tokens by wallet address
    * @returns {Promise<IToken[]>}
    */
-  async getTokensByAddress(): Promise<IToken[]> {
-    try {
-      this.data.tokens = await this.service.getTokensByAddress(this.data.publicKey);
-      this.tokensRequestInterval = Date.now();
+  async getTokensByAddress(): Promise<IBalanceInfo> {
+    console.log('ge tokens by addr ' + this.chainId);
 
-      return this.data.tokens;
+    try {
+      const tokens = await this.service.getTokensByAddress(this.data.publicKey);
+
+      let totalBalanceInUSD = tokens.reduce((balance, x) => balance + x.balanceInUSD, 0);
+      totalBalanceInUSD = Math.trunc(totalBalanceInUSD * 100) / 100;
+
+      return { tokens, totalBalanceInUSD };
     } catch (error: any) {
       throw new CustomError(
         `An error occurred while receiving wallet tokens info from ${this.chainId} network`,

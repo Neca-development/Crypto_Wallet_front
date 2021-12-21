@@ -47,6 +47,8 @@ export class tronService implements IChainService {
   }
 
   async getTokensByAddress(address: string): Promise<IToken[]> {
+    console.log('tokens');
+
     const tokens: IToken[] = [];
     const { data: trxToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/TRX`, {
       headers: {
@@ -58,13 +60,7 @@ export class tronService implements IChainService {
     const USDTTokenBalance = await this.getCustomTokenBalance(address, tronUSDTContractAddress);
 
     tokens.push(
-      this.generateTokenObject(
-        this.Tron.fromSun(nativeTokensBalance),
-        'TRX',
-        imagesURL + 'TRX.svg',
-        'native',
-        trxToUSD.data.usd
-      )
+      this.generateTokenObject(this.Tron.fromSun(nativeTokensBalance), 'TRX', imagesURL + 'TRX.svg', 'native', trxToUSD.data.usd)
     );
     tokens.push(
       this.generateTokenObject(
@@ -127,9 +123,7 @@ export class tronService implements IChainService {
       transactions.push(...resp.data.data.tron.outbound);
     }
 
-    transactions = transactions.map((el: any) =>
-      this.convertTransactionToCommonFormat(el, address, Number(trxToUSD.data.usd))
-    );
+    transactions = transactions.map((el: any) => this.convertTransactionToCommonFormat(el, address, Number(trxToUSD.data.usd)));
 
     transactions.sort((a, b) => {
       if (a.timestamp > b.timestamp) {
@@ -175,6 +169,8 @@ export class tronService implements IChainService {
   // -------------------------------------------------
 
   private async getCustomTokenBalance(address: string, contractAddress: string): Promise<number> {
+    console.log('cusotom');
+
     const contract = await this.Tron.contract().at(contractAddress);
     const decimals = getBNFromDecimal(await contract.decimals().call());
 

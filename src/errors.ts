@@ -13,13 +13,13 @@ export class CustomError extends Error {
     this.statusType = statusType;
     this.exception = exception;
 
-    console.error(`
-    Error!    
-    Status Code: ${code}
-    ${ErrorsTypes[statusType]}: ${message}
+    // console.error(`
+    // Error!
+    // Status Code: ${code}
+    // ${ErrorsTypes[statusType]}: ${message}
 
-    '____|  Additional info  |____'
+    // '____|  Additional info  |____'
 
-    ${this.exception ? exception.message : 'No additional info'}`);
+    // ${this.exception ? exception.message : 'No additional info'}`);
   }
 }

@@ -163,7 +163,7 @@ export default {
     async setTotallBalance() {
       let balance = 0;
       for (const wallet of this.wallets) {
-        balance += await wallet.getTotalBalanceInUSD();
+        balance += (await wallet.getTokensByAddress()).totalBalanceInUSD;
       }
 
       this.totallBalance = Math.trunc(balance * 100) / 100;
