@@ -8,6 +8,7 @@ import { tronService } from './services/Tron.service';
 import { ethereumService } from './services/Ethereum.service';
 import { binanceService } from './services/Binance.service';
 import { solanaService } from './services/Solana.service';
+import { polygonService } from './services/Polygon.service';
 
 export class Wallet {
   private service: IChainService;
@@ -153,6 +154,9 @@ export class Wallet {
         break;
       case ChainIds['Solana']:
         this.service = new solanaService();
+        break;
+      case ChainIds['Polygon']:
+        this.service = new polygonService();
         break;
       default:
         break;
