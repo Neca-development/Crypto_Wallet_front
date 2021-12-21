@@ -18,7 +18,7 @@ import { BigNumber } from 'bignumber.js';
 import { IResponse } from '../models/response';
 
 // @ts-ignore
-// import Mnemonic from 'bitcore-mnemonic';
+import Wallet from 'lumi-web-core';
 
 // @ts-ignore
 import bitcore from 'bitcore-lib';
@@ -26,13 +26,31 @@ import bitcore from 'bitcore-lib';
 export class bitcoinService implements IChainService {
   private web3: Web3;
   private keys: IWalletKeys;
+  private lumiWallet: Wallet;
 
   constructor() {
     this.web3 = new Web3(binanceWeb3Provider);
+    this.lumiWallet = new Wallet();
   }
 
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
     console.log(mnemonic);
+    await this.lumiWallet.createByMnemonic(mnemonic);
+    const data = {
+      path: "m/49'/1'/0'",
+      from: 0,
+      to: 0,
+      coins: [{ coin: 'BTC', type: 'p2wpkh' }],
+    };
+
+    const coins = await this.lumiWallet.getChildNodes(data);
+    console.log(
+      '%cMyProject%cline:46%ccoins',
+      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
+      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
+      'color:#fff;background:rgb(17, 63, 61);padding:3px;border-radius:2px',
+      coins
+    );
 
     // this.lumiWallet = new Wallet();
 
