@@ -5,3 +5,10 @@ export enum ChainIds {
   'Solana',
   'Polygon'
 }
+
+export enum ErrorsTypes {
+  'Invalid data',
+  'Insufficient data',
+  'Network error',
+  'Unknown error',
+}

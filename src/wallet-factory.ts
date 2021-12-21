@@ -1,8 +1,9 @@
 import { Wallet } from './wallet';
 // @ts-ignore
 import hdWallet from 'tron-wallet-hd';
-import { ChainIds } from './models/enums';
+import { ChainIds, ErrorsTypes } from './models/enums';
 import { ICreateWalletsData } from './models/wallet';
+import { CustomError } from './errors';
 
 export class WalletFactory {
   /**
@@ -13,7 +14,7 @@ export class WalletFactory {
    */
   async createWallets(mnemonic?: string, chainId?: ChainIds): Promise<ICreateWalletsData> {
     if (mnemonic !== undefined && mnemonic !== null && hdWallet.validateMnemonic(mnemonic) === false) {
-      throw new Error('Invalid mnemonic seed provided!');
+      throw new CustomError('Invalid seed phrase was provided', 0, ErrorsTypes['Invalid data']);
     }
 
     if (mnemonic === undefined || mnemonic === null) {
