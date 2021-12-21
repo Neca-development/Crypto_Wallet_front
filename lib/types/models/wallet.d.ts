@@ -6,7 +6,6 @@ export interface IWalletData {
     publicKey: string;
     mnemonic: string;
     chainId: ChainIds;
-    tokens: IToken[];
 }
 export interface IWalletKeys {
     privateKey: string;
@@ -15,5 +14,9 @@ export interface IWalletKeys {
 export interface ICreateWalletsData {
     mnemonic: string;
     wallets: Array<Wallet>;
+}
+export interface IBalanceInfo {
+    tokens: IToken[];
+    totalBalanceInUSD: number;
 }
 //# sourceMappingURL=wallet.d.ts.map

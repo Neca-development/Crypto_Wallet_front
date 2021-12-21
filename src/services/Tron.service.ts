@@ -47,8 +47,6 @@ export class tronService implements IChainService {
   }
 
   async getTokensByAddress(address: string): Promise<IToken[]> {
-    console.log('tokens');
-
     const tokens: IToken[] = [];
     const { data: trxToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/TRX`, {
       headers: {
@@ -95,6 +93,8 @@ export class tronService implements IChainService {
   }
 
   async getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]> {
+    console.log('get tron history');
+
     const { data: trxToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/TRX`, {
       headers: {
         'auth-client-key': backendApiKey,
@@ -169,8 +169,6 @@ export class tronService implements IChainService {
   // -------------------------------------------------
 
   private async getCustomTokenBalance(address: string, contractAddress: string): Promise<number> {
-    console.log('cusotom');
-
     const contract = await this.Tron.contract().at(contractAddress);
     const decimals = getBNFromDecimal(await contract.decimals().call());
 

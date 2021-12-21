@@ -1,6 +1,5 @@
 import { ChainIds, ErrorsTypes } from './models/enums';
 import { IChainService } from './models/chainService';
-import { IToken } from './models/token';
 import { IBalanceInfo, IWalletData } from './models/wallet';
 import { IFee, ISendingTransactionData, ITransaction } from './models/transaction';
 
@@ -87,8 +86,6 @@ export class Wallet {
    * @returns {Promise<IToken[]>}
    */
   async getTokensByAddress(): Promise<IBalanceInfo> {
-    console.log('ge tokens by addr ' + this.chainId);
-
     try {
       const tokens = await this.service.getTokensByAddress(this.data.publicKey);
 
