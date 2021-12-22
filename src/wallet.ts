@@ -158,6 +158,8 @@ export class Wallet {
     try {
       return await this.service.sendMainToken(data);
     } catch (error: any) {
+      console.log(error);
+
       throw new CustomError(
         `An error occurred while sending native tokens in ${this.chainId} network`,
         9,
@@ -249,6 +251,8 @@ export class Wallet {
       this.data.privateKey = data.privateKey;
       this.data.publicKey = data.publicKey;
     } catch (error: any) {
+      console.log(error);
+
       throw new CustomError(
         `An error occurred while generating keys for ${this.chainId}`,
         1,

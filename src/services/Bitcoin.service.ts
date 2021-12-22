@@ -21,49 +21,35 @@ import { IResponse } from '../models/response';
 import Wallet from 'lumi-web-core';
 
 // @ts-ignore
-import bitcore from 'bitcore-lib';
+const bitcore = require('bitcore-lib');
+// @ts-ignore
+const Mnemonic = require('bitcore-mnemonic');
+
+import * as bitcoin from 'bitcoinjs-lib';
 
 export class bitcoinService implements IChainService {
   private web3: Web3;
   private keys: IWalletKeys;
-  private lumiWallet: Wallet;
 
   constructor() {
     this.web3 = new Web3(binanceWeb3Provider);
-    this.lumiWallet = new Wallet();
   }
 
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
-    console.log(mnemonic);
-    await this.lumiWallet.createByMnemonic(mnemonic);
-    const data = {
-      path: "m/49'/1'/0'",
-      from: 0,
-      to: 0,
-      coins: [{ coin: 'BTC', type: 'p2wpkh' }],
-    };
+    console.log(bitcoin);
 
-    const coins = await this.lumiWallet.getChildNodes(data);
-    console.log(
-      '%cMyProject%cline:46%ccoins',
-      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
-      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
-      'color:#fff;background:rgb(17, 63, 61);padding:3px;border-radius:2px',
-      coins
-    );
+    const addrFromMnemonic = new Mnemonic(mnemonic);
 
-    // this.lumiWallet = new Wallet();
+    const privateKey = addrFromMnemonic.toHDPrivateKey().privateKey.toString();
+    const publicKey = addrFromMnemonic.toHDPrivateKey().privateKey.toAddress('testnet').toString();
+    // const privateKey = 'cUs6kyTUjN9EZBNYiSuCBNP3iD7fxr2vZpPuWzQz8eUgVoLB1vP6';
+    // const publicKey = 'tb1qnpwavl7uezu8x5qqptd7vjd2s9fvy3r48w4qjt';
+    // var yourAddresskeyPair = bitcoin.ECPair.fromPrivateKey(Buffer.from(privateKey, 'hex'));
 
-    // // const addrFromMnemonic = new Mnemonic(mnemonic);
-
-    // const privateKey = addrFromMnemonic.toHDPrivateKey().privateKey.toString();
-    // const publicKey = addrFromMnemonic.toHDPrivateKey().privateKey.toAddress('testnet').toString();
-
-    // console.log(new bitcore.PrivateKey(privateKey, 'testnet'));
-
+    console.log(addrFromMnemonic.toHDPrivateKey().privateKey.toWIF());
     this.keys = {
-      privateKey: 'e0bb96fdc926ebd9e73e22e0af50fd099ff04d0e123496bccca41596c5b5e655',
-      publicKey: 'mgwxD7adVibhV1eGrw4BqVotyvzp8twCHz',
+      privateKey,
+      publicKey,
     };
 
     return this.keys;
@@ -97,17 +83,13 @@ export class bitcoinService implements IChainService {
 
     const sochain_network = 'BTCTEST';
 
-    let { data: balance } = await axios.get(
-      `https://sochain.com/api/v2/get_address_balance/${sochain_network}/${address}`
-    );
+    let { data: balance } = await axios.get(`https://sochain.com/api/v2/get_address_balance/${sochain_network}/${address}`);
 
     balance = balance.data.confirmed_balance;
 
     const nativeTokensBalance = balance;
 
-    tokens.push(
-      this.generateTokenObject(nativeTokensBalance, 'BTC', imagesURL + 'BTC.svg', 'native', btcToUSD.data.usd)
-    );
+    tokens.push(this.generateTokenObject(nativeTokensBalance, 'BTC', imagesURL + 'BTC.svg', 'native', btcToUSD.data.usd));
 
     return tokens;
   }
@@ -168,96 +150,57 @@ export class bitcoinService implements IChainService {
   }
 
   async sendMainToken(data: ISendingTransactionData): Promise<string> {
-    const sochain_network = 'BTCTEST';
-    const privateKey = data.privateKey;
-    const sourceAddress = this.keys.publicKey;
-    console.log(
-      '%cMyProject%cline:167%csourceAddress',
-      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
-      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
-      'color:#fff;background:rgb(60, 79, 57);padding:3px;border-radius:2px',
-      sourceAddress
-    );
-    const satoshiToSend = Math.trunc(data.amount * 100000000);
-    let fee = 0;
-    // let inputCount = 0;
-    // let outputCount = 2;
-    const utxos = await axios.get(`https://sochain.com/api/v2/get_tx_unspent/${sochain_network}/${sourceAddress}`);
-    const transaction = new bitcore.Transaction();
-    let totalAmountAvailable = 0;
-    console.log(transaction);
+    const sochain_network = 'BTCTEST',
+      privateKey = data.privateKey,
+      sourceAddress = this.keys.publicKey,
+      utxos = await axios.get(`https://sochain.com/api/v2/get_tx_unspent/${sochain_network}/${sourceAddress}`),
+      transaction = new bitcoin.TransactionBuilder(bitcoin.networks.testnet),
+      amount = Math.trunc(data.amount * 1e8);
 
-    let inputs: any = [];
+    let totalInputsBalance = 0,
+      fee = 0,
+      inputCount = 1,
+      outputCount = 2;
+
+    transaction.setVersion(1);
+
     utxos.data.data.txs.forEach(async (element: any) => {
-      totalAmountAvailable += Math.floor(Number(element.value) * 100000000);
-      // inputCount += 1;
-      inputs.push({
-        txid: element.txid,
-        outputIndex: element.output_no,
-        address: sourceAddress,
-        script: element.script_hex,
-        satoshis: Math.floor(Number(element.value) * 100000000),
-      });
+      fee = (inputCount * 146 + outputCount * 33 + 10) * 20;
+
+      if (totalInputsBalance - amount - fee > 0) {
+        return;
+      }
+
+      transaction.addInput(element.txid, element.output_no);
+      inputCount + 1;
+      totalInputsBalance += Math.floor(Number(element.value) * 100000000);
     });
 
-    // let transactionSize = inputCount * 146 + outputCount * 34 + 10 - inputCount;
+    transaction.addOutput(data.receiverAddress, amount);
 
-    fee = 7000;
-    console.log(
-      '%cMyProject%cline:187%cfee',
-      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
-      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
-      'color:#fff;background:rgb(20, 68, 106);padding:3px;border-radius:2px',
-      fee
-    );
-    if (totalAmountAvailable - satoshiToSend - fee < 0) {
+    if (totalInputsBalance - amount - fee < 0) {
       throw new Error('Balance is too low for this transaction');
     }
 
-    //Set transaction input
-    inputs.forEach((input: any) => {
-      transaction.from(input);
-    });
+    const privateKeyECpair = bitcoin.ECPair.fromPrivateKey(Buffer.from(privateKey, 'hex'), { network: bitcoin.networks.testnet });
 
-    // set the recieving address and the amount to send
-    transaction.to(data.receiverAddress, satoshiToSend);
+    transaction.sign(0, privateKeyECpair);
 
-    console.log(transaction);
+    console.log(transaction.buildIncomplete().toHex());
 
-    // Set change address - Address to receive the left over funds after transfer
-    transaction.change(sourceAddress);
-
-    //manually set transaction fees: 20 satoshis per byte
-    transaction.fee(fee);
-
-    // Sign transaction with your private key
-    // bitcore.Networks.defaultNetwork = bitcore.Networks.testnet;
-    console.log(new bitcore.PrivateKey(privateKey).toString());
-    console.log(new bitcore.PrivateKey(privateKey).toString(), new bitcore.PrivateKey(privateKey).publicKey.toString());
-
-    transaction.sign(privateKey);
-
-    console.log({ transaction, fee });
-
-    // serialize Transactions
-    const serializedTransaction = transaction.serialize({ disableDustOutputs: true, disableIsFullySigned: true });
-    console.log(
-      '%cMyProject%cline:214%cserializedTransaction',
-      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
-      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
-      'color:#fff;background:rgb(3, 38, 58);padding:3px;border-radius:2px',
-      serializedTransaction
-    );
-    // Send transaction
-    const result = await axios.post(`https://sochain.com/api/v2/send_tx/BTCTEST`, {
-      body: {
-        tx_hex: serializedTransaction,
+    const { data: trRequest } = await axios.post(
+      `${backendApi}transactions/so-chain/${sochain_network}`,
+      {
+        tx_hex: transaction.buildIncomplete().toHex(),
       },
-    });
+      {
+        headers: {
+          'auth-client-key': backendApiKey,
+        },
+      }
+    );
 
-    console.log(result);
-
-    return 'result.data.data';
+    return trRequest.data.txid;
   }
 
   async send20Token(data: ISendingTransactionData): Promise<string> {
@@ -358,8 +301,7 @@ export class bitcoinService implements IChainService {
   ): ITransaction {
     const amount = new BigNumber(txData.amount).toFormat();
 
-    let amountPriceInUSD =
-      txData.currency.symbol === 'BNB' ? tokenPriceToUSD : (1 / nativeTokenToUSD) * tokenPriceToUSD;
+    let amountPriceInUSD = txData.currency.symbol === 'BNB' ? tokenPriceToUSD : (1 / nativeTokenToUSD) * tokenPriceToUSD;
     amountPriceInUSD = Math.trunc(amountPriceInUSD * txData.amount * 100) / 100;
 
     const tokenLogo = imagesURL + txData.currency.symbol.toUpperCase() + '.svg';
