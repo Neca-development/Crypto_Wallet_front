@@ -329,7 +329,7 @@ export default {
       this.clearSendTokenForm();
     },
     async calcFee() {
-      this.fee = await this.wallet.getFeePriceOracle(this.sendTokenForm.receiverAddress);
+      this.fee = await this.wallet.getFeePriceOracle(this.wallet.address, this.sendTrxForm.receiver);
     },
     async updateWalletInfo() {
       if (this.wallet === null) {

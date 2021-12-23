@@ -3,6 +3,7 @@ export enum ChainIds {
   'Ethereum',
   'Binance',
   'Solana',
+  'Polygon',
   'EthereumClassic'
 }
 

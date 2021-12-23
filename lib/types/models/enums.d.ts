@@ -3,7 +3,8 @@ export declare enum ChainIds {
     'Ethereum' = 1,
     'Binance' = 2,
     'Solana' = 3,
-    'EthereumClassic' = 4
+    'Polygon' = 4,
+    'EthereumClassic' = 5
 }
 export declare enum ErrorsTypes {
     'Invalid data' = 0,

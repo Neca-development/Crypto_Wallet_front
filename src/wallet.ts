@@ -8,6 +8,7 @@ import { ethereumService } from './services/Ethereum.service';
 import { binanceService } from './services/Binance.service';
 import { CustomError } from './errors';
 import { solanaService } from './services/Solana.service';
+import { polygonService } from './services/Polygon.service';
 import { ethereumClassicService } from './services/EthereumClassic.service';
 
 export class Wallet {
@@ -216,6 +217,9 @@ export class Wallet {
           break;
         case ChainIds['Solana']:
           this.service = new solanaService();
+          break;
+        case ChainIds['Polygon']:
+          this.service = new polygonService();
           break;
         case ChainIds['EthereumClassic']:
           this.service = new ethereumClassicService();
