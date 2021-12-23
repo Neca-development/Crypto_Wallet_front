@@ -37,9 +37,6 @@ export class bitcoinService implements IChainService {
 
     const privateKey = addrFromMnemonic.toHDPrivateKey().privateKey.toString();
     const publicKey = addrFromMnemonic.toHDPrivateKey().privateKey.toAddress('testnet').toString();
-    // const privateKey = 'cUs6kyTUjN9EZBNYiSuCBNP3iD7fxr2vZpPuWzQz8eUgVoLB1vP6';
-    // const publicKey = 'tb1qnpwavl7uezu8x5qqptd7vjd2s9fvy3r48w4qjt';
-    // var yourAddresskeyPair = bitcoin.ECPair.fromPrivateKey(Buffer.from(privateKey, 'hex'));
 
     console.log(addrFromMnemonic.toHDPrivateKey().privateKey.toWIF());
     this.keys = {
@@ -214,6 +211,7 @@ export class bitcoinService implements IChainService {
     });
 
     transaction.addOutput(data.receiverAddress, amount);
+    transaction.addOutput(sourceAddress, totalInputsBalance - amount - fee);
 
     if (totalInputsBalance - amount - fee < 0) {
       throw new Error('Balance is too low for this transaction');

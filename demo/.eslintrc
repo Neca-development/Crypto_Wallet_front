@@ -3,10 +3,12 @@
   "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "ecmaVersion": 6,
     "ecmaFeatures": {
-      "experimentalObjectRestSpread": true
-    }
+      "experimentalObjectRestSpread": true,
+      "jsx": true
+    },
+    "ecmaVersion": 12,
+    "sourceType": "module"
   },
   "plugins": ["@typescript-eslint"],
   "rules": {
@@ -18,5 +20,5 @@
       }
     ]
   },
-  "ignorePatterns": ["src/**/*.test.ts", "src/frontend/generated/*"]
+  "ignorePatterns": ["src", "src/frontend/generated/*"]
 }

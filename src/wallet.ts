@@ -223,6 +223,7 @@ export class Wallet {
           break;
         case ChainIds['Bitcoin']:
           this.service = new bitcoinService();
+          break;
         case ChainIds['Polygon']:
           this.service = new polygonService();
           break;
