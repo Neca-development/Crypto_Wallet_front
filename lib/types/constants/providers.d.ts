@@ -17,4 +17,5 @@ export declare const binanceWeb3Provider = "https://data-seed-prebsc-1-s1.binanc
 export declare const binanceUSDTContractAddress = "0x337610d27c682e347c9cd60bd4b3b107c9d34ddd";
 export declare const binanceScanApi = "https://api-testnet.bscscan.com/api";
 export declare const solanaUSDTContractAddress = "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB";
+export declare const etcWeb3Provider = "https://www.ethercluster.com/etc";
 //# sourceMappingURL=providers.d.ts.map

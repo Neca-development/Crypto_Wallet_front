@@ -39,3 +39,7 @@ export const binanceScanApi = 'https://api-testnet.bscscan.com/api';
 // --- Solana ---
 
 export const solanaUSDTContractAddress = 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB'
+
+// --- Ethereum Classic --- 
+
+export const etcWeb3Provider = 'https://www.ethercluster.com/etc'

@@ -8,6 +8,7 @@ import { ethereumService } from './services/Ethereum.service';
 import { binanceService } from './services/Binance.service';
 import { CustomError } from './errors';
 import { solanaService } from './services/Solana.service';
+import { ethereumClassicService } from './services/EthereumClassic.service';
 
 export class Wallet {
   private service: IChainService;
@@ -215,6 +216,9 @@ export class Wallet {
           break;
         case ChainIds['Solana']:
           this.service = new solanaService();
+          break;
+        case ChainIds['EthereumClassic']:
+          this.service = new ethereumClassicService();
           break;
         default:
           break;
