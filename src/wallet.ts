@@ -112,6 +112,7 @@ export class Wallet {
     try {
       return await this.service.getTransactionsHistoryByAddress(this.data.publicKey);
     } catch (error: any) {
+      console.error(error);
       throw new CustomError(
         `An error occurred while receiving wallet transactions history info from ${this.chainId} network`,
         5,

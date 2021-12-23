@@ -5,20 +5,13 @@ import { IChainService } from '../models/chainService';
 import { ITransaction } from '../models/transaction';
 import { ICryptoCurrency, IToken } from '../models/token';
 
-import { getBNFromDecimal } from '../utils/numbers';
-
 import { imagesURL, backendApi, backendApiKey, bitqueryProxy } from '../constants/providers';
 import { binanceWeb3Provider } from '../constants/providers';
-import { bnbUSDTAbi } from '../constants/bnb-USDT.abi';
 
 // @ts-ignore
 import axios from 'axios';
 import Web3 from 'web3';
-import { BigNumber } from 'bignumber.js';
 import { IResponse } from '../models/response';
-
-// @ts-ignore
-import Wallet from 'lumi-web-core';
 
 // @ts-ignore
 const bitcore = require('bitcore-lib');
@@ -26,6 +19,8 @@ const bitcore = require('bitcore-lib');
 const Mnemonic = require('bitcore-mnemonic');
 
 import * as bitcoin from 'bitcoinjs-lib';
+import { CustomError } from '../errors';
+import { ErrorsTypes } from '../models/enums';
 
 export class bitcoinService implements IChainService {
   private web3: Web3;
@@ -104,36 +99,78 @@ export class bitcoinService implements IChainService {
   }
 
   async getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]> {
-    const { data: btcToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/BNB`, {
+    address = '18LT7D1wT4Qi28wrdK1DvKFgTy9gtrK9TK';
+    const { data: btcToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/BTC`, {
       headers: {
         'auth-client-key': backendApiKey,
       },
     });
 
-    const queries = [];
     let transactions = [];
 
-    queries.push(this.generateTransactionsQuery(address, 'receiver'));
-    queries.push(this.generateTransactionsQuery(address, 'sender'));
-
-    for (const query of queries) {
-      let { data: resp } = await axios.post(
-        bitqueryProxy,
-        {
-          body: { query: query, variables: {} },
+    let { data: resp } = await axios.post(
+      bitqueryProxy,
+      {
+        body: {
+          query: `
+          query {
+            bitcoin(network: bitcoin) {
+              outputs(outputAddress: {is: "${address}"}) {
+                transaction {
+                  hash
+                }
+                outputIndex
+                outputDirection
+                value(in: BTC)
+                outputAddress {
+                  address
+                }
+                block {
+                  height
+                  timestamp {
+                    time(format: "%Y-%m-%d %H:%M:%S")
+                  }
+                }
+                outputScript
+              }
+              inputs(inputAddress: {is: "${address}'"}) {
+                transaction {
+                  hash
+                }
+                value(in: BTC)
+                block {
+                  height
+                  timestamp {
+                    time(format: "%Y-%m-%d %H:%M:%S")
+                  }
+                }
+                inputAddress {
+                  address
+                }
+              }
+            }
+          }
+        `,
+          variables: {},
         },
-        {
-          headers: {
-            'auth-client-key': backendApiKey,
-          },
-        }
-      );
+      },
+      {
+        headers: {
+          'auth-client-key': backendApiKey,
+        },
+      }
+    );
 
-      transactions.push(...resp.data.data.ethereum.transfers);
-    }
+    transactions.push(
+      ...resp.data.data.bitcoin.inputs.map((el: any) =>
+        this.convertTransactionToCommonFormat(el, Number(btcToUSD.data.usd), 'IN')
+      )
+    );
 
-    transactions = transactions.map((el: any) =>
-      this.convertTransactionToCommonFormat(el, address, Number(btcToUSD.data.usd), Number(btcToUSD.data.usdt))
+    transactions.push(
+      ...resp.data.data.bitcoin.outputs.map((el: any) =>
+        this.convertTransactionToCommonFormat(el, Number(btcToUSD.data.usd), 'OUT')
+      )
     );
 
     transactions.sort((a, b) => {
@@ -203,32 +240,13 @@ export class bitcoinService implements IChainService {
     return trRequest.data.txid;
   }
 
-  async send20Token(data: ISendingTransactionData): Promise<string> {
-    const tokenAddress = data.cotractAddress;
-    const contract = new this.web3.eth.Contract(bnbUSDTAbi as any, tokenAddress);
-    const decimals = getBNFromDecimal(+(await contract.methods._decimals().call()));
-    const amount = new BigNumber(data.amount).multipliedBy(decimals).toNumber();
-    const result = await contract.methods
-      .transfer(data.receiverAddress, this.web3.utils.toHex(amount))
-      .send({ from: this.web3.eth.defaultAccount, gas: 100000 });
-    console.log(result);
-
-    return result.transactionHash;
+  async send20Token(): Promise<string> {
+    throw new CustomError('Network doesnt support this method', 14, ErrorsTypes['Unknown error']);
   }
 
   // -------------------------------------------------
   // ********** PRIVATE METHODS SECTION **************
   // -------------------------------------------------
-
-  private async getCustomTokenBalance(address: string, contractAddress: string): Promise<number> {
-    const contract = new this.web3.eth.Contract(bnbUSDTAbi as any, contractAddress);
-    const decimals = getBNFromDecimal(Number(await contract.methods.decimals().call()));
-
-    let balance = await contract.methods.balanceOf(address).call();
-    balance = new BigNumber(balance).dividedBy(decimals);
-
-    return balance.toNumber();
-  }
 
   private generateTokenObject(
     balance: number,
@@ -255,72 +273,30 @@ export class bitcoinService implements IChainService {
     };
   }
 
-  private generateTransactionsQuery(address: string, direction: 'receiver' | 'sender') {
-    return `
-      query{
-      ethereum(network: bsc_testnet) {
-        transfers(
-              options: {desc: "any", limit: 1000}
-              amount: {gt: 0}
-              ${direction}: {is: "${address}"}
-            ) {
-              any(of: time)
-              address: receiver {
-                address
-                annotation
-              }
-              sender {
-                address
-              }
-              currency {
-                address
-                symbol
-              }
-              amount
-              transaction {
-                hash
-              }
-              external
-            }
-          }
-      }
-    `;
-  }
-
   /**
    * @param {any} txData:any
    * @param {string} address:string
    * @param {number} trxToUSD:number
    * @returns {ITransaction}
    */
-  private convertTransactionToCommonFormat(
-    txData: any,
-    address: string,
-    tokenPriceToUSD: number,
-    nativeTokenToUSD: number
-  ): ITransaction {
-    const amount = new BigNumber(txData.amount).toFormat();
-
-    let amountPriceInUSD = txData.currency.symbol === 'BNB' ? tokenPriceToUSD : (1 / nativeTokenToUSD) * tokenPriceToUSD;
-    amountPriceInUSD = Math.trunc(amountPriceInUSD * txData.amount * 100) / 100;
-
-    const tokenLogo = imagesURL + txData.currency.symbol.toUpperCase() + '.svg';
-    const to = txData.address.address;
-    const from = txData.sender.address;
-    const direction = from.toLowerCase() === address.toLowerCase() ? 'OUT' : 'IN';
+  private convertTransactionToCommonFormat(txData: any, tokenPriceToUSD: number, direction: 'IN' | 'OUT'): ITransaction {
+    let amountPriceInUSD = Math.trunc(txData.value * tokenPriceToUSD * 100) / 100;
+    const tokenName = 'BTC';
+    const tokenLogo = imagesURL + tokenName + '.svg';
+    const from = direction === 'OUT' ? txData.outputAddress.address : 'unknown';
+    const to = direction === 'IN' ? txData.inputAddress.address : 'unknown';
 
     return {
       to,
       from,
-      amount,
+      amount: txData.value.toFixed(8),
       amountInUSD: amountPriceInUSD.toString(),
-      txId: txData.txHash,
+      txId: txData.transaction.hash,
       direction,
-      type: txData.tokenType,
-      tokenName: txData.currency.symbol,
-      timestamp: new Date(txData.any).getTime(),
-      fee: txData.fee,
-      status: txData.success,
+      tokenName: 'BTC',
+      timestamp: new Date(txData.block.timestamp.time).getTime(),
+      fee: undefined,
+      status: true,
       tokenLogo,
     };
   }

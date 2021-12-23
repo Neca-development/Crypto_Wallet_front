@@ -278,8 +278,7 @@ export class ethereumService implements IChainService {
   ): ITransaction {
     const amount = new BigNumber(txData.amount).toFormat();
 
-    let amountPriceInUSD =
-      txData.currency.symbol === 'ETH' ? tokenPriceToUSD : (1 / nativeTokenToUSD) * tokenPriceToUSD;
+    let amountPriceInUSD = txData.currency.symbol === 'ETH' ? tokenPriceToUSD : (1 / nativeTokenToUSD) * tokenPriceToUSD;
     amountPriceInUSD = Math.trunc(amountPriceInUSD * txData.amount * 100) / 100;
 
     const tokenLogo = imagesURL + txData.currency.symbol.toUpperCase() + '.svg';
@@ -292,7 +291,7 @@ export class ethereumService implements IChainService {
       from,
       amount,
       amountInUSD: amountPriceInUSD.toString(),
-      txId: txData.txHash,
+      txId: txData.transaction.hash,
       direction,
       type: txData.tokenType,
       tokenName: txData.currency.symbol,

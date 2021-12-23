@@ -13,10 +13,8 @@ export declare class bitcoinService implements IChainService {
     getFeePriceOracle(from: string, to: string): Promise<IFee>;
     getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]>;
     sendMainToken(data: ISendingTransactionData): Promise<string>;
-    send20Token(data: ISendingTransactionData): Promise<string>;
-    private getCustomTokenBalance;
+    send20Token(): Promise<string>;
     private generateTokenObject;
-    private generateTransactionsQuery;
     /**
      * @param {any} txData:any
      * @param {string} address:string
