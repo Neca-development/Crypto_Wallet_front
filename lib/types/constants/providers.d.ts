@@ -17,4 +17,7 @@ export declare const binanceWeb3Provider = "https://data-seed-prebsc-1-s1.binanc
 export declare const binanceUSDTContractAddress = "0x337610d27c682e347c9cd60bd4b3b107c9d34ddd";
 export declare const binanceScanApi = "https://api-testnet.bscscan.com/api";
 export declare const solanaUSDTContractAddress = "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB";
+export declare const polygonWeb3Provider = "https://polygon-rpc.com/";
+export declare const polygonUSDTContractAddress = "0xc2132d05d31c914a87c6611c10748aeb04b58e8f";
+export declare const polygonGasPrice = "https://gasstation-mainnet.matic.network";
 //# sourceMappingURL=providers.d.ts.map

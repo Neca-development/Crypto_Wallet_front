@@ -2,35 +2,27 @@
 import { IFee, ISendingTransactionData } from '../models/transaction';
 import { IWalletKeys } from '../models/wallet';
 import { IChainService } from '../models/chainService';
-import { IResponse } from '../models/response';
 import { ITransaction } from '../models/transaction';
+import { ICryptoCurrency, IToken } from '../models/token';
 
-import {
-  ethWeb3Provider,
-  etherUSDTContractAddress,
-  etherGasPrice,
-  backendApi,
-  imagesURL,
-  bitqueryProxy,
-} from '../constants/providers';
-import { backendApiKey } from './../constants/providers';
-import { etherUSDTAbi } from '../constants/eth-USDT.abi';
+import { getBNFromDecimal } from '../utils/numbers';
+
+import { backendApi, backendApiKey, bitqueryProxy, imagesURL, polygonGasPrice } from '../constants/providers';
+import { polygonWeb3Provider, polygonUSDTContractAddress } from '../constants/providers';
+import { maticUSDTAbi } from '../constants/matic-USDT.abi';
 
 // @ts-ignore
 import axios from 'axios';
 import Web3 from 'web3';
-// @ts-ignore
-// import Wallet from "lumi-web-core";
 import { ethers } from 'ethers';
-import { ICryptoCurrency, IToken } from '../models/token';
-import { getBNFromDecimal } from '../utils/numbers';
 import { BigNumber } from 'bignumber.js';
+import { IResponse } from '../models/response';
 
-export class ethereumService implements IChainService {
+export class polygonService implements IChainService {
   private web3: Web3;
 
   constructor() {
-    this.web3 = new Web3(ethWeb3Provider);
+    this.web3 = new Web3(polygonWeb3Provider);
   }
 
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
@@ -51,22 +43,22 @@ export class ethereumService implements IChainService {
 
   async getTokensByAddress(address: string) {
     const tokens: Array<IToken> = [];
-    const { data: ethToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/ETH`, {
+    const { data: maticToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/MATIC`, {
       headers: {
         'auth-client-key': backendApiKey,
       },
     });
 
     const nativeTokensBalance = await this.web3.eth.getBalance(address);
-    const USDTTokenBalance = await this.getCustomTokenBalance(address, etherUSDTContractAddress);
+    const USDTTokenBalance = await this.getCustomTokenBalance(address, polygonUSDTContractAddress);
 
     tokens.push(
       this.generateTokenObject(
         Number(this.web3.utils.fromWei(nativeTokensBalance)),
-        'ETH',
-        imagesURL + 'ETH.svg',
+        'MATIC',
+        imagesURL + 'MATIC.svg',
         'native',
-        ethToUSD.data.usd
+        maticToUSD.data.usd
       )
     );
 
@@ -76,9 +68,9 @@ export class ethereumService implements IChainService {
         'Tether USDT',
         imagesURL + 'USDT.svg',
         'custom',
-        ethToUSD.data.usd,
-        ethToUSD.data.usdt,
-        etherUSDTContractAddress
+        maticToUSD.data.usd,
+        maticToUSD.data.usdt,
+        polygonUSDTContractAddress
       )
     );
 
@@ -86,37 +78,29 @@ export class ethereumService implements IChainService {
   }
 
   async getFeePriceOracle(from: string, to: string): Promise<IFee> {
-    const { data: ethToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/ETH`, {
+    const { data: maticToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/MATIC`, {
       headers: {
         'auth-client-key': backendApiKey,
       },
     });
 
-    const transactionObject = {
+    const estimatedGas = await this.web3.eth.estimateGas({
       from,
       to,
-    }
-    const gasLimit = await this.web3.eth.estimateGas(transactionObject)
+    });
+    const { data: gasPrice } = await axios.get(polygonGasPrice)
 
-    let { data: price } = await axios.get(etherGasPrice);
-    const gasPriceGwei = price.fast / 10
-
-    const transactionFeeInEth = gasPriceGwei * 0.000000001 * gasLimit
-
-    const usd = Math.trunc(transactionFeeInEth * Number(ethToUSD.data.usd) * 100) / 100;
+    const transactionFee = estimatedGas * gasPrice.standard / 1000000000
+    const usd = Math.trunc(transactionFee * Number(maticToUSD.data.usd) * 100) / 100;
 
     return {
-      value: transactionFeeInEth.toString(),
-      usd: usd.toString()
-    }
+      value: transactionFee.toString(),
+      usd: usd.toString(),
+    };
   }
 
-  /**
-   * @param {ISendingTransactionData} data:ISendingTransactionData
-   * @returns {any}
-   */
   async getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]> {
-    const { data: ethToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/ETH`, {
+    const { data: maticToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/MATIC`, {
       headers: {
         'auth-client-key': backendApiKey,
       },
@@ -145,7 +129,7 @@ export class ethereumService implements IChainService {
     }
 
     transactions = transactions.map((el: any) =>
-      this.convertTransactionToCommonFormat(el, address, Number(ethToUSD.data.usd), Number(ethToUSD.data.usdt))
+      this.convertTransactionToCommonFormat(el, address, Number(maticToUSD.data.usd), Number(maticToUSD.data.usdt))
     );
 
     transactions.sort((a, b) => {
@@ -162,29 +146,30 @@ export class ethereumService implements IChainService {
   }
 
   async sendMainToken(data: ISendingTransactionData): Promise<string> {
-    // let gasPrice = await this.web3.eth.getGasPrice();
-
-    // let gasCount = Math.trunc(+this.web3.utils.toWei(data.fee) / +gasPrice);
+    const { data: gasPrice } = await axios.get(polygonGasPrice);
+    const gasCount = await this.web3.eth.estimateGas({
+      value: this.web3.utils.toWei(data.amount.toString()),
+    });
 
     const result = await this.web3.eth.sendTransaction({
       from: this.web3.eth.defaultAccount,
       to: data.receiverAddress,
       value: this.web3.utils.numberToHex(this.web3.utils.toWei(data.amount.toString())),
+      gasPrice: gasPrice.standard * 1000000000,
+      gas: gasCount,
     });
-    console.log(result);
 
     return result.transactionHash;
   }
 
   async send20Token(data: ISendingTransactionData): Promise<string> {
     const tokenAddress = data.cotractAddress;
-    const contract = new this.web3.eth.Contract(etherUSDTAbi as any, tokenAddress);
+    const contract = new this.web3.eth.Contract(maticUSDTAbi as any, tokenAddress);
     const decimals = getBNFromDecimal(+(await contract.methods.decimals().call()));
     const amount = new BigNumber(data.amount).multipliedBy(decimals).toNumber();
     const result = await contract.methods
       .transfer(data.receiverAddress, this.web3.utils.toHex(amount))
-      .send({ from: this.web3.eth.defaultAccount, gas: 100000 });
-    console.log(result);
+      .send({ from: this.web3.eth.defaultAccount, gas: 100000 })
 
     return result.transactionHash;
   }
@@ -194,7 +179,7 @@ export class ethereumService implements IChainService {
   // -------------------------------------------------
 
   private async getCustomTokenBalance(address: string, contractAddress: string): Promise<number> {
-    const contract = new this.web3.eth.Contract(etherUSDTAbi as any, contractAddress);
+    const contract = new this.web3.eth.Contract(maticUSDTAbi as any, contractAddress);
     const decimals = getBNFromDecimal(Number(await contract.methods.decimals().call()));
 
     let balance = await contract.methods.balanceOf(address).call();
@@ -208,11 +193,11 @@ export class ethereumService implements IChainService {
     tokenName: string,
     tokenLogo: string,
     tokenType: 'native' | 'custom',
-    ethToUSD: string,
-    ethToCustomToken?: string,
+    maticToUSD: string,
+    maticToCustomToken?: string,
     contractAddress?: string
   ): IToken {
-    let tokenPriceInUSD = tokenType === 'custom' ? (1 / Number(ethToCustomToken)) * Number(ethToUSD) : Number(ethToUSD);
+    let tokenPriceInUSD = tokenType === 'custom' ? (1 / Number(maticToCustomToken)) * Number(maticToUSD) : Number(maticToUSD);
     tokenPriceInUSD = Math.trunc(tokenPriceInUSD * 100) / 100;
 
     const balanceInUSD = Math.trunc(balance * tokenPriceInUSD * 100) / 100;
@@ -231,11 +216,11 @@ export class ethereumService implements IChainService {
   private generateTransactionsQuery(address: string, direction: 'receiver' | 'sender') {
     return `
       query{
-      ethereum(network: ethereum) {
+      ethereum(network: matic) {
         transfers(
               options: {desc: "any", limit: 1000}
               amount: {gt: 0}
-              ${direction}: {is: "0x9FaBf26C357bFd8A2a6fFE965EC1F72A55033DD0"}
+              ${direction}: {is: "${address}"}
             ) {
               any(of: time)
               address: receiver {
@@ -252,6 +237,8 @@ export class ethereumService implements IChainService {
               amount
               transaction {
                 hash
+                gasPrice
+                gas
               }
               external
             }
@@ -274,13 +261,16 @@ export class ethereumService implements IChainService {
   ): ITransaction {
     const amount = new BigNumber(txData.amount).toFormat();
 
-    let amountPriceInUSD = txData.currency.symbol === 'ETH' ? tokenPriceToUSD : (1 / nativeTokenToUSD) * tokenPriceToUSD;
+    let amountPriceInUSD =
+      txData.currency.symbol === 'MATIC' ? tokenPriceToUSD : (1 / nativeTokenToUSD) * tokenPriceToUSD;
     amountPriceInUSD = Math.trunc(amountPriceInUSD * txData.amount * 100) / 100;
 
     const tokenLogo = imagesURL + txData.currency.symbol.toUpperCase() + '.svg';
     const to = txData.address.address;
     const from = txData.sender.address;
-    const direction = from === address.toLowerCase() ? 'OUT' : 'IN';
+    const direction = from.toLowerCase() === address.toLowerCase() ? 'OUT' : 'IN';
+
+    const fee = txData.transaction.gas * txData.transaction.gasPrice / 1000000000
 
     return {
       to,
@@ -292,7 +282,7 @@ export class ethereumService implements IChainService {
       type: txData.tokenType,
       tokenName: txData.currency.symbol,
       timestamp: new Date(txData.any).getTime(),
-      fee: txData.fee,
+      fee: +fee.toFixed(5),
       status: txData.success,
       tokenLogo,
     };

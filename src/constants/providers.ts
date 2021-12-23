@@ -39,3 +39,17 @@ export const binanceScanApi = 'https://api-testnet.bscscan.com/api';
 // --- Solana ---
 
 export const solanaUSDTContractAddress = 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB';
+
+// --- Polygon ---
+
+// MATIC(mainnet)
+export const polygonWeb3Provider = 'https://polygon-rpc.com/';
+// MUMBAI(testnet)
+// export const polygonWeb3Provider = 'https://rpc-mumbai.maticvigil.com/'
+
+// USDT
+export const polygonUSDTContractAddress = '0xc2132d05d31c914a87c6611c10748aeb04b58e8f';
+//TEST USDT
+// export const polygonUSDTContractAddress = '0xe07D7B44D340216723eD5eA33c724908B817EE9D'
+
+export const polygonGasPrice = 'https://gasstation-mainnet.matic.network';
