@@ -203,8 +203,6 @@ export class bitcoinService implements IChainService {
       fee = (inputCount * 146 + outputCount * 33 + 10) * 20;
 
       if (totalInputsBalance - amount - fee > 0) {
-        console.log(totalInputsBalance - amount - fee);
-
         return;
       }
 
@@ -216,8 +214,6 @@ export class bitcoinService implements IChainService {
     if (totalInputsBalance - amount - fee < 0) {
       throw new Error('Balance is too low for this transaction');
     }
-
-    console.log(transaction);
 
     transaction.addOutput(data.receiverAddress, amount);
     transaction.addOutput(sourceAddress, totalInputsBalance - amount - fee);
