@@ -199,6 +199,16 @@ export class bitcoinService implements IChainService {
 
     transaction.setVersion(1);
 
+    utxos.data.data.txs.sort((a: any, b: any) => {
+      if (Number(a.value) > Number(b.number)) {
+        return -1;
+      } else if (Number(a.value) < Number(b.number)) {
+        return 1;
+      } else {
+        return 0;
+      }
+    });
+
     utxos.data.data.txs.forEach(async (element: any) => {
       fee = (inputCount * 146 + outputCount * 33 + 10) * 20;
 
@@ -218,11 +228,8 @@ export class bitcoinService implements IChainService {
     transaction.addOutput(data.receiverAddress, amount);
     transaction.addOutput(sourceAddress, totalInputsBalance - amount - fee);
 
-    const txHex = transaction.buildIncomplete().toHex();
-    const tx = bitcoin.Transaction.fromHex(txHex);
-
     // This assumes all inputs are spending utxos sent to the same Dogecoin P2PKH address (starts with D)
-    for (let i = 0; i < tx.ins.length; i++) {
+    for (let i = 0; i < inputCount; i++) {
       transaction.sign(i, privateKeyECpair);
     }
 
