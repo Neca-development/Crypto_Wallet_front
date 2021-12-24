@@ -189,7 +189,8 @@ export class bitcoinService implements IChainService {
       sourceAddress = this.keys.publicKey,
       utxos = await axios.get(`https://sochain.com/api/v2/get_tx_unspent/${sochain_network}/${sourceAddress}`),
       transaction = new bitcoin.TransactionBuilder(bitcoin.networks.testnet),
-      amount = Math.trunc(data.amount * 1e8);
+      amount = Math.trunc(data.amount * 1e8),
+      privateKeyECpair = bitcoin.ECPair.fromPrivateKey(Buffer.from(privateKey, 'hex'), { network: bitcoin.networks.testnet });
 
     let totalInputsBalance = 0,
       fee = 0,
@@ -202,6 +203,8 @@ export class bitcoinService implements IChainService {
       fee = (inputCount * 146 + outputCount * 33 + 10) * 20;
 
       if (totalInputsBalance - amount - fee > 0) {
+        console.log(totalInputsBalance - amount - fee);
+
         return;
       }
 
@@ -210,18 +213,22 @@ export class bitcoinService implements IChainService {
       totalInputsBalance += Math.floor(Number(element.value) * 100000000);
     });
 
-    transaction.addOutput(data.receiverAddress, amount);
-    transaction.addOutput(sourceAddress, totalInputsBalance - amount - fee);
-
     if (totalInputsBalance - amount - fee < 0) {
       throw new Error('Balance is too low for this transaction');
     }
 
-    const privateKeyECpair = bitcoin.ECPair.fromPrivateKey(Buffer.from(privateKey, 'hex'), { network: bitcoin.networks.testnet });
+    console.log(transaction);
 
-    transaction.sign(0, privateKeyECpair);
+    transaction.addOutput(data.receiverAddress, amount);
+    transaction.addOutput(sourceAddress, totalInputsBalance - amount - fee);
 
-    console.log(transaction.buildIncomplete().toHex());
+    const txHex = transaction.buildIncomplete().toHex();
+    const tx = bitcoin.Transaction.fromHex(txHex);
+
+    // This assumes all inputs are spending utxos sent to the same Dogecoin P2PKH address (starts with D)
+    for (let i = 0; i < tx.ins.length; i++) {
+      transaction.sign(i, privateKeyECpair);
+    }
 
     const { data: trRequest } = await axios.post(
       `${backendApi}transactions/so-chain/${sochain_network}`,
