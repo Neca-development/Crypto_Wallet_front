@@ -6,6 +6,7 @@ import { IFee, ISendingTransactionData, ITransaction } from './models/transactio
 import { tronService } from './services/Tron.service';
 import { ethereumService } from './services/Ethereum.service';
 import { binanceService } from './services/Binance.service';
+import { bitcoinService } from './services/Bitcoin.service';
 import { CustomError } from './errors';
 import { solanaService } from './services/Solana.service';
 import { polygonService } from './services/Polygon.service';
@@ -113,6 +114,7 @@ export class Wallet {
     try {
       return await this.service.getTransactionsHistoryByAddress(this.data.publicKey);
     } catch (error: any) {
+      console.error(error);
       throw new CustomError(
         `An error occurred while receiving wallet transactions history info from ${this.chainId} network`,
         5,
@@ -159,6 +161,8 @@ export class Wallet {
     try {
       return await this.service.sendMainToken(data);
     } catch (error: any) {
+      console.log(error);
+
       throw new CustomError(
         `An error occurred while sending native tokens in ${this.chainId} network`,
         9,
@@ -218,6 +222,9 @@ export class Wallet {
         case ChainIds['Solana']:
           this.service = new solanaService();
           break;
+        case ChainIds['Bitcoin']:
+          this.service = new bitcoinService();
+          break;
         case ChainIds['Polygon']:
           this.service = new polygonService();
           break;
@@ -253,6 +260,8 @@ export class Wallet {
       this.data.privateKey = data.privateKey;
       this.data.publicKey = data.publicKey;
     } catch (error: any) {
+      console.log(error);
+
       throw new CustomError(
         `An error occurred while generating keys for ${this.chainId}`,
         1,

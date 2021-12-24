@@ -7,7 +7,6 @@
   "typings": "lib/types",
   "scripts": {
     "compile": "npx tsc -p tsconfig.json",
-    "start": "parcel index.html",
     "docs": "npx typedoc src/main.ts --plugin typedoc-plugin-missing-exports --excludeExternals true --out docs/res"
   },
   "keywords": [],
@@ -18,9 +17,17 @@
     "@ethereumjs/tx": "^3.4.0",
     "@solana/spl-token": "^0.1.8",
     "@solana/web3.js": "^1.31.0",
+    "assert": "^2.0.0",
     "axios": "^0.24.0",
     "bignumber.js": "^9.0.1",
+    "bip32": "^3.0.1",
     "bip39": "^3.0.4",
+    "bip39-checker": "^1.1.7",
+    "bitcore-explorers": "^1.0.1",
+    "bitcore-insight": "^1.0.1",
+    "bitcore-lib": "^8.25.25",
+    "bitcore-mnemonic": "^8.25.25",
+    "ecpair": "^1.0.1",
     "ed25519-hd-key": "^1.2.0",
     "ethers": "^5.5.1",
     "lumi-web-core": "^1.9.2",
@@ -28,10 +35,14 @@
     "tronweb": "^4.0.0",
     "typedoc": "^0.22.9",
     "typedoc-plugin-missing-exports": "^0.22.4",
+    "uglify-es-webpack-plugin": "^0.10.0",
     "web3": "^1.6.1"
   },
   "devDependencies": {
     "@babel/core": "^7.16.0",
+    "bitcoinjs-lib": "^5.2.0",
+    "html-webpack-plugin": "^5.5.0",
+    "terser-webpack-plugin": "^5.2.5",
     "typescript": "^4.5.2"
   }
 }

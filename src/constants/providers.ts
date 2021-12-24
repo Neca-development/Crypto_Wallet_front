@@ -1,6 +1,6 @@
 export const backendApiKey = 'ba9713548726a8b17bcd316e7044c20d';
 
-export const backendApi = 'http://135.181.216.90:49354/api/';
+export const backendApi = 'https://wallet-api.sawe.dev/api/';
 
 export const imagesURL = `${backendApi}images/`;
 
@@ -38,17 +38,17 @@ export const binanceScanApi = 'https://api-testnet.bscscan.com/api';
 
 // --- Solana ---
 
-export const solanaUSDTContractAddress = 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB'
+export const solanaUSDTContractAddress = 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB';
 
 // --- Polygon ---
 
 // MATIC(mainnet)
-export const polygonWeb3Provider = 'https://polygon-rpc.com/'
+export const polygonWeb3Provider = 'https://polygon-rpc.com/';
 // MUMBAI(testnet)
 // export const polygonWeb3Provider = 'https://rpc-mumbai.maticvigil.com/'
 
 // USDT
-export const polygonUSDTContractAddress = '0xc2132d05d31c914a87c6611c10748aeb04b58e8f'
+export const polygonUSDTContractAddress = '0xc2132d05d31c914a87c6611c10748aeb04b58e8f';
 //TEST USDT
 // export const polygonUSDTContractAddress = '0xe07D7B44D340216723eD5eA33c724908B817EE9D'
 
