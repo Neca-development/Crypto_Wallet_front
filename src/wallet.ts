@@ -10,6 +10,7 @@ import { bitcoinService } from './services/Bitcoin.service';
 import { CustomError } from './errors';
 import { solanaService } from './services/Solana.service';
 import { polygonService } from './services/Polygon.service';
+import { litecoinService } from './services/Litecoin.service';
 
 export class Wallet {
   private service: IChainService;
@@ -226,6 +227,9 @@ export class Wallet {
           break;
         case ChainIds['Polygon']:
           this.service = new polygonService();
+          break;
+        case ChainIds['Litecoin']:
+          this.service = new litecoinService();
           break;
         default:
           break;

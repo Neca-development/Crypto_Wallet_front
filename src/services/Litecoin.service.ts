@@ -12,24 +12,68 @@ import axios from 'axios';
 import { IResponse } from '../models/response';
 
 // @ts-ignore
-const bitcore = require('bitcore-lib');
+const litecore = require('litecore-lib');
 // @ts-ignore
 const Mnemonic = require('bitcore-mnemonic');
 
+import bip39 from 'bip39';
+
 import * as bitcoin from 'bitcoinjs-lib';
 import { CustomError } from '../errors';
+
+// import HDKey from 'hdkey';
+
 import { ErrorsTypes } from '../models/enums';
 
-export class bitcoinService implements IChainService {
+export class litecoinService implements IChainService {
   private keys: IWalletKeys;
 
   constructor() {}
 
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
-    console.log(bitcoin);
+    const seed = bip39.mnemonicToSeedSync(mnemonic);
+    const derivePath = "m/44'/2'/0'/0'";
+    console.log(
+      '%cMyProject%cline:31%cseed',
+      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
+      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
+      'color:#fff;background:rgb(251, 178, 23);padding:3px;border-radius:2px',
+      seed
+    );
+
+    // const hdKey = HDKey.fromMasterSeed(seed);
+    console.log(bitcoin.bip32.fromSeed(seed, bitcoin.networks.testnet));
+
+    // var value = Buffer.from(mnemonic);
+    // var hash = litecore.crypto.Hash.sha256(value);
+    // var bn = litecore.crypto.BN.fromBuffer(hash);
+
+    const LITECOIN = {
+      messagePrefix: '\x19Litecoin Signed Message:\n',
+      bech32: 'ltc',
+      bip32: {
+        public: 0x019da462,
+        private: 0x019d9cfe,
+      },
+      pubKeyHash: 0x30,
+      scriptHash: 0x32,
+      wif: 0xb0,
+    };
+
+    const keyPair = bitcoin.ECPair.makeRandom({ network: LITECOIN });
+    const { address } = bitcoin.payments.p2pkh({
+      pubkey: keyPair.publicKey,
+      network: LITECOIN,
+    });
+    console.log(
+      '%cMyProject%cline:35%caddress',
+      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
+      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
+      'color:#fff;background:rgb(34, 8, 7);padding:3px;border-radius:2px',
+      address
+    );
 
     const addrFromMnemonic = new Mnemonic(mnemonic);
-    console.log(addrFromMnemonic.toHDPrivateKey().privateKey.toAddress().toString());
 
     const privateKey = addrFromMnemonic.toHDPrivateKey().privateKey.toString();
     const publicKey = addrFromMnemonic.toHDPrivateKey().privateKey.toAddress('testnet').toString();
@@ -44,7 +88,7 @@ export class bitcoinService implements IChainService {
   }
 
   async generatePublicKey(privateKey: string): Promise<string> {
-    const publicKey = bitcore.PrivateKey(privateKey).toAddress('testnet').toString();
+    const publicKey = litecore.PrivateKey(privateKey).toAddress('testnet').toString();
 
     this.keys = {
       privateKey,
