@@ -16,12 +16,15 @@ const litecore = require('litecore-lib');
 // @ts-ignore
 const Mnemonic = require('bitcore-mnemonic');
 
-import bip39 from 'bip39';
+import { mnemonicToSeedSync } from 'bip39';
+
+import createHash from 'create-hash';
+import bs58check from 'bs58check';
 
 import * as bitcoin from 'bitcoinjs-lib';
 import { CustomError } from '../errors';
 
-// import HDKey from 'hdkey';
+import HDKey from 'hdkey';
 
 import { ErrorsTypes } from '../models/enums';
 
@@ -31,8 +34,8 @@ export class litecoinService implements IChainService {
   constructor() {}
 
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
-    const seed = bip39.mnemonicToSeedSync(mnemonic);
-    const derivePath = "m/44'/2'/0'/0'";
+    const seed = mnemonicToSeedSync(mnemonic);
+    const derivePath = "m/44'/0'/0'/0'";
     console.log(
       '%cMyProject%cline:31%cseed',
       'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
@@ -41,29 +44,46 @@ export class litecoinService implements IChainService {
       seed
     );
 
-    // const hdKey = HDKey.fromMasterSeed(seed);
-    console.log(bitcoin.bip32.fromSeed(seed, bitcoin.networks.testnet));
-
+    const root = HDKey.fromMasterSeed(seed);
+    const masterPrivateKey = root.privateKey.toString('hex');
+    console.log(
+      '%cMyProject%cline:48%cmasterPrivateKey',
+      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
+      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
+      'color:#fff;background:rgb(248, 214, 110);padding:3px;border-radius:2px',
+      masterPrivateKey
+    );
+    const addrnode = root.derive(derivePath);
     // var value = Buffer.from(mnemonic);
     // var hash = litecore.crypto.Hash.sha256(value);
     // var bn = litecore.crypto.BN.fromBuffer(hash);
 
-    const LITECOIN = {
-      messagePrefix: '\x19Litecoin Signed Message:\n',
-      bech32: 'ltc',
-      bip32: {
-        public: 0x019da462,
-        private: 0x019d9cfe,
-      },
-      pubKeyHash: 0x30,
-      scriptHash: 0x32,
-      wif: 0xb0,
-    };
+    const step1 = addrnode.publicKey;
+    const step2 = createHash('sha256').update(step1).digest();
+    const step3 = createHash('rmd160').update(step2).digest();
 
-    const keyPair = bitcoin.ECPair.makeRandom({ network: LITECOIN });
+    var step4 = Buffer.allocUnsafe(21);
+    step4.writeUInt8(0x00, 0);
+    step3.copy(step4, 1); //step4 now holds the extended RIPMD-160 result
+    const step9 = bs58check.encode(step4);
+    console.log('Base58Check: ' + step9);
+
+    // const LITECOIN = {
+    //   messagePrefix: '\x19Litecoin Signed Message:\n',
+    //   bech32: 'ltc',
+    //   bip32: {
+    //     public: 0x019da462,
+    //     private: 0x019d9cfe,
+    //   },
+    //   pubKeyHash: 0x30,
+    //   scriptHash: 0x32,
+    //   wif: 0xb0,
+    // };
+
+    const keyPair = bitcoin.ECPair.fromPrivateKey(root.privateKey, { network: bitcoin.networks.bitcoin });
     const { address } = bitcoin.payments.p2pkh({
       pubkey: keyPair.publicKey,
-      network: LITECOIN,
+      network: bitcoin.networks.bitcoin,
     });
     console.log(
       '%cMyProject%cline:35%caddress',
