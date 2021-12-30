@@ -6,11 +6,9 @@ import { ITransaction } from '../models/transaction';
 import { ICryptoCurrency, IToken } from '../models/token';
 
 import { imagesURL, backendApi, backendApiKey, bitqueryProxy } from '../constants/providers';
-import { binanceWeb3Provider } from '../constants/providers';
 
 // @ts-ignore
 import axios from 'axios';
-import Web3 from 'web3';
 import { IResponse } from '../models/response';
 
 // @ts-ignore
@@ -23,17 +21,13 @@ import { CustomError } from '../errors';
 import { ErrorsTypes } from '../models/enums';
 
 export class bitcoinService implements IChainService {
-  private web3: Web3;
   private keys: IWalletKeys;
 
-  constructor() {
-    this.web3 = new Web3(binanceWeb3Provider);
-  }
+  constructor() {}
 
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
-    console.log(bitcoin);
-
     const addrFromMnemonic = new Mnemonic(mnemonic);
+
     const rootKey = addrFromMnemonic.toHDPrivateKey().derive("m/44'/1'/0'/0/0");
 
     const privateKey = rootKey.privateKey.toString();
@@ -199,6 +193,16 @@ export class bitcoinService implements IChainService {
 
     transaction.setVersion(1);
 
+    utxos.data.data.txs.sort((a: any, b: any) => {
+      if (Number(a.value) > Number(b.value)) {
+        return -1;
+      } else if (Number(a.value) < Number(b.value)) {
+        return 1;
+      } else {
+        return 0;
+      }
+    });
+
     utxos.data.data.txs.forEach(async (element: any) => {
       fee = (inputCount * 146 + outputCount * 33 + 10) * 20;
 
@@ -218,11 +222,8 @@ export class bitcoinService implements IChainService {
     transaction.addOutput(data.receiverAddress, amount);
     transaction.addOutput(sourceAddress, totalInputsBalance - amount - fee);
 
-    const txHex = transaction.buildIncomplete().toHex();
-    const tx = bitcoin.Transaction.fromHex(txHex);
-
     // This assumes all inputs are spending utxos sent to the same Dogecoin P2PKH address (starts with D)
-    for (let i = 0; i < tx.ins.length; i++) {
+    for (let i = 0; i < inputCount; i++) {
       transaction.sign(i, privateKeyECpair);
     }
 
@@ -294,7 +295,7 @@ export class bitcoinService implements IChainService {
       amountInUSD: amountPriceInUSD.toString(),
       txId: txData.transaction.hash,
       direction,
-      tokenName: 'BTC',
+      tokenName,
       timestamp: new Date(txData.block.timestamp.time).getTime(),
       fee: undefined,
       status: true,
