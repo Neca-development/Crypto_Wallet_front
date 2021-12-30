@@ -1,6 +1,6 @@
 export const backendApiKey = 'ba9713548726a8b17bcd316e7044c20d';
 
-export const backendApi = 'http://135.181.216.90:49358/api/';
+export const backendApi = 'https://wallet-api.sawe.dev/api/';
 
 export const imagesURL = `${backendApi}images/`;
 
@@ -53,3 +53,7 @@ export const polygonUSDTContractAddress = '0xc2132d05d31c914a87c6611c10748aeb04b
 // export const polygonUSDTContractAddress = '0xe07D7B44D340216723eD5eA33c724908B817EE9D'
 
 export const polygonGasPrice = 'https://gasstation-mainnet.matic.network';
+
+// --- Ethereum Classic ---
+
+export const etcWeb3Provider = 'https://www.ethercluster.com/etc';
