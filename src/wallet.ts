@@ -222,9 +222,9 @@ export class Wallet {
         case ChainIds['Solana']:
           this.service = new solanaService();
           break;
-        case ChainIds['Bitcoin']:
-          this.service = new bitcoinService();
-          break;
+        // case ChainIds['Bitcoin']:
+        //   this.service = new bitcoinService();
+        //   break;
         case ChainIds['Polygon']:
           this.service = new polygonService();
           break;

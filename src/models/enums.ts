@@ -2,7 +2,7 @@ export enum ChainIds {
   'Tron',
   'Ethereum',
   'Binance',
-  'Bitcoin',
+  // 'Bitcoin',
   'Solana',
   'Polygon',
   'Litecoin',

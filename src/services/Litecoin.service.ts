@@ -28,6 +28,8 @@ import { CustomError } from '../errors';
 
 // import HDKey from 'hdkey';
 
+const Mnemonic = require('bitcore-mnemonic-litecoin');
+
 import { ErrorsTypes } from '../models/enums';
 
 export class litecoinService implements IChainService {
@@ -36,9 +38,30 @@ export class litecoinService implements IChainService {
   constructor() {}
 
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
+    const addrFromMnemonic = new Mnemonic(mnemonic);
+
+    const privateKey1 = addrFromMnemonic.toHDPrivateKey().derive("m/44'/2'/0'/0/0").privateKey.toString();
+    console.log(
+      '%cMyProject%cline:44%cprivateKey',
+      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
+      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
+      'color:#fff;background:rgb(161, 23, 21);padding:3px;border-radius:2px',
+      privateKey1
+    );
+    const publicKey2 = addrFromMnemonic.toHDPrivateKey().derive("m/44'/1'/0'/0/0").privateKey.toAddress('testnet').toString();
+    console.log(
+      '%cMyProject%cline:45%cpublicKey',
+      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
+      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
+      'color:#fff;background:rgb(222, 125, 44);padding:3px;border-radius:2px',
+      publicKey2
+    );
+
+    // -----------------------------------------------------------------------------------------------------------------
+
     console.log(litecore);
 
-    var value = new Buffer(mnemonic);
+    var value = Buffer.from(mnemonic);
     var hash = litecore.crypto.Hash.sha256(value);
     var bn = litecore.crypto.BN.fromBuffer(hash);
 
@@ -67,13 +90,29 @@ export class litecoinService implements IChainService {
 
     const seed = mnemonicToSeedSync(mnemonic);
     const bip32RootKey = bip32.fromSeed(seed, litecoinXprv);
+
     console.log(
-      '%cMyProject%cline:43%cbip32RootKey',
+      '%cMyProject%cline:69%cbip32RootKey',
       'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
       'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
-      'color:#fff;background:rgb(39, 72, 98);padding:3px;border-radius:2px',
-      new litecore.PrivateKey(bip32RootKey.toWIF()).toAddress().toString()
+      'color:#fff;background:rgb(248, 214, 110);padding:3px;border-radius:2px',
+      bip32RootKey.toBase58()
     );
+    const keyPair = bitcoin.ECPair.fromWIF(bip32RootKey.toWIF(), litecoinXprv);
+    console.log(
+      '%cMyProject%cline:78%ckeyPair',
+      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
+      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
+      'color:#fff;background:rgb(254, 67, 101);padding:3px;border-radius:2px',
+      keyPair.privateKey
+    );
+
+    const { address: address12 } = bitcoin.payments.p2pkh({
+      pubkey: keyPair.publicKey,
+      network: litecoinXprv,
+    });
+
+    console.log(address12);
 
     // --------------------------------------------------------------------------------
 
