@@ -16,7 +16,7 @@ export declare class ethereumClassicService implements IChainService {
      */
     getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]>;
     sendMainToken(data: ISendingTransactionData): Promise<string>;
-    send20Token(data: ISendingTransactionData): Promise<string>;
+    send20Token(): Promise<string>;
     private generateTokenObject;
     private generateTransactionsQuery;
     /**

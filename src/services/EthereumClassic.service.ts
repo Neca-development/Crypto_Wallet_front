@@ -22,6 +22,8 @@ import { ethers } from 'ethers';
 import { ICryptoCurrency, IToken } from '../models/token';
 import { getBNFromDecimal } from '../utils/numbers';
 import { BigNumber } from 'bignumber.js';
+import { CustomError } from '../errors';
+import { ErrorsTypes } from '../models/enums';
 
 export class ethereumClassicService implements IChainService {
   private web3: Web3;
@@ -161,19 +163,8 @@ export class ethereumClassicService implements IChainService {
     return result.transactionHash;
   }
 
-  async send20Token(data: ISendingTransactionData): Promise<string> {
-    console.log(data)
-    return
-    // const tokenAddress = data.cotractAddress;
-    // const contract = new this.web3.eth.Contract(etherUSDTAbi as any, tokenAddress);
-    // const decimals = getBNFromDecimal(+(await contract.methods.decimals().call()));
-    // const amount = new BigNumber(data.amount).multipliedBy(decimals).toNumber();
-    // const result = await contract.methods
-    //   .transfer(data.receiverAddress, this.web3.utils.toHex(amount))
-    //   .send({ from: this.web3.eth.defaultAccount, gas: 100000 });
-    // console.log(result);
-
-    // return result.transactionHash;
+  async send20Token(): Promise<string> {
+    throw new CustomError('Network doesnt support this method', 14, ErrorsTypes['Unknown error']);
   }
 
   // -------------------------------------------------
