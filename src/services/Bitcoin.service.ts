@@ -34,9 +34,10 @@ export class bitcoinService implements IChainService {
     console.log(bitcoin);
 
     const addrFromMnemonic = new Mnemonic(mnemonic);
+    const rootKey = addrFromMnemonic.toHDPrivateKey().derive("m/44'/1'/0'/0/0");
 
-    const privateKey = addrFromMnemonic.toHDPrivateKey().privateKey.toString();
-    const publicKey = addrFromMnemonic.toHDPrivateKey().privateKey.toAddress('testnet').toString();
+    const privateKey = rootKey.privateKey.toString();
+    const publicKey = rootKey.privateKey.toAddress('testnet').toString();
 
     console.log(addrFromMnemonic.toHDPrivateKey().privateKey.toWIF());
     this.keys = {
