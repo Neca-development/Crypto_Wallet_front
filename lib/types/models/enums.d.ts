@@ -2,16 +2,11 @@ export declare enum ChainIds {
     'Tron' = 0,
     'Ethereum' = 1,
     'Binance' = 2,
-<<<<<<< HEAD
-    'Solana' = 3,
-    'Polygon' = 4,
-    'Litecoin' = 5
-=======
     'Bitcoin' = 3,
     'Solana' = 4,
     'Polygon' = 5,
-    'EthereumClassic' = 6
->>>>>>> master
+    'Litecoin' = 6,
+    'EthereumClassic' = 7
 }
 export declare enum ErrorsTypes {
     'Invalid data' = 0,

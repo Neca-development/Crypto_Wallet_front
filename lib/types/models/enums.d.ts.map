@@ -1,5 +1,1 @@
-<<<<<<< HEAD
-{"version":3,"file":"enums.d.ts","sourceRoot":"","sources":["../../../src/models/enums.ts"],"names":[],"mappings":"AAAA,oBAAY,QAAQ;IAClB,MAAM,IAAA;IACN,UAAU,IAAA;IACV,SAAS,IAAA;IAET,QAAQ,IAAA;IACR,SAAS,IAAA;IACT,UAAU,IAAA;CACX;AAED,oBAAY,WAAW;IACrB,cAAc,IAAA;IACd,mBAAmB,IAAA;IACnB,eAAe,IAAA;IACf,eAAe,IAAA;CAChB"}
-=======
-{"version":3,"file":"enums.d.ts","sourceRoot":"","sources":["../../../src/models/enums.ts"],"names":[],"mappings":"AAAA,oBAAY,QAAQ;IAClB,MAAM,IAAA;IACN,UAAU,IAAA;IACV,SAAS,IAAA;IACT,SAAS,IAAA;IACT,QAAQ,IAAA;IACR,SAAS,IAAA;IACT,iBAAiB,IAAA;CAClB;AAED,oBAAY,WAAW;IACrB,cAAc,IAAA;IACd,mBAAmB,IAAA;IACnB,eAAe,IAAA;IACf,eAAe,IAAA;CAChB"}
->>>>>>> master
+{"version":3,"file":"enums.d.ts","sourceRoot":"","sources":["../../../src/models/enums.ts"],"names":[],"mappings":"AAAA,oBAAY,QAAQ;IAClB,MAAM,IAAA;IACN,UAAU,IAAA;IACV,SAAS,IAAA;IACT,SAAS,IAAA;IACT,QAAQ,IAAA;IACR,SAAS,IAAA;IACT,UAAU,IAAA;IACV,iBAAiB,IAAA;CAClB;AAED,oBAAY,WAAW;IACrB,cAAc,IAAA;IACd,mBAAmB,IAAA;IACnB,eAAe,IAAA;IACf,eAAe,IAAA;CAChB"}

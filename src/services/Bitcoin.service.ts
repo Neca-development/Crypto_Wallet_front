@@ -27,6 +27,8 @@ export class bitcoinService implements IChainService {
 
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
     const addrFromMnemonic = new Mnemonic(mnemonic);
+    console.log(addrFromMnemonic.toHDPrivateKey());
+
     const rootKey = addrFromMnemonic.toHDPrivateKey().derive("m/44'/1'/0'/0/0");
 
     const privateKey = rootKey.privateKey.toString();
@@ -193,9 +195,9 @@ export class bitcoinService implements IChainService {
     transaction.setVersion(1);
 
     utxos.data.data.txs.sort((a: any, b: any) => {
-      if (Number(a.value) > Number(b.number)) {
+      if (Number(a.value) > Number(b.value)) {
         return -1;
-      } else if (Number(a.value) < Number(b.number)) {
+      } else if (Number(a.value) < Number(b.value)) {
         return 1;
       } else {
         return 0;
@@ -294,7 +296,7 @@ export class bitcoinService implements IChainService {
       amountInUSD: amountPriceInUSD.toString(),
       txId: txData.transaction.hash,
       direction,
-      tokenName: 'BTC',
+      tokenName,
       timestamp: new Date(txData.block.timestamp.time).getTime(),
       fee: undefined,
       status: true,
