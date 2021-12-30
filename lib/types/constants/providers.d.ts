@@ -20,4 +20,5 @@ export declare const solanaUSDTContractAddress = "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY
 export declare const polygonWeb3Provider = "https://polygon-rpc.com/";
 export declare const polygonUSDTContractAddress = "0xc2132d05d31c914a87c6611c10748aeb04b58e8f";
 export declare const polygonGasPrice = "https://gasstation-mainnet.matic.network";
+export declare const etcWeb3Provider = "https://www.ethercluster.com/etc";
 //# sourceMappingURL=providers.d.ts.map
