@@ -27,7 +27,6 @@ export class bitcoinService implements IChainService {
 
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
     const addrFromMnemonic = new Mnemonic(mnemonic);
-    console.log(addrFromMnemonic.toHDPrivateKey());
 
     const rootKey = addrFromMnemonic.toHDPrivateKey().derive("m/44'/1'/0'/0/0");
 
