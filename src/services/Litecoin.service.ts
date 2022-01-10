@@ -37,7 +37,7 @@ export class litecoinService implements IChainService {
 
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
     const seed = mnemonicToSeedSync(mnemonic);
-    const privateKey = litecore.HDPrivateKey.fromSeed(seed).privateKey.toString();
+    const privateKey = litecore.HDPrivateKey.fromSeed(seed).deriveChild("m/44'/1'/0'/0/0").privateKey.toString();
     const publicKey = litecore.HDPrivateKey.fromSeed(seed)
       .deriveChild("m/44'/1'/0'/0/0")
       .privateKey.toAddress('testnet')
@@ -192,13 +192,16 @@ export class litecoinService implements IChainService {
       privateKey = data.privateKey,
       sourceAddress = this.keys.publicKey,
       utxos = await axios.get(`https://sochain.com/api/v2/get_tx_unspent/${sochain_network}/${sourceAddress}`),
-      amount = Math.trunc(data.amount * 1e8);
+      transaction = new bitcoin.TransactionBuilder(bitcoin.networks.testnet),
+      amount = Math.trunc(data.amount * 1e8),
+      privateKeyECpair = bitcoin.ECPair.fromPrivateKey(Buffer.from(privateKey, 'hex'), { network: bitcoin.networks.testnet });
 
     let totalInputsBalance = 0,
       fee = 0,
       inputCount = 1,
-      transactions: any[] = [],
       outputCount = 2;
+
+    transaction.setVersion(1);
 
     utxos.data.data.txs.sort((a: any, b: any) => {
       if (Number(a.value) > Number(b.value)) {
@@ -217,38 +220,22 @@ export class litecoinService implements IChainService {
         return;
       }
 
-      console.log(element);
-
-      transactions.push({
-        txId: element.txid,
-        outputIndex: element.output_no,
-        address: sourceAddress,
-        script: element.script_hex,
-        satoshis: Number(element.value) * 1e8,
-      });
-
+      transaction.addInput(element.txid, element.output_no);
       inputCount + 1;
-      totalInputsBalance += Math.floor(Number(element.value) * 1e8);
+      totalInputsBalance += Math.floor(Number(element.value) * 100000000);
     });
-    console.log({ totalInputsBalance, amount, fee });
 
     if (totalInputsBalance - amount - fee < 0) {
       throw new Error('Balance is too low for this transaction');
     }
 
-    const transaction = new litecore.Transaction()
-      .from(transactions)
-      .to(data.receiverAddress, 15000)
-      .fee(fee)
-      .change(sourceAddress)
-      .sign(privateKey);
-    console.log(
-      '%cMyProject%cline:239%ctransaction',
-      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
-      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
-      'color:#fff;background:rgb(248, 214, 110);padding:3px;border-radius:2px',
-      transaction.serialize()
-    );
+    transaction.addOutput(data.receiverAddress, amount);
+    transaction.addOutput(sourceAddress, totalInputsBalance - amount - fee);
+
+    // This assumes all inputs are spending utxos sent to the same Dogecoin P2PKH address (starts with D)
+    for (let i = 0; i < inputCount; i++) {
+      transaction.sign(i, privateKeyECpair);
+    }
 
     const { data: trRequest } = await axios.post(
       `${backendApi}transactions/so-chain/${sochain_network}`,
