@@ -5,7 +5,8 @@ export enum ChainIds {
   'Bitcoin',
   'Solana',
   'Polygon',
-  'EthereumClassic'
+  'Litecoin',
+  'EthereumClassic',
 }
 
 export enum ErrorsTypes {
