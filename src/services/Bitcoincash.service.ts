@@ -4,6 +4,8 @@ import { IWalletKeys } from '../models/wallet';
 import { IChainService } from '../models/chainService';
 import { ITransaction } from '../models/transaction';
 import { ICryptoCurrency, IToken } from '../models/token';
+// @ts-ignore
+import * as bitboxSdk from 'bitbox-sdk';
 
 import { imagesURL, backendApi, backendApiKey, bitqueryProxy } from '../constants/providers';
 
@@ -13,15 +15,6 @@ import { IResponse } from '../models/response';
 
 // @ts-ignore
 import litecore from 'bitcore-lib-ltc';
-// @ts-ignore
-
-import * as ecc from 'tiny-secp256k1';
-import BIP32Factory from 'bip32';
-
-import { mnemonicToSeedSync } from 'bip39';
-
-// import createHash from 'create-hash';
-// import bs58check from 'bs58check';
 
 import * as bitcoin from 'bitcoinjs-lib';
 import { CustomError } from '../errors';
@@ -32,13 +25,34 @@ import { ErrorsTypes } from '../models/enums';
 
 export class bitcoincashService implements IChainService {
   private keys: IWalletKeys;
+  private bitbox: bitboxSdk.BITBOX;
+  private NETWORK: string = `mainnet`;
 
-  constructor() {}
+  constructor() {
+    // Set NETWORK to either testnet or mainnet
+
+    // Instantiate BITBOX based on the network.
+    this.bitbox =
+      this.NETWORK === `mainnet`
+        ? new bitboxSdk.BITBOX({ restURL: `https://rest.bitcoin.com/v2/` })
+        : new bitboxSdk.BITBOX({ restURL: `https://trest.bitcoin.com/v2/` });
+  }
 
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
-    const seed = mnemonicToSeedSync(mnemonic);
-    const privateKey = litecore.HDPrivateKey.fromSeed(seed).deriveChild("m/44'/145'/0'/0/0").privateKey.toString();
-    const publicKey = litecore.HDPrivateKey.fromSeed(seed).deriveChild("m/44'/145'/0'/0/0").privateKey.toAddress().toString();
+    // These objects used for writing wallet information out to a file.
+    const outObj: any = {};
+    outObj.mnemonic = mnemonic;
+
+    // root seed buffer
+    const rootSeed = this.bitbox.Mnemonic.toSeed(mnemonic);
+
+    // master HDNode
+    const masterHDNode = this.bitbox.HDNode.fromSeed(rootSeed, this.NETWORK);
+
+    // Generate the first 10 seed addresses.
+    const childNode = masterHDNode.derivePath(`m/44'/145'/0'/0/0`);
+    const publicKey = this.bitbox.HDNode.toCashAddress(childNode);
+    const privateKey = this.bitbox.HDNode.toWIF(childNode);
 
     this.keys = {
       privateKey,
@@ -61,10 +75,10 @@ export class bitcoincashService implements IChainService {
 
   async getTokensByAddress(address: string) {
     const tokens: Array<IToken> = [];
-    let ltcToUSD: IResponse<ICryptoCurrency>;
+    let bchToUSD: IResponse<ICryptoCurrency>;
     try {
-      ltcToUSD = (
-        await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/LTC`, {
+      bchToUSD = (
+        await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/BCH`, {
           headers: {
             'auth-client-key': backendApiKey,
           },
@@ -74,15 +88,18 @@ export class bitcoincashService implements IChainService {
       console.log('server was dropped');
     }
 
-    const sochain_network = 'LTCTEST';
+    let addressInfo: any;
 
-    let { data: balance } = await axios.get(`https://sochain.com/api/v2/get_address_balance/${sochain_network}/${address}`);
+    // Get the balance of the wallet.
+    try {
+      // first get BCH balance
+      addressInfo = await this.bitbox.Address.details(address);
+    } catch (err) {
+      console.error(`Error in getBalance: `, err);
+      process.exit(1);
+    }
 
-    balance = balance.data.confirmed_balance;
-
-    const nativeTokensBalance = balance;
-
-    tokens.push(this.generateTokenObject(nativeTokensBalance, 'LTC', imagesURL + 'LTC.svg', 'native', ltcToUSD.data.usd));
+    tokens.push(this.generateTokenObject(addressInfo.balance, 'BCH', imagesURL + 'BCH.svg', 'native', bchToUSD.data.usd));
 
     return tokens;
   }

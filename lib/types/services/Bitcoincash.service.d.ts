@@ -5,6 +5,8 @@ import { ITransaction } from '../models/transaction';
 import { IToken } from '../models/token';
 export declare class bitcoincashService implements IChainService {
     private keys;
+    private bitbox;
+    private NETWORK;
     constructor();
     generateKeyPair(mnemonic: string): Promise<IWalletKeys>;
     generatePublicKey(privateKey: string): Promise<string>;

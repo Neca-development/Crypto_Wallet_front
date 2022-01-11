@@ -22,6 +22,7 @@
     "bignumber.js": "^9.0.1",
     "bip39": "^3.0.4",
     "bip39-checker": "^1.1.7",
+    "bitbox-sdk": "^8.11.2",
     "bitcore-explorers": "^1.0.1",
     "bitcore-insight": "^1.0.1",
     "bitcore-lib": "^8.25.25",
