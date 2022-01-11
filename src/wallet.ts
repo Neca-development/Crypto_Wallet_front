@@ -12,6 +12,7 @@ import { solanaService } from './services/Solana.service';
 import { polygonService } from './services/Polygon.service';
 import { litecoinService } from './services/Litecoin.service';
 import { ethereumClassicService } from './services/EthereumClassic.service';
+import { bitcoincashService } from './services/Bitcoincash.service';
 
 export class Wallet {
   private service: IChainService;
@@ -234,6 +235,9 @@ export class Wallet {
           break;
         case ChainIds['EthereumClassic']:
           this.service = new ethereumClassicService();
+          break;
+        case ChainIds['Bitcoincash']:
+          this.service = new bitcoincashService();
           break;
         default:
           break;
