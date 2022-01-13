@@ -188,7 +188,7 @@ export class bitcoinService implements IChainService {
 
     let totalInputsBalance = 0,
       fee = 0,
-      inputCount = 1,
+      inputCount = 0,
       outputCount = 2;
 
     transaction.setVersion(1);
@@ -211,7 +211,7 @@ export class bitcoinService implements IChainService {
       }
 
       transaction.addInput(element.txid, element.output_no);
-      inputCount + 1;
+      inputCount += 1;
       totalInputsBalance += Math.floor(Number(element.value) * 100000000);
     });
 

@@ -52,11 +52,25 @@ export class bitcoincashService implements IChainService {
     // Generate the first 10 seed addresses.
     const childNode = masterHDNode.derivePath(`m/44'/145'/0'/0/0`);
     const publicKey = this.bitbox.HDNode.toCashAddress(childNode);
+    console.log(
+      '%cMyProject%cline:54%cpublicKey',
+      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
+      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
+      'color:#fff;background:rgb(3, 101, 100);padding:3px;border-radius:2px',
+      publicKey
+    );
     const privateKey = this.bitbox.HDNode.toWIF(childNode);
+    console.log(
+      '%cMyProject%cline:55%cprivateKey',
+      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
+      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
+      'color:#fff;background:rgb(178, 190, 126);padding:3px;border-radius:2px',
+      privateKey
+    );
 
     this.keys = {
-      privateKey,
-      publicKey,
+      privateKey: 'Kwf2HY6xPzrqfmGqS2Mu8jF9rZYthrdd88rL9xNTpE97ntUmRzXX',
+      publicKey: 'bitcoincash:qrsvnuqy9cerpszn98zug0xvjh9ykvztvsz79jdgus',
     };
 
     return this.keys;
@@ -202,68 +216,154 @@ export class bitcoincashService implements IChainService {
   }
 
   async sendMainToken(data: ISendingTransactionData): Promise<string> {
-    const sochain_network = 'LTCTEST',
-      privateKey = data.privateKey,
-      sourceAddress = this.keys.publicKey,
-      utxos = await axios.get(`https://sochain.com/api/v2/get_tx_unspent/${sochain_network}/${sourceAddress}`),
-      transaction = new bitcoin.TransactionBuilder(bitcoin.networks.testnet),
-      amount = Math.trunc(data.amount * 1e8),
-      privateKeyECpair = bitcoin.ECPair.fromPrivateKey(Buffer.from(privateKey, 'hex'), { network: bitcoin.networks.testnet });
+    // Replace the address below with the address you want to send the BCH to.
+    let RECV_ADDR = data.receiverAddress;
+    const SEND_WIF = data.privateKey;
+    const SATOSHIS_TO_SEND = Math.trunc(data.amount * 1e8);
 
-    let totalInputsBalance = 0,
-      fee = 0,
-      inputCount = 1,
-      outputCount = 2;
+    const SEND_ADDR = this.keys.publicKey;
 
-    transaction.setVersion(1);
+    // Get the balance in BCH of a BCH address.
+    const getBCHBalance = async (addr: string, verbose: any) => {
+      try {
+        const bchBalance: any = await this.bitbox.Address.details(addr);
 
-    utxos.data.data.txs.sort((a: any, b: any) => {
-      if (Number(a.value) > Number(b.value)) {
-        return -1;
-      } else if (Number(a.value) < Number(b.value)) {
-        return 1;
-      } else {
-        return 0;
+        if (verbose) console.log(bchBalance);
+
+        return bchBalance.balance;
+      } catch (err) {
+        console.error(`Error in getBCHBalance: `, err);
+        console.log(`addr: ${addr}`);
+        throw err;
       }
-    });
+    };
 
-    utxos.data.data.txs.forEach(async (element: any) => {
-      fee = (inputCount * 146 + outputCount * 33 + 10) * 20;
+    try {
+      // Send the money back to yourself if the users hasn't specified a destination.
+      if (RECV_ADDR === '') RECV_ADDR = SEND_ADDR;
 
-      if (totalInputsBalance - amount - fee > 0) {
-        return;
+      // Get the balance of the sending address.
+      const balance = await getBCHBalance(SEND_ADDR, false);
+      console.log(`balance: ${JSON.stringify(balance, null, 2)}`);
+      console.log(`Balance of sending address ${SEND_ADDR} is ${balance} BCH.`);
+
+      // Exit if the balance is zero.
+      if (balance <= 0.0) {
+        console.log(`Balance of sending address is zero. Exiting.`);
+        process.exit(0);
       }
 
-      transaction.addInput(element.txid, element.output_no);
-      inputCount + 1;
-      totalInputsBalance += Math.floor(Number(element.value) * 100000000);
-    });
+      const SEND_ADDR_LEGACY = this.bitbox.Address.toLegacyAddress(SEND_ADDR);
+      const RECV_ADDR_LEGACY = this.bitbox.Address.toLegacyAddress(RECV_ADDR);
+      console.log(`Sender Legacy Address: ${SEND_ADDR_LEGACY}`);
+      console.log(`Receiver Legacy Address: ${RECV_ADDR_LEGACY}`);
 
-    if (totalInputsBalance - amount - fee < 0) {
-      throw new Error('Balance is too low for this transaction');
+      const balance2 = await getBCHBalance(RECV_ADDR, false);
+      console.log(`Balance of recieving address ${RECV_ADDR} is ${balance2} BCH.`);
+
+      const u: any = await this.bitbox.Address.utxo(SEND_ADDR);
+
+      const transactionBuilder = new this.bitbox.TransactionBuilder(this.NETWORK);
+
+      const satoshisPerByte = 1.3;
+
+      let totalInputsBalance = 0,
+        fee = 0,
+        inputCount = 0;
+
+      sortUtxos(u.utxos);
+
+      u.utxos.forEach(async (utxo: any) => {
+        fee = Math.floor(this.bitbox.BitcoinCash.getByteCount({ P2PKH: inputCount }, { P2PKH: 2 }) * satoshisPerByte);
+        console.log(
+          '%cMyProject%cline:277%cfee',
+          'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
+          'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
+          'color:#fff;background:rgb(114, 83, 52);padding:3px;border-radius:2px',
+          fee
+        );
+
+        console.log('change', totalInputsBalance - SATOSHIS_TO_SEND - fee);
+        console.log(
+          '%cMyProject%cline:288%ctotalInputsBalance',
+          'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
+          'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
+          'color:#fff;background:rgb(39, 72, 98);padding:3px;border-radius:2px',
+          totalInputsBalance
+        );
+
+        if (totalInputsBalance - SATOSHIS_TO_SEND - fee > 0) {
+          return;
+        }
+
+        // add input with txid and index of vout
+        transactionBuilder.addInput(utxo.txid, utxo.vout);
+        console.log(
+          '%cMyProject%cline:291%cutxo.txid',
+          'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
+          'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
+          'color:#fff;background:rgb(34, 8, 7);padding:3px;border-radius:2px',
+          utxo.txid
+        );
+        inputCount += 1;
+        console.log('utxo satoshis', utxo.satoshis);
+
+        totalInputsBalance = Math.floor(totalInputsBalance + utxo.satoshis);
+      });
+
+      if (totalInputsBalance - SATOSHIS_TO_SEND - fee < 0) {
+        throw new Error('Balance is too low for this transaction');
+      }
+
+      // amount to send back to the sending address.
+      // It's the original amount - 1 sat/byte for tx size
+      const remainder = totalInputsBalance - SATOSHIS_TO_SEND - fee;
+
+      // add output w/ address and amount to send
+      transactionBuilder.addOutput(RECV_ADDR_LEGACY, SATOSHIS_TO_SEND);
+      if (remainder >= 1000) {
+        transactionBuilder.addOutput(SEND_ADDR, remainder);
+      }
+
+      const ecPair = this.bitbox.ECPair.fromWIF(SEND_WIF);
+
+      // Sign the transaction with the HD node.
+      let redeemScript;
+
+      for (let i = 0; i < inputCount; i++) {
+        transactionBuilder.sign(i, ecPair, redeemScript, transactionBuilder.hashTypes.SIGHASH_ALL, u.utxos[i].satoshis);
+      }
+
+      // build tx
+      const tx = transactionBuilder.build();
+      // output rawhex
+      const hex = tx.toHex();
+      console.log(`TX hex: ${hex}`);
+      console.log(transactionBuilder);
+
+      // Broadcast transation to the network
+      const txidStr = await this.bitbox.RawTransactions.sendRawTransaction([hex]);
+      console.log(`Transaction ID: ${txidStr}`);
+      console.log(`Check the status of your transaction on this block explorer:`);
+      console.log(`https://explorer.bitcoin.com/tbch/tx/${txidStr}`);
+
+      return txidStr;
+    } catch (err) {
+      console.log(`error: `, err);
     }
 
-    transaction.addOutput(data.receiverAddress, amount);
-    transaction.addOutput(sourceAddress, totalInputsBalance - amount - fee);
-
-    // This assumes all inputs are spending utxos sent to the same Dogecoin P2PKH address (starts with D)
-    for (let i = 0; i < inputCount; i++) {
-      transaction.sign(i, privateKeyECpair);
+    // Returns the utxo with the biggest balance from an array of utxos.
+    function sortUtxos(utxos: any) {
+      utxos.sort((a: any, b: any) => {
+        if (a.satoshis > b.satoshis) {
+          return -1;
+        } else if (a.satoshis < b.satoshis) {
+          return 1;
+        } else {
+          return 0;
+        }
+      });
     }
-
-    const { data: trRequest } = await axios.post(
-      `${backendApi}transactions/so-chain/${sochain_network}`,
-      {
-        tx_hex: transaction.buildIncomplete().toHex(),
-      },
-      {
-        headers: {
-          'auth-client-key': backendApiKey,
-        },
-      }
-    );
-
-    return trRequest.data.txid;
   }
 
   async send20Token(): Promise<string> {
