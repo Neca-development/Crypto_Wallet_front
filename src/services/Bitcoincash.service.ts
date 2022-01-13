@@ -52,25 +52,12 @@ export class bitcoincashService implements IChainService {
     // Generate the first 10 seed addresses.
     const childNode = masterHDNode.derivePath(`m/44'/145'/0'/0/0`);
     const publicKey = this.bitbox.HDNode.toCashAddress(childNode);
-    console.log(
-      '%cMyProject%cline:54%cpublicKey',
-      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
-      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
-      'color:#fff;background:rgb(3, 101, 100);padding:3px;border-radius:2px',
-      publicKey
-    );
+
     const privateKey = this.bitbox.HDNode.toWIF(childNode);
-    console.log(
-      '%cMyProject%cline:55%cprivateKey',
-      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
-      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
-      'color:#fff;background:rgb(178, 190, 126);padding:3px;border-radius:2px',
-      privateKey
-    );
 
     this.keys = {
-      privateKey: 'Kwf2HY6xPzrqfmGqS2Mu8jF9rZYthrdd88rL9xNTpE97ntUmRzXX',
-      publicKey: 'bitcoincash:qrsvnuqy9cerpszn98zug0xvjh9ykvztvsz79jdgus',
+      privateKey,
+      publicKey,
     };
 
     return this.keys;
@@ -232,125 +219,78 @@ export class bitcoincashService implements IChainService {
 
         return bchBalance.balance;
       } catch (err) {
-        console.error(`Error in getBCHBalance: `, err);
-        console.log(`addr: ${addr}`);
         throw err;
       }
     };
 
-    try {
-      // Send the money back to yourself if the users hasn't specified a destination.
-      if (RECV_ADDR === '') RECV_ADDR = SEND_ADDR;
+    // Send the money back to yourself if the users hasn't specified a destination.
+    if (RECV_ADDR === '') RECV_ADDR = SEND_ADDR;
 
-      // Get the balance of the sending address.
-      const balance = await getBCHBalance(SEND_ADDR, false);
-      console.log(`balance: ${JSON.stringify(balance, null, 2)}`);
-      console.log(`Balance of sending address ${SEND_ADDR} is ${balance} BCH.`);
+    // Get the balance of the sending address.
+    const balance = await getBCHBalance(SEND_ADDR, false);
 
-      // Exit if the balance is zero.
-      if (balance <= 0.0) {
-        console.log(`Balance of sending address is zero. Exiting.`);
-        process.exit(0);
+    const SEND_ADDR_LEGACY = this.bitbox.Address.toLegacyAddress(SEND_ADDR);
+    const RECV_ADDR_LEGACY = this.bitbox.Address.toLegacyAddress(RECV_ADDR);
+
+    const balance2 = await getBCHBalance(RECV_ADDR, false);
+
+    const u: any = await this.bitbox.Address.utxo(SEND_ADDR);
+
+    const transactionBuilder = new this.bitbox.TransactionBuilder(this.NETWORK);
+
+    const satoshisPerByte = 1.3;
+
+    let totalInputsBalance = 0,
+      fee = 0,
+      inputCount = 0;
+
+    sortUtxos(u.utxos);
+
+    u.utxos.forEach(async (utxo: any) => {
+      fee = Math.floor(this.bitbox.BitcoinCash.getByteCount({ P2PKH: inputCount }, { P2PKH: 2 }) * satoshisPerByte);
+
+      if (totalInputsBalance - SATOSHIS_TO_SEND - fee > 0) {
+        return;
       }
 
-      const SEND_ADDR_LEGACY = this.bitbox.Address.toLegacyAddress(SEND_ADDR);
-      const RECV_ADDR_LEGACY = this.bitbox.Address.toLegacyAddress(RECV_ADDR);
-      console.log(`Sender Legacy Address: ${SEND_ADDR_LEGACY}`);
-      console.log(`Receiver Legacy Address: ${RECV_ADDR_LEGACY}`);
+      // add input with txid and index of vout
+      transactionBuilder.addInput(utxo.txid, utxo.vout);
 
-      const balance2 = await getBCHBalance(RECV_ADDR, false);
-      console.log(`Balance of recieving address ${RECV_ADDR} is ${balance2} BCH.`);
+      totalInputsBalance = Math.floor(totalInputsBalance + utxo.satoshis);
+    });
 
-      const u: any = await this.bitbox.Address.utxo(SEND_ADDR);
-
-      const transactionBuilder = new this.bitbox.TransactionBuilder(this.NETWORK);
-
-      const satoshisPerByte = 1.3;
-
-      let totalInputsBalance = 0,
-        fee = 0,
-        inputCount = 0;
-
-      sortUtxos(u.utxos);
-
-      u.utxos.forEach(async (utxo: any) => {
-        fee = Math.floor(this.bitbox.BitcoinCash.getByteCount({ P2PKH: inputCount }, { P2PKH: 2 }) * satoshisPerByte);
-        console.log(
-          '%cMyProject%cline:277%cfee',
-          'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
-          'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
-          'color:#fff;background:rgb(114, 83, 52);padding:3px;border-radius:2px',
-          fee
-        );
-
-        console.log('change', totalInputsBalance - SATOSHIS_TO_SEND - fee);
-        console.log(
-          '%cMyProject%cline:288%ctotalInputsBalance',
-          'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
-          'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
-          'color:#fff;background:rgb(39, 72, 98);padding:3px;border-radius:2px',
-          totalInputsBalance
-        );
-
-        if (totalInputsBalance - SATOSHIS_TO_SEND - fee > 0) {
-          return;
-        }
-
-        // add input with txid and index of vout
-        transactionBuilder.addInput(utxo.txid, utxo.vout);
-        console.log(
-          '%cMyProject%cline:291%cutxo.txid',
-          'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
-          'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
-          'color:#fff;background:rgb(34, 8, 7);padding:3px;border-radius:2px',
-          utxo.txid
-        );
-        inputCount += 1;
-        console.log('utxo satoshis', utxo.satoshis);
-
-        totalInputsBalance = Math.floor(totalInputsBalance + utxo.satoshis);
-      });
-
-      if (totalInputsBalance - SATOSHIS_TO_SEND - fee < 0) {
-        throw new Error('Balance is too low for this transaction');
-      }
-
-      // amount to send back to the sending address.
-      // It's the original amount - 1 sat/byte for tx size
-      const remainder = totalInputsBalance - SATOSHIS_TO_SEND - fee;
-
-      // add output w/ address and amount to send
-      transactionBuilder.addOutput(RECV_ADDR_LEGACY, SATOSHIS_TO_SEND);
-      if (remainder >= 1000) {
-        transactionBuilder.addOutput(SEND_ADDR, remainder);
-      }
-
-      const ecPair = this.bitbox.ECPair.fromWIF(SEND_WIF);
-
-      // Sign the transaction with the HD node.
-      let redeemScript;
-
-      for (let i = 0; i < inputCount; i++) {
-        transactionBuilder.sign(i, ecPair, redeemScript, transactionBuilder.hashTypes.SIGHASH_ALL, u.utxos[i].satoshis);
-      }
-
-      // build tx
-      const tx = transactionBuilder.build();
-      // output rawhex
-      const hex = tx.toHex();
-      console.log(`TX hex: ${hex}`);
-      console.log(transactionBuilder);
-
-      // Broadcast transation to the network
-      const txidStr = await this.bitbox.RawTransactions.sendRawTransaction([hex]);
-      console.log(`Transaction ID: ${txidStr}`);
-      console.log(`Check the status of your transaction on this block explorer:`);
-      console.log(`https://explorer.bitcoin.com/tbch/tx/${txidStr}`);
-
-      return txidStr;
-    } catch (err) {
-      console.log(`error: `, err);
+    if (totalInputsBalance - SATOSHIS_TO_SEND - fee < 0) {
+      throw new Error('Balance is too low for this transaction');
     }
+
+    // amount to send back to the sending address.
+    // It's the original amount - 1 sat/byte for tx size
+    const remainder = totalInputsBalance - SATOSHIS_TO_SEND - fee;
+
+    // add output w/ address and amount to send
+    transactionBuilder.addOutput(RECV_ADDR_LEGACY, SATOSHIS_TO_SEND);
+    if (remainder >= 1000) {
+      transactionBuilder.addOutput(SEND_ADDR, remainder);
+    }
+
+    const ecPair = this.bitbox.ECPair.fromWIF(SEND_WIF);
+
+    // Sign the transaction with the HD node.
+    let redeemScript;
+
+    for (let i = 0; i < inputCount; i++) {
+      transactionBuilder.sign(i, ecPair, redeemScript, transactionBuilder.hashTypes.SIGHASH_ALL, u.utxos[i].satoshis);
+    }
+
+    // build tx
+    const tx = transactionBuilder.build();
+    // output rawhex
+    const hex = tx.toHex();
+
+    // Broadcast transation to the network
+    const txidStr = await this.bitbox.RawTransactions.sendRawTransaction([hex]);
+
+    return txidStr;
 
     // Returns the utxo with the biggest balance from an array of utxos.
     function sortUtxos(utxos: any) {
