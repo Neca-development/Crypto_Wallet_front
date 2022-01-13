@@ -100,7 +100,7 @@ export class litecoinService implements IChainService {
   }
 
   async getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]> {
-    address = '18LT7D1wT4Qi28wrdK1DvKFgTy9gtrK9TK';
+    address = 'ltc1qq5jhxh8z8r042gqeznh9p3gyd2uc2kt00cq88q';
     const { data: ltcToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/LTC`, {
       headers: {
         'auth-client-key': backendApiKey,
@@ -115,14 +115,14 @@ export class litecoinService implements IChainService {
         body: {
           query: `
           query {
-            bitcoin(network: bitcoin) {
+            bitcoin(network: litecoin) {
               outputs(outputAddress: {is: "${address}"}) {
                 transaction {
                   hash
                 }
                 outputIndex
                 outputDirection
-                value(in: LTC)
+                value(in: BTC)
                 outputAddress {
                   address
                 }
@@ -138,7 +138,7 @@ export class litecoinService implements IChainService {
                 transaction {
                   hash
                 }
-                value(in: LTC)
+                value(in: BTC)
                 block {
                   height
                   timestamp {

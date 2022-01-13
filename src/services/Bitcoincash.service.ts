@@ -115,8 +115,8 @@ export class bitcoincashService implements IChainService {
   }
 
   async getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]> {
-    address = '18LT7D1wT4Qi28wrdK1DvKFgTy9gtrK9TK';
-    const { data: ltcToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/LTC`, {
+    address = 'qpasvklrlksww840y6tsfdldj9r2867gpuwtrlpxhn';
+    const { data: bchToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/BCH`, {
       headers: {
         'auth-client-key': backendApiKey,
       },
@@ -130,14 +130,14 @@ export class bitcoincashService implements IChainService {
         body: {
           query: `
           query {
-            bitcoin(network: bitcoin) {
+            bitcoin(network: bitcash) {
               outputs(outputAddress: {is: "${address}"}) {
                 transaction {
                   hash
                 }
                 outputIndex
                 outputDirection
-                value(in: LTC)
+                value(in: BTC)
                 outputAddress {
                   address
                 }
@@ -153,7 +153,7 @@ export class bitcoincashService implements IChainService {
                 transaction {
                   hash
                 }
-                value(in: LTC)
+                value(in: BTC)
                 block {
                   height
                   timestamp {
@@ -179,13 +179,13 @@ export class bitcoincashService implements IChainService {
 
     transactions.push(
       ...resp.data.data.bitcoin.inputs.map((el: any) =>
-        this.convertTransactionToCommonFormat(el, Number(ltcToUSD.data.usd), 'IN')
+        this.convertTransactionToCommonFormat(el, Number(bchToUSD.data.usd), 'IN')
       )
     );
 
     transactions.push(
       ...resp.data.data.bitcoin.outputs.map((el: any) =>
-        this.convertTransactionToCommonFormat(el, Number(ltcToUSD.data.usd), 'OUT')
+        this.convertTransactionToCommonFormat(el, Number(bchToUSD.data.usd), 'OUT')
       )
     );
 
@@ -300,11 +300,11 @@ export class bitcoincashService implements IChainService {
     tokenName: string,
     tokenLogo: string,
     tokenType: 'native' | 'custom',
-    ltcToUSD: string,
+    bchToUSD: string,
     bnbToCustomToken?: string,
     contractAddress?: string
   ): IToken {
-    let tokenPriceInUSD = tokenType === 'custom' ? (1 / Number(bnbToCustomToken)) * Number(ltcToUSD) : Number(ltcToUSD);
+    let tokenPriceInUSD = tokenType === 'custom' ? (1 / Number(bnbToCustomToken)) * Number(bchToUSD) : Number(bchToUSD);
     tokenPriceInUSD = Math.trunc(tokenPriceInUSD * 100) / 100;
 
     const balanceInUSD = Math.trunc(balance * tokenPriceInUSD * 100) / 100;
@@ -328,7 +328,7 @@ export class bitcoincashService implements IChainService {
    */
   private convertTransactionToCommonFormat(txData: any, tokenPriceToUSD: number, direction: 'IN' | 'OUT'): ITransaction {
     let amountPriceInUSD = Math.trunc(txData.value * tokenPriceToUSD * 100) / 100;
-    const tokenName = 'LTC';
+    const tokenName = 'BCH';
     const tokenLogo = imagesURL + tokenName + '.svg';
     const from = direction === 'OUT' ? txData.outputAddress.address : 'unknown';
     const to = direction === 'IN' ? txData.inputAddress.address : 'unknown';
