@@ -20,5 +20,5 @@
       }
     ]
   },
-  "ignorePatterns": ["src", "src/frontend/generated/*"]
+  "ignorePatterns": ["src", "src/frontend/generated/*", "node_modules"]
 }
