@@ -16,8 +16,10 @@ import dogecore from 'bitcore-lib-doge';
 
 import { mnemonicToSeedSync } from 'bip39';
 
-const coininfo = require('coininfo');
+// const coininfo = require('coininfo');
 import * as bitcoin from 'bitcoinjs-lib';
+require('bitcoinjs-testnets').register(bitcoin.networks);
+
 import { CustomError } from '../errors';
 import { ErrorsTypes } from '../models/enums';
 
@@ -25,8 +27,10 @@ export class dogecoinService implements IChainService {
   private keys: IWalletKeys;
 
   constructor() {}
-
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
+    // @ts-ignore
+    console.log(bitcoin.networks.dogecoin_testnet);
+
     const seed = mnemonicToSeedSync(mnemonic);
     const privateKey = dogecore.HDPrivateKey.fromSeed(seed).deriveChild("m/44'/1'/0'/0/0").privateKey.toString();
     console.log(
@@ -186,41 +190,17 @@ export class dogecoinService implements IChainService {
   }
 
   async sendMainToken(data: ISendingTransactionData): Promise<string> {
-    var curr = coininfo.dogecoin.test;
-    console.log(
-      '%cMyProject%cline:189%ccoininfo.dogecoin',
-      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
-      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
-      'color:#fff;background:rgb(178, 190, 126);padding:3px;border-radius:2px',
-      coininfo.dogecoin.test
-    );
-    var frmt = curr.toBitcoinJS();
-    console.log(
-      '%cMyProject%cline:197%cfrmt',
-      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
-      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
-      'color:#fff;background:rgb(38, 157, 128);padding:3px;border-radius:2px',
-      frmt
-    );
-    const netGain = {
-      messagePrefix: '\x19' + frmt.name + ' Signed Message:\n',
-      bech32: '',
-      bip32: {
-        private: 0x04358394,
-        public: 0x043587cf,
-      },
-      pubKeyHash: frmt.pubKeyHash,
-      scriptHash: frmt.scriptHash,
-      wif: frmt.wif,
-    };
-
     const sochain_network = 'DOGETEST',
       privateKey = data.privateKey,
       sourceAddress = this.keys.publicKey,
       utxos = await axios.get(`https://sochain.com/api/v2/get_tx_unspent/${sochain_network}/${sourceAddress}`),
-      transaction = new bitcoin.TransactionBuilder(netGain),
+      // @ts-ignore
+      transaction = new bitcoin.TransactionBuilder(bitcoin.networks.dogecoin_testnet),
       amount = Math.trunc(data.amount * 1e8),
-      privateKeyECpair = bitcoin.ECPair.fromPrivateKey(Buffer.from(privateKey, 'hex'), { network: netGain });
+      privateKeyECpair = bitcoin.ECPair.fromPrivateKey(Buffer.from(privateKey, 'hex'), {
+        // @ts-ignore
+        network: bitcoin.networks.dogecoin_testnet,
+      });
 
     let totalInputsBalance = 0,
       fee = 0,
@@ -265,19 +245,19 @@ export class dogecoinService implements IChainService {
     }
     console.log(transaction.buildIncomplete().toHex());
 
-    // const { data: trRequest } = await axios.post(
-    //   `${backendApi}transactions/so-chain/${sochain_network}`,
-    //   {
-    //     tx_hex: transaction.buildIncomplete().toHex(),
-    //   },
-    //   {
-    //     headers: {
-    //       'auth-client-key': backendApiKey,
-    //     },
-    //   }
-    // );
+    const { data: trRequest } = await axios.post(
+      `${backendApi}transactions/so-chain/${sochain_network}`,
+      {
+        tx_hex: transaction.buildIncomplete().toHex(),
+      },
+      {
+        headers: {
+          'auth-client-key': backendApiKey,
+        },
+      }
+    );
 
-    return 'trRequest.data.txid';
+    return trRequest.data.txid;
   }
 
   async send20Token(): Promise<string> {
