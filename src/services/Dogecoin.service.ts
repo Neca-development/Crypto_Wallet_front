@@ -18,7 +18,8 @@ import { mnemonicToSeedSync } from 'bip39';
 
 // const coininfo = require('coininfo');
 import * as bitcoin from 'bitcoinjs-lib';
-require('bitcoinjs-testnets').register(bitcoin.networks);
+
+import coininfo from 'coininfo';
 
 import { CustomError } from '../errors';
 import { ErrorsTypes } from '../models/enums';
@@ -28,22 +29,10 @@ export class dogecoinService implements IChainService {
 
   constructor() {}
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
-    // @ts-ignore
-    console.log(bitcoin.networks.dogecoin_testnet);
-
     const seed = mnemonicToSeedSync(mnemonic);
-    const privateKey = dogecore.HDPrivateKey.fromSeed(seed).deriveChild("m/44'/1'/0'/0/0").privateKey.toString();
-    console.log(
-      '%cMyProject%cline:30%cdogecore.HDPrivateKey.fromSeed(seed).deriveChild(m/44/3/0/0/0).privateKey',
-      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
-      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
-      'color:#fff;background:rgb(20, 68, 106);padding:3px;border-radius:2px',
-      dogecore.HDPrivateKey.fromSeed(seed).deriveChild("m/44'/1'/0'/0/0").privateKey
-    );
-    const publicKey = dogecore.HDPrivateKey.fromSeed(seed)
-      .deriveChild("m/44'/1'/0'/0/0")
-      .privateKey.toAddress('testnet')
-      .toString();
+    const privateKey = dogecore.HDPrivateKey.fromSeed(seed).deriveChild("m/44'/3'/0'/0/0").privateKey.toString();
+
+    const publicKey = dogecore.HDPrivateKey.fromSeed(seed).deriveChild("m/44'/3'/0'/0/0").privateKey.toAddress().toString();
 
     this.keys = {
       privateKey,
@@ -54,7 +43,7 @@ export class dogecoinService implements IChainService {
   }
 
   async generatePublicKey(privateKey: string): Promise<string> {
-    const publicKey = dogecore.PrivateKey(privateKey).toAddress('testnet').toString();
+    const publicKey = dogecore.PrivateKey(privateKey).toAddress().toString();
 
     this.keys = {
       privateKey,
@@ -79,7 +68,7 @@ export class dogecoinService implements IChainService {
       console.log('server was dropped');
     }
 
-    const sochain_network = 'DOGETEST';
+    const sochain_network = 'DOGE';
 
     let { data: balance } = await axios.get(`https://sochain.com/api/v2/get_address_balance/${sochain_network}/${address}`);
 
@@ -190,22 +179,36 @@ export class dogecoinService implements IChainService {
   }
 
   async sendMainToken(data: ISendingTransactionData): Promise<string> {
-    const sochain_network = 'DOGETEST',
+    let curr = coininfo.dogecoin.main;
+    let frmt = curr.toBitcoinJS();
+    const netGain = {
+      messagePrefix: '\x19' + frmt.name + ' Signed Message:\n',
+      bip32: {
+        public: frmt.bip32.public,
+        private: frmt.bip32.private,
+      },
+      pubKeyHash: frmt.pubKeyHash,
+      scriptHash: frmt.scriptHash,
+      wif: frmt.wif,
+    };
+
+    const sochain_network = 'DOGE',
       privateKey = data.privateKey,
       sourceAddress = this.keys.publicKey,
+      satoshisPerByte = 1316,
       utxos = await axios.get(`https://sochain.com/api/v2/get_tx_unspent/${sochain_network}/${sourceAddress}`),
       // @ts-ignore
-      transaction = new bitcoin.TransactionBuilder(bitcoin.networks.dogecoin_testnet),
+      transaction = new bitcoin.TransactionBuilder(netGain),
       amount = Math.trunc(data.amount * 1e8),
       privateKeyECpair = bitcoin.ECPair.fromPrivateKey(Buffer.from(privateKey, 'hex'), {
         // @ts-ignore
-        network: bitcoin.networks.dogecoin_testnet,
+        network: netGain,
       });
 
     let totalInputsBalance = 0,
       fee = 0,
-      inputCount = 0;
-    // outputCount = 2;
+      inputCount = 0,
+      outputCount = 2;
 
     transaction.setVersion(1);
 
@@ -220,8 +223,8 @@ export class dogecoinService implements IChainService {
     });
 
     utxos.data.data.txs.forEach(async (element: any) => {
-      // fee = (inputCount * 146 + outputCount * 33 + 10) * 20;
-      fee = 200000000;
+      fee = (inputCount * 146 + outputCount * 33 + 10) * 20 * satoshisPerByte;
+      console.log(fee);
 
       if (totalInputsBalance - amount - fee > 0) {
         return;
