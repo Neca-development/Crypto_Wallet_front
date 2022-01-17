@@ -91,7 +91,6 @@ export class dogecoinService implements IChainService {
   }
 
   async getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]> {
-    address = '18LT7D1wT4Qi28wrdK1DvKFgTy9gtrK9TK';
     const { data: dogeToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/DOGE`, {
       headers: {
         'auth-client-key': backendApiKey,
@@ -106,7 +105,7 @@ export class dogecoinService implements IChainService {
         body: {
           query: `
           query {
-            bitcoin(network: bitcoin) {
+            bitcoin(network: dogecoin) {
               outputs(outputAddress: {is: "${address}"}) {
                 transaction {
                   hash
@@ -304,7 +303,7 @@ export class dogecoinService implements IChainService {
    */
   private convertTransactionToCommonFormat(txData: any, tokenPriceToUSD: number, direction: 'IN' | 'OUT'): ITransaction {
     let amountPriceInUSD = Math.trunc(txData.value * tokenPriceToUSD * 100) / 100;
-    const tokenName = 'BTC';
+    const tokenName = 'DOGE';
     const tokenLogo = imagesURL + tokenName + '.svg';
     const from = direction === 'OUT' ? txData.outputAddress.address : 'unknown';
     const to = direction === 'IN' ? txData.inputAddress.address : 'unknown';
