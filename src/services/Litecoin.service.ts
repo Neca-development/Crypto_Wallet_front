@@ -185,23 +185,12 @@ export class litecoinService implements IChainService {
 
   async sendMainToken(data: ISendingTransactionData): Promise<string> {
     let curr = coininfo.litecoin.main;
-    let frmt = curr.toBitcoinJS();
-    const netGain = {
-      messagePrefix: '\x19' + frmt.name + ' Signed Message:\n',
-      bech32: 'ltc',
-      bip32: {
-        public: frmt.bip32.public,
-        private: frmt.bip32.private,
-      },
-      pubKeyHash: frmt.pubKeyHash,
-      scriptHash: frmt.scriptHash,
-      wif: frmt.wif,
-    };
+    let netGain = curr.toBitcoinJS();
 
     const sochain_network = 'LTC',
       privateKey = data.privateKey,
       sourceAddress = this.keys.publicKey,
-      satoshisPerByte = 2,
+      satoshisPerByte = 20,
       utxos = await axios.get(`https://sochain.com/api/v2/get_tx_unspent/${sochain_network}/${sourceAddress}`),
       // @ts-ignore
       transaction = new bitcoin.TransactionBuilder(netGain),

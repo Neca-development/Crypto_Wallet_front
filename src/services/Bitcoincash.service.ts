@@ -64,7 +64,7 @@ export class bitcoincashService implements IChainService {
   }
 
   async generatePublicKey(privateKey: string): Promise<string> {
-    const publicKey = litecore.PrivateKey(privateKey).toAddress('testnet').toString();
+    const publicKey = litecore.PrivateKey(privateKey).toAddress().toString();
 
     this.keys = {
       privateKey,
