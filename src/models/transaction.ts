@@ -27,6 +27,6 @@ export interface ITransaction {
 }
 
 export interface IFee {
-  value: string;
-  usd: string;
+  value: number;
+  usd: number;
 }

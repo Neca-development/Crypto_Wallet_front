@@ -25,7 +25,7 @@ export interface ITransaction {
     fee: number;
 }
 export interface IFee {
-    value: string;
-    usd: string;
+    value: number;
+    usd: number;
 }
 //# sourceMappingURL=transaction.d.ts.map

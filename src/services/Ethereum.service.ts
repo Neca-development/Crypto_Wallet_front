@@ -106,8 +106,8 @@ export class ethereumService implements IChainService {
     const usd = Math.trunc(transactionFeeInEth * Number(ethToUSD.data.usd) * 100) / 100;
 
     return {
-      value: transactionFeeInEth.toString(),
-      usd: usd.toString(),
+      value: transactionFeeInEth,
+      usd: usd,
     };
   }
 

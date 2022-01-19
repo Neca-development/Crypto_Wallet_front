@@ -7,7 +7,7 @@ import { ICryptoCurrency, IToken } from '../models/token';
 // @ts-ignore
 import * as bitboxSdk from 'bitbox-sdk';
 
-import { imagesURL, backendApi, backendApiKey, bitqueryProxy } from '../constants/providers';
+import { imagesURL, backendApi, backendApiKey, bitqueryProxy, bitcoincashSatoshisPerByte } from '../constants/providers';
 
 // @ts-ignore
 import axios from 'axios';
@@ -16,7 +16,6 @@ import { IResponse } from '../models/response';
 // @ts-ignore
 import litecore from 'bitcore-lib-ltc';
 
-import * as bitcoin from 'bitcoinjs-lib';
 import { CustomError } from '../errors';
 
 // import HDKey from 'hdkey';
@@ -105,12 +104,57 @@ export class bitcoincashService implements IChainService {
     return tokens;
   }
 
-  async getFeePriceOracle(from: string, to: string): Promise<IFee> {
-    console.log({ from, to });
+  async getFeePriceOracle(from: string, to: string, amount: number): Promise<IFee> {
+    amount = Math.trunc(amount * 1e8);
+    const sochain_network = 'BCH',
+      sourceAddress = from,
+      utxos = await axios.get(`https://sochain.com/api/v2/get_tx_unspent/${sochain_network}/${sourceAddress}`);
+
+    let totalInputsBalance = 0,
+      fee = 0,
+      inputCount = 0,
+      outputCount = 2;
+
+    utxos.data.data.txs.sort((a: any, b: any) => {
+      if (Number(a.value) > Number(b.value)) {
+        return -1;
+      } else if (Number(a.value) < Number(b.value)) {
+        return 1;
+      } else {
+        return 0;
+      }
+    });
+
+    utxos.data.data.txs.forEach(async (element: any) => {
+      fee = (inputCount * 146 + outputCount * 33 + 10) * 20 * bitcoincashSatoshisPerByte;
+
+      if (totalInputsBalance - amount - fee > 0) {
+        return;
+      }
+
+      inputCount += 1;
+      totalInputsBalance += Math.floor(Number(element.value) * 100000000);
+    });
+
+    if (totalInputsBalance - amount - fee < 0) {
+      throw new Error('Balance is too low for this transaction');
+    }
+
+    const value = fee * 1e-8;
+
+    const bchToUSD = (
+      await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/BCH`, {
+        headers: {
+          'auth-client-key': backendApiKey,
+        },
+      })
+    ).data;
+
+    const usd = Math.trunc(Number(bchToUSD.data.usd) * value * 100) / 100;
 
     return {
-      value: '12324',
-      usd: '2',
+      value,
+      usd,
     };
   }
 
@@ -219,8 +263,6 @@ export class bitcoincashService implements IChainService {
 
     const transactionBuilder = new this.bitbox.TransactionBuilder(this.NETWORK);
 
-    const satoshisPerByte = 1.3;
-
     let totalInputsBalance = 0,
       fee = 0,
       inputCount = 0;
@@ -228,7 +270,7 @@ export class bitcoincashService implements IChainService {
     sortUtxos(u.utxos);
 
     u.utxos.forEach(async (utxo: any) => {
-      fee = Math.floor(this.bitbox.BitcoinCash.getByteCount({ P2PKH: inputCount }, { P2PKH: 2 }) * satoshisPerByte);
+      fee = Math.floor(this.bitbox.BitcoinCash.getByteCount({ P2PKH: inputCount }, { P2PKH: 2 }) * bitcoincashSatoshisPerByte);
 
       if (totalInputsBalance - SATOSHIS_TO_SEND - fee > 0) {
         return;

@@ -80,12 +80,57 @@ export class bitcoinService implements IChainService {
     return tokens;
   }
 
-  async getFeePriceOracle(from: string, to: string): Promise<IFee> {
-    console.log({ from, to });
+  async getFeePriceOracle(from: string, to: string, amount: number): Promise<IFee> {
+    amount = Math.trunc(amount * 1e8);
+    const sochain_network = 'BTCTEST',
+      sourceAddress = from,
+      utxos = await axios.get(`https://sochain.com/api/v2/get_tx_unspent/${sochain_network}/${sourceAddress}`);
+
+    let totalInputsBalance = 0,
+      fee = 0,
+      inputCount = 0,
+      outputCount = 2;
+
+    utxos.data.data.txs.sort((a: any, b: any) => {
+      if (Number(a.value) > Number(b.value)) {
+        return -1;
+      } else if (Number(a.value) < Number(b.value)) {
+        return 1;
+      } else {
+        return 0;
+      }
+    });
+
+    utxos.data.data.txs.forEach(async (element: any) => {
+      fee = (inputCount * 146 + outputCount * 33 + 10) * 20;
+
+      if (totalInputsBalance - amount - fee > 0) {
+        return;
+      }
+
+      inputCount += 1;
+      totalInputsBalance += Math.floor(Number(element.value) * 100000000);
+    });
+
+    if (totalInputsBalance - amount - fee < 0) {
+      throw new Error('Balance is too low for this transaction');
+    }
+
+    const value = fee * 1e-8;
+
+    const btcToUSD = (
+      await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/BTC`, {
+        headers: {
+          'auth-client-key': backendApiKey,
+        },
+      })
+    ).data;
+
+    const usd = Math.trunc(Number(btcToUSD.data.usd) * value * 100) / 100;
 
     return {
-      value: '12324',
-      usd: '2',
+      value,
+      usd,
     };
   }
 

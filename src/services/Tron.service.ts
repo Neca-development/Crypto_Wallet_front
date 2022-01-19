@@ -82,13 +82,13 @@ export class tronService implements IChainService {
       },
     });
 
-    let value = '10';
+    let value = 10;
 
-    const usd = Math.trunc(+value * Number(trxToUSD.data.usd) * 100) / 100;
+    const usd = Math.trunc(value * Number(trxToUSD.data.usd) * 100) / 100;
 
     return {
       value,
-      usd: usd.toString(),
+      usd: usd,
     };
   }
 
