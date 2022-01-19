@@ -38,6 +38,7 @@ export class litecoinService implements IChainService {
     const seed = mnemonicToSeedSync(mnemonic);
     const privateKey = litecore.HDPrivateKey.fromSeed(seed).deriveChild("m/44'/2'/0'/0/0").privateKey.toString();
     const publicKey = litecore.HDPrivateKey.fromSeed(seed).deriveChild("m/44'/2'/0'/0/0").privateKey.toAddress().toString();
+    console.log(litecore.HDPrivateKey.fromSeed(seed).deriveChild("m/44'/2'/0'/0/0").privateKey.toWIF());
 
     this.keys = {
       privateKey,
@@ -216,6 +217,7 @@ export class litecoinService implements IChainService {
       outputCount = 2;
 
     transaction.setVersion(1);
+    console.log(utxos);
 
     utxos.data.data.txs.sort((a: any, b: any) => {
       if (Number(a.value) > Number(b.value)) {
