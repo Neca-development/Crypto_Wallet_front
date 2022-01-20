@@ -23,5 +23,6 @@ export declare class bitcoincashService implements IChainService {
      * @returns {ITransaction}
      */
     private convertTransactionToCommonFormat;
+    sortUtxos(utxos: any): void;
 }
 //# sourceMappingURL=Bitcoincash.service.d.ts.map
