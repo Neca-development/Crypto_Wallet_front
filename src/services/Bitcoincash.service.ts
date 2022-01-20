@@ -105,38 +105,34 @@ export class bitcoincashService implements IChainService {
   }
 
   async getFeePriceOracle(from: string, to: string, amount: number): Promise<IFee> {
-    amount = Math.trunc(amount * 1e8);
-    const sochain_network = 'BCH',
-      sourceAddress = from,
-      utxos = await axios.get(`https://sochain.com/api/v2/get_tx_unspent/${sochain_network}/${sourceAddress}`);
+    // Replace the address below with the address you want to send the BCH to.
+    let RECV_ADDR = to;
+    const SATOSHIS_TO_SEND = Math.trunc(amount * 1e8);
+
+    const SEND_ADDR = this.keys.publicKey;
+
+    // Send the money back to yourself if the users hasn't specified a destination.
+    if (RECV_ADDR === '') RECV_ADDR = SEND_ADDR;
+
+    const u: any = await this.bitbox.Address.utxo(SEND_ADDR);
 
     let totalInputsBalance = 0,
       fee = 0,
-      inputCount = 0,
-      outputCount = 2;
+      inputCount = 0;
 
-    utxos.data.data.txs.sort((a: any, b: any) => {
-      if (Number(a.value) > Number(b.value)) {
-        return -1;
-      } else if (Number(a.value) < Number(b.value)) {
-        return 1;
-      } else {
-        return 0;
-      }
-    });
+    this.sortUtxos(u.utxos);
 
-    utxos.data.data.txs.forEach(async (element: any) => {
-      fee = (inputCount * 146 + outputCount * 33 + 10) * 20 * bitcoincashSatoshisPerByte;
+    u.utxos.forEach(async (utxo: any) => {
+      fee = Math.floor(this.bitbox.BitcoinCash.getByteCount({ P2PKH: inputCount }, { P2PKH: 2 }) * bitcoincashSatoshisPerByte);
 
-      if (totalInputsBalance - amount - fee > 0) {
+      if (totalInputsBalance - SATOSHIS_TO_SEND - fee > 0) {
         return;
       }
 
-      inputCount += 1;
-      totalInputsBalance += Math.floor(Number(element.value) * 100000000);
+      totalInputsBalance = Math.floor(totalInputsBalance + utxo.satoshis);
     });
 
-    if (totalInputsBalance - amount - fee < 0) {
+    if (totalInputsBalance - SATOSHIS_TO_SEND - fee < 0) {
       throw new Error('Balance is too low for this transaction');
     }
 
@@ -267,7 +263,7 @@ export class bitcoincashService implements IChainService {
       fee = 0,
       inputCount = 0;
 
-    sortUtxos(u.utxos);
+    this.sortUtxos(u.utxos);
 
     u.utxos.forEach(async (utxo: any) => {
       fee = Math.floor(this.bitbox.BitcoinCash.getByteCount({ P2PKH: inputCount }, { P2PKH: 2 }) * bitcoincashSatoshisPerByte);
@@ -316,17 +312,6 @@ export class bitcoincashService implements IChainService {
     return txidStr;
 
     // Returns the utxo with the biggest balance from an array of utxos.
-    function sortUtxos(utxos: any) {
-      utxos.sort((a: any, b: any) => {
-        if (a.satoshis > b.satoshis) {
-          return -1;
-        } else if (a.satoshis < b.satoshis) {
-          return 1;
-        } else {
-          return 0;
-        }
-      });
-    }
   }
 
   async send20Token(): Promise<string> {
@@ -388,5 +373,17 @@ export class bitcoincashService implements IChainService {
       status: true,
       tokenLogo,
     };
+  }
+
+  sortUtxos(utxos: any) {
+    utxos.sort((a: any, b: any) => {
+      if (a.satoshis > b.satoshis) {
+        return -1;
+      } else if (a.satoshis < b.satoshis) {
+        return 1;
+      } else {
+        return 0;
+      }
+    });
   }
 }
