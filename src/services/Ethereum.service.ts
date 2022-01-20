@@ -95,20 +95,20 @@ export class ethereumService implements IChainService {
     const transactionObject = {
       from,
       to,
-    }
-    const gasLimit = await this.web3.eth.estimateGas(transactionObject)
+    };
+    const gasLimit = await this.web3.eth.estimateGas(transactionObject);
 
     let { data: price } = await axios.get(etherGasPrice);
-    const gasPriceGwei = price.fast / 10
+    const gasPriceGwei = price.fast / 10;
 
-    const transactionFeeInEth = gasPriceGwei * 0.000000001 * gasLimit
+    const transactionFeeInEth = gasPriceGwei * 1e-9 * gasLimit;
 
     const usd = Math.trunc(transactionFeeInEth * Number(ethToUSD.data.usd) * 100) / 100;
 
     return {
-      value: transactionFeeInEth.toString(),
-      usd: usd.toString()
-    }
+      value: transactionFeeInEth,
+      usd: usd,
+    };
   }
 
   /**
@@ -162,14 +162,14 @@ export class ethereumService implements IChainService {
   }
 
   async sendMainToken(data: ISendingTransactionData): Promise<string> {
-    // let gasPrice = await this.web3.eth.getGasPrice();
-
-    // let gasCount = Math.trunc(+this.web3.utils.toWei(data.fee) / +gasPrice);
+    const fee = await this.getFeePriceOracle(this.web3.defaultAccount, data.receiverAddress);
+    console.log(Number(fee.value) * 100000000);
 
     const result = await this.web3.eth.sendTransaction({
       from: this.web3.eth.defaultAccount,
       to: data.receiverAddress,
-      value: this.web3.utils.numberToHex(this.web3.utils.toWei(data.amount.toString())),
+      value: this.web3.utils.numberToHex(this.web3.utils.toWei(data.amount.toString())).toString(),
+      gas: Math.trunc(Number(fee.value) * 1e9),
     });
     console.log(result);
 

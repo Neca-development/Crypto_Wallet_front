@@ -88,14 +88,14 @@ export class polygonService implements IChainService {
       from,
       to,
     });
-    const { data: gasPrice } = await axios.get(polygonGasPrice)
+    const { data: gasPrice } = await axios.get(polygonGasPrice);
 
-    const transactionFee = estimatedGas * gasPrice.standard / 1000000000
+    const transactionFee = (estimatedGas * gasPrice.standard) / 1000000000;
     const usd = Math.trunc(transactionFee * Number(maticToUSD.data.usd) * 100) / 100;
 
     return {
-      value: transactionFee.toString(),
-      usd: usd.toString(),
+      value: transactionFee,
+      usd: usd,
     };
   }
 
@@ -169,7 +169,7 @@ export class polygonService implements IChainService {
     const amount = new BigNumber(data.amount).multipliedBy(decimals).toNumber();
     const result = await contract.methods
       .transfer(data.receiverAddress, this.web3.utils.toHex(amount))
-      .send({ from: this.web3.eth.defaultAccount, gas: 100000 })
+      .send({ from: this.web3.eth.defaultAccount, gas: 100000 });
 
     return result.transactionHash;
   }
@@ -261,8 +261,7 @@ export class polygonService implements IChainService {
   ): ITransaction {
     const amount = new BigNumber(txData.amount).toFormat();
 
-    let amountPriceInUSD =
-      txData.currency.symbol === 'MATIC' ? tokenPriceToUSD : (1 / nativeTokenToUSD) * tokenPriceToUSD;
+    let amountPriceInUSD = txData.currency.symbol === 'MATIC' ? tokenPriceToUSD : (1 / nativeTokenToUSD) * tokenPriceToUSD;
     amountPriceInUSD = Math.trunc(amountPriceInUSD * txData.amount * 100) / 100;
 
     const tokenLogo = imagesURL + txData.currency.symbol.toUpperCase() + '.svg';
@@ -270,7 +269,7 @@ export class polygonService implements IChainService {
     const from = txData.sender.address;
     const direction = from.toLowerCase() === address.toLowerCase() ? 'OUT' : 'IN';
 
-    const fee = txData.transaction.gas * txData.transaction.gasPrice / 1000000000
+    const fee = (txData.transaction.gas * txData.transaction.gasPrice) / 1000000000;
 
     return {
       to,

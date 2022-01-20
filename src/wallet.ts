@@ -13,6 +13,7 @@ import { polygonService } from './services/Polygon.service';
 import { litecoinService } from './services/Litecoin.service';
 import { ethereumClassicService } from './services/EthereumClassic.service';
 import { bitcoincashService } from './services/Bitcoincash.service';
+import { dogecoinService } from './services/Dogecoin.service';
 
 export class Wallet {
   private service: IChainService;
@@ -238,6 +239,9 @@ export class Wallet {
           break;
         case ChainIds['Bitcoincash']:
           this.service = new bitcoincashService();
+          break;
+        case ChainIds['Dogecoin']:
+          this.service = new dogecoinService();
           break;
         default:
           break;

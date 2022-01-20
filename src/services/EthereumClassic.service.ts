@@ -5,12 +5,7 @@ import { IChainService } from '../models/chainService';
 import { IResponse } from '../models/response';
 import { ITransaction } from '../models/transaction';
 
-import {
-  backendApi,
-  imagesURL,
-  bitqueryProxy,
-  etcWeb3Provider,
-} from '../constants/providers';
+import { backendApi, imagesURL, bitqueryProxy, etcWeb3Provider } from '../constants/providers';
 import { backendApiKey } from './../constants/providers';
 
 // @ts-ignore
@@ -85,16 +80,16 @@ export class ethereumClassicService implements IChainService {
     const transactionObject = {
       from,
       to,
-    }
-    const gasLimit = await this.web3.eth.estimateGas(transactionObject)
+    };
+    const gasLimit = await this.web3.eth.estimateGas(transactionObject);
     const gasPrice = await this.web3.eth.getGasPrice();
-    const transactionFeeInEth = +gasPrice * gasLimit / 1000000000 / 1000000000
+    const transactionFeeInEth = (+gasPrice * gasLimit) / 1000000000 / 1000000000;
     const usd = Math.trunc(transactionFeeInEth * Number(etcToUSD.data.usd) * 100) / 100;
 
     return {
-      value: transactionFeeInEth.toString(),
-      usd: usd.toString()
-    }
+      value: transactionFeeInEth,
+      usd: usd,
+    };
   }
 
   /**
@@ -244,8 +239,7 @@ export class ethereumClassicService implements IChainService {
   ): ITransaction {
     const amount = new BigNumber(txData.amount).toFormat();
 
-    let amountPriceInUSD =
-      txData.currency.symbol === 'ETC' ? tokenPriceToUSD : (1 / nativeTokenToUSD) * tokenPriceToUSD;
+    let amountPriceInUSD = txData.currency.symbol === 'ETC' ? tokenPriceToUSD : (1 / nativeTokenToUSD) * tokenPriceToUSD;
     amountPriceInUSD = Math.trunc(amountPriceInUSD * txData.amount * 100) / 100;
 
     const tokenLogo = imagesURL + txData.currency.symbol.toUpperCase() + '.svg';
@@ -253,7 +247,7 @@ export class ethereumClassicService implements IChainService {
     const from = txData.sender.address;
     const direction = from === address.toLowerCase() ? 'OUT' : 'IN';
 
-    const fee = txData.transaction.gas * txData.transaction.gasPrice / 1000000000
+    const fee = (txData.transaction.gas * txData.transaction.gasPrice) / 1000000000;
 
     return {
       to,

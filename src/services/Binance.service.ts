@@ -94,8 +94,8 @@ export class binanceService implements IChainService {
     const usd = Math.trunc(+value * Number(bnbToUSD.data.usd) * 100) / 100;
 
     return {
-      value,
-      usd: usd.toString(),
+      value: Number(value),
+      usd: usd,
     };
   }
 

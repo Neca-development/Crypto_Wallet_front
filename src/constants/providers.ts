@@ -57,3 +57,15 @@ export const polygonGasPrice = 'https://gasstation-mainnet.matic.network';
 // --- Ethereum Classic ---
 
 export const etcWeb3Provider = 'https://www.ethercluster.com/etc';
+
+// ------------- DOGECOIN -----------------
+
+export const dogeSatoshisPerByte = 10316;
+
+// ------------- LITECOIN -----------------
+
+export const litecoinSatoshisPerByte = 200;
+
+// ------------- BITCOIN CASH -----------------
+
+export const bitcoincashSatoshisPerByte = 1.3;

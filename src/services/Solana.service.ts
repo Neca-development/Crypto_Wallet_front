@@ -1,42 +1,42 @@
-import { IChainService, ISendingTransactionData, IToken, ITransaction } from "../main";
-import { IFee } from "../models/transaction";
+import { IChainService, ISendingTransactionData, IToken, ITransaction } from '../main';
+import { IFee } from '../models/transaction';
 
 import * as solanaWeb3 from '@solana/web3.js';
-import { Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { Keypair, LAMPORTS_PER_SOL, Connection, clusterApiUrl, PublicKey } from "@solana/web3.js";
+import { Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { Keypair, LAMPORTS_PER_SOL, Connection, clusterApiUrl, PublicKey } from '@solana/web3.js';
 import * as bip39 from 'bip39';
 import * as ed25519 from 'ed25519-hd-key';
-import axios from "axios";
-import { backendApi, backendApiKey, bitqueryProxy, imagesURL, solanaUSDTContractAddress } from "../constants/providers";
-import { ICryptoCurrency } from "../models/token";
-import { IResponse } from "../models/response";
+import axios from 'axios';
+import { backendApi, backendApiKey, bitqueryProxy, imagesURL, solanaUSDTContractAddress } from '../constants/providers';
+import { ICryptoCurrency } from '../models/token';
+import { IResponse } from '../models/response';
 
 export class solanaService implements IChainService {
-  private address: Keypair
-  private connection: Connection
+  private address: Keypair;
+  private connection: Connection;
 
   constructor() {
-    this.connection = new Connection(clusterApiUrl('mainnet-beta'))
+    this.connection = new Connection(clusterApiUrl('mainnet-beta'));
   }
 
   async generateKeyPair(mnemonic: string) {
     const derivePath = "m/44'/501'/0'/0'";
     const seed = bip39.mnemonicToSeedSync(mnemonic);
     const derivedSeed = ed25519.derivePath(derivePath, seed.toString('hex')).key;
-    this.address = Keypair.fromSeed(derivedSeed)
+    this.address = Keypair.fromSeed(derivedSeed);
 
     return {
       privateKey: this.address.secretKey.toString(),
-      publicKey: this.address.publicKey.toString()
-    }
+      publicKey: this.address.publicKey.toString(),
+    };
   }
 
   generatePublicKey(privateKey: string): Promise<string> {
-    const arr = privateKey.split(',').map(Number)
-    let secretKey = Uint8Array.from(arr)
-    const address = Keypair.fromSecretKey(secretKey)
+    const arr = privateKey.split(',').map(Number);
+    let secretKey = Uint8Array.from(arr);
+    const address = Keypair.fromSecretKey(secretKey);
     // @ts-ignore
-    return address.publicKey
+    return address.publicKey;
   }
 
   async getTokensByAddress(address: string): Promise<IToken[]> {
@@ -47,26 +47,20 @@ export class solanaService implements IChainService {
       },
     });
 
-    const balance = await this.connection.getBalance(new PublicKey(address))
+    const balance = await this.connection.getBalance(new PublicKey(address));
 
-    tokens.push(
-      this.generateTokenObject(
-        balance / LAMPORTS_PER_SOL,
-        'SOL',
-        imagesURL + 'SOL.svg',
-        'native',
-        solToUSD.data.usd
-      )
-    );
+    tokens.push(this.generateTokenObject(balance / LAMPORTS_PER_SOL, 'SOL', imagesURL + 'SOL.svg', 'native', solToUSD.data.usd));
 
     // USDT Balance
-    const info = await this.connection.getTokenAccountsByOwner(new PublicKey(address), { mint: new PublicKey(solanaUSDTContractAddress) })
-    let USDTTokenBalance
+    const info = await this.connection.getTokenAccountsByOwner(new PublicKey(address), {
+      mint: new PublicKey(solanaUSDTContractAddress),
+    });
+    let USDTTokenBalance;
     if (info.value[0]) {
-      const tokenBalance = await this.connection.getTokenAccountBalance(new solanaWeb3.PublicKey(info.value[0].pubkey))
-      USDTTokenBalance = tokenBalance.value.uiAmount
+      const tokenBalance = await this.connection.getTokenAccountBalance(new solanaWeb3.PublicKey(info.value[0].pubkey));
+      USDTTokenBalance = tokenBalance.value.uiAmount;
     } else {
-      USDTTokenBalance = 0
+      USDTTokenBalance = 0;
     }
 
     tokens.push(
@@ -81,25 +75,25 @@ export class solanaService implements IChainService {
       )
     );
 
-    return tokens
+    return tokens;
   }
 
   async getFeePriceOracle(from: string, to: string): Promise<IFee> {
-    console.log(from, to)
+    console.log(from, to);
     const { data: solToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/SOL`, {
       headers: {
         'auth-client-key': backendApiKey,
       },
     });
 
-    const current_slot_time = 0.5
-    const feeInSol = current_slot_time * 0.00001
+    const current_slot_time = 0.5;
+    const feeInSol = current_slot_time * 0.00001;
     const usd = Math.trunc(feeInSol * Number(solToUSD.data.usd) * 100) / 100;
 
     return {
-      value: feeInSol.toString(),
-      usd: usd.toString()
-    }
+      value: feeInSol,
+      usd: usd,
+    };
   }
 
   async sendMainToken(data: ISendingTransactionData): Promise<string> {
@@ -108,45 +102,36 @@ export class solanaService implements IChainService {
         fromPubkey: this.address.publicKey,
         toPubkey: new PublicKey(data.receiverAddress),
         lamports: data.amount * LAMPORTS_PER_SOL,
-      }),
+      })
     );
 
     const signature = await solanaWeb3.sendAndConfirmTransaction(this.connection, transaction, [this.address]);
-    return signature
+    return signature;
   }
 
   async send20Token(data: ISendingTransactionData): Promise<string> {
-    const mintToken = new Token(
-      this.connection,
-      new PublicKey(data.cotractAddress),
-      TOKEN_PROGRAM_ID,
-      this.address
-    )
+    const mintToken = new Token(this.connection, new PublicKey(data.cotractAddress), TOKEN_PROGRAM_ID, this.address);
 
-    const fromTokenAccount = await mintToken.getOrCreateAssociatedAccountInfo(this.address.publicKey)
-    const receiverAddress = new PublicKey(data.receiverAddress)
-    const toTokenAccount = await mintToken.getOrCreateAssociatedAccountInfo(receiverAddress)
+    const fromTokenAccount = await mintToken.getOrCreateAssociatedAccountInfo(this.address.publicKey);
+    const receiverAddress = new PublicKey(data.receiverAddress);
+    const toTokenAccount = await mintToken.getOrCreateAssociatedAccountInfo(receiverAddress);
 
-    const transaction = new solanaWeb3.Transaction()
-      .add(
-        Token.createTransferInstruction(
-          TOKEN_PROGRAM_ID,
-          fromTokenAccount.address,
-          toTokenAccount.address,
-          this.address.publicKey,
-          [],
-          data.amount * 100
-        )
-      );
-
-    const signature = await solanaWeb3.sendAndConfirmTransaction(
-      this.connection,
-      transaction,
-      [this.address],
-      { commitment: 'confirmed' },
+    const transaction = new solanaWeb3.Transaction().add(
+      Token.createTransferInstruction(
+        TOKEN_PROGRAM_ID,
+        fromTokenAccount.address,
+        toTokenAccount.address,
+        this.address.publicKey,
+        [],
+        data.amount * 100
+      )
     );
 
-    return signature
+    const signature = await solanaWeb3.sendAndConfirmTransaction(this.connection, transaction, [this.address], {
+      commitment: 'confirmed',
+    });
+
+    return signature;
   }
 
   async getTransactionsHistoryByAddress(address: any): Promise<ITransaction[]> {
@@ -178,9 +163,7 @@ export class solanaService implements IChainService {
       transactions.push(...resp.data.data.solana.transfers);
     }
 
-    transactions = transactions.map((el: any) =>
-      this.convertTransactionToCommonFormat(el, address, Number(solToUSD.data.usd))
-    );
+    transactions = transactions.map((el: any) => this.convertTransactionToCommonFormat(el, address, Number(solToUSD.data.usd)));
 
     transactions.sort((a, b) => {
       if (a.timestamp > b.timestamp) {
@@ -220,7 +203,7 @@ export class solanaService implements IChainService {
       tokenType,
       tokenPriceInUSD,
       tokenLogo,
-      contractAddress
+      contractAddress,
     };
   }
 

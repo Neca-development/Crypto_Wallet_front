@@ -1,5 +1,5 @@
-import { IChainService, ISendingTransactionData, IToken, ITransaction } from "../main";
-import { IFee } from "../models/transaction";
+import { IChainService, ISendingTransactionData, IToken, ITransaction } from '../main';
+import { IFee } from '../models/transaction';
 export declare class solanaService implements IChainService {
     private address;
     private connection;

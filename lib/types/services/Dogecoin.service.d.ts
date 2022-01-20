@@ -3,7 +3,7 @@ import { IWalletKeys } from '../models/wallet';
 import { IChainService } from '../models/chainService';
 import { ITransaction } from '../models/transaction';
 import { IToken } from '../models/token';
-export declare class bitcoinService implements IChainService {
+export declare class dogecoinService implements IChainService {
     private keys;
     constructor();
     generateKeyPair(mnemonic: string): Promise<IWalletKeys>;
@@ -22,4 +22,4 @@ export declare class bitcoinService implements IChainService {
      */
     private convertTransactionToCommonFormat;
 }
-//# sourceMappingURL=Bitcoin.service.d.ts.map
+//# sourceMappingURL=Dogecoin.service.d.ts.map

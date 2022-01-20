@@ -7,7 +7,7 @@ import { ICryptoCurrency, IToken } from '../models/token';
 // @ts-ignore
 import * as bitboxSdk from 'bitbox-sdk';
 
-import { imagesURL, backendApi, backendApiKey, bitqueryProxy } from '../constants/providers';
+import { imagesURL, backendApi, backendApiKey, bitqueryProxy, bitcoincashSatoshisPerByte } from '../constants/providers';
 
 // @ts-ignore
 import axios from 'axios';
@@ -16,7 +16,6 @@ import { IResponse } from '../models/response';
 // @ts-ignore
 import litecore from 'bitcore-lib-ltc';
 
-import * as bitcoin from 'bitcoinjs-lib';
 import { CustomError } from '../errors';
 
 // import HDKey from 'hdkey';
@@ -64,7 +63,7 @@ export class bitcoincashService implements IChainService {
   }
 
   async generatePublicKey(privateKey: string): Promise<string> {
-    const publicKey = litecore.PrivateKey(privateKey).toAddress('testnet').toString();
+    const publicKey = litecore.PrivateKey(privateKey).toAddress().toString();
 
     this.keys = {
       privateKey,
@@ -105,12 +104,53 @@ export class bitcoincashService implements IChainService {
     return tokens;
   }
 
-  async getFeePriceOracle(from: string, to: string): Promise<IFee> {
-    console.log({ from, to });
+  async getFeePriceOracle(from: string, to: string, amount: number): Promise<IFee> {
+    // Replace the address below with the address you want to send the BCH to.
+    let RECV_ADDR = to;
+    const SATOSHIS_TO_SEND = Math.trunc(amount * 1e8);
+
+    const SEND_ADDR = this.keys.publicKey;
+
+    // Send the money back to yourself if the users hasn't specified a destination.
+    if (RECV_ADDR === '') RECV_ADDR = SEND_ADDR;
+
+    const u: any = await this.bitbox.Address.utxo(SEND_ADDR);
+
+    let totalInputsBalance = 0,
+      fee = 0,
+      inputCount = 0;
+
+    this.sortUtxos(u.utxos);
+
+    u.utxos.forEach(async (utxo: any) => {
+      fee = Math.floor(this.bitbox.BitcoinCash.getByteCount({ P2PKH: inputCount }, { P2PKH: 2 }) * bitcoincashSatoshisPerByte);
+
+      if (totalInputsBalance - SATOSHIS_TO_SEND - fee > 0) {
+        return;
+      }
+
+      totalInputsBalance = Math.floor(totalInputsBalance + utxo.satoshis);
+    });
+
+    if (totalInputsBalance - SATOSHIS_TO_SEND - fee < 0) {
+      throw new Error('Balance is too low for this transaction');
+    }
+
+    const value = fee * 1e-8;
+
+    const bchToUSD = (
+      await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/BCH`, {
+        headers: {
+          'auth-client-key': backendApiKey,
+        },
+      })
+    ).data;
+
+    const usd = Math.trunc(Number(bchToUSD.data.usd) * value * 100) / 100;
 
     return {
-      value: '12324',
-      usd: '2',
+      value,
+      usd,
     };
   }
 
@@ -219,16 +259,14 @@ export class bitcoincashService implements IChainService {
 
     const transactionBuilder = new this.bitbox.TransactionBuilder(this.NETWORK);
 
-    const satoshisPerByte = 1.3;
-
     let totalInputsBalance = 0,
       fee = 0,
       inputCount = 0;
 
-    sortUtxos(u.utxos);
+    this.sortUtxos(u.utxos);
 
     u.utxos.forEach(async (utxo: any) => {
-      fee = Math.floor(this.bitbox.BitcoinCash.getByteCount({ P2PKH: inputCount }, { P2PKH: 2 }) * satoshisPerByte);
+      fee = Math.floor(this.bitbox.BitcoinCash.getByteCount({ P2PKH: inputCount }, { P2PKH: 2 }) * bitcoincashSatoshisPerByte);
 
       if (totalInputsBalance - SATOSHIS_TO_SEND - fee > 0) {
         return;
@@ -274,17 +312,6 @@ export class bitcoincashService implements IChainService {
     return txidStr;
 
     // Returns the utxo with the biggest balance from an array of utxos.
-    function sortUtxos(utxos: any) {
-      utxos.sort((a: any, b: any) => {
-        if (a.satoshis > b.satoshis) {
-          return -1;
-        } else if (a.satoshis < b.satoshis) {
-          return 1;
-        } else {
-          return 0;
-        }
-      });
-    }
   }
 
   async send20Token(): Promise<string> {
@@ -346,5 +373,17 @@ export class bitcoincashService implements IChainService {
       status: true,
       tokenLogo,
     };
+  }
+
+  sortUtxos(utxos: any) {
+    utxos.sort((a: any, b: any) => {
+      if (a.satoshis > b.satoshis) {
+        return -1;
+      } else if (a.satoshis < b.satoshis) {
+        return 1;
+      } else {
+        return 0;
+      }
+    });
   }
 }

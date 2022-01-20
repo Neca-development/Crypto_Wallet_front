@@ -5,7 +5,7 @@ import { IChainService } from '../models/chainService';
 import { ITransaction } from '../models/transaction';
 import { ICryptoCurrency, IToken } from '../models/token';
 
-import { imagesURL, backendApi, backendApiKey, bitqueryProxy } from '../constants/providers';
+import { imagesURL, backendApi, backendApiKey, bitqueryProxy, litecoinSatoshisPerByte } from '../constants/providers';
 
 // @ts-ignore
 import axios from 'axios';
@@ -15,9 +15,6 @@ import { IResponse } from '../models/response';
 import litecore from 'bitcore-lib-ltc';
 // @ts-ignore
 
-import * as ecc from 'tiny-secp256k1';
-import BIP32Factory from 'bip32';
-
 import { mnemonicToSeedSync } from 'bip39';
 
 // import createHash from 'create-hash';
@@ -25,6 +22,8 @@ import { mnemonicToSeedSync } from 'bip39';
 
 import * as bitcoin from 'bitcoinjs-lib';
 import { CustomError } from '../errors';
+
+import coininfo from 'coininfo';
 
 // import HDKey from 'hdkey';
 
@@ -37,11 +36,9 @@ export class litecoinService implements IChainService {
 
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
     const seed = mnemonicToSeedSync(mnemonic);
-    const privateKey = litecore.HDPrivateKey.fromSeed(seed).deriveChild("m/44'/1'/0'/0/0").privateKey.toString();
-    const publicKey = litecore.HDPrivateKey.fromSeed(seed)
-      .deriveChild("m/44'/1'/0'/0/0")
-      .privateKey.toAddress('testnet')
-      .toString();
+    const privateKey = litecore.HDPrivateKey.fromSeed(seed).deriveChild("m/44'/2'/0'/0/0").privateKey.toString();
+    const publicKey = litecore.HDPrivateKey.fromSeed(seed).deriveChild("m/44'/2'/0'/0/0").privateKey.toAddress().toString();
+    console.log(litecore.HDPrivateKey.fromSeed(seed).deriveChild("m/44'/2'/0'/0/0").privateKey.toWIF());
 
     this.keys = {
       privateKey,
@@ -52,7 +49,7 @@ export class litecoinService implements IChainService {
   }
 
   async generatePublicKey(privateKey: string): Promise<string> {
-    const publicKey = litecore.PrivateKey(privateKey).toAddress('testnet').toString();
+    const publicKey = litecore.PrivateKey(privateKey).toAddress().toString();
 
     this.keys = {
       privateKey,
@@ -77,7 +74,7 @@ export class litecoinService implements IChainService {
       console.log('server was dropped');
     }
 
-    const sochain_network = 'LTCTEST';
+    const sochain_network = 'LTC';
 
     let { data: balance } = await axios.get(`https://sochain.com/api/v2/get_address_balance/${sochain_network}/${address}`);
 
@@ -90,17 +87,61 @@ export class litecoinService implements IChainService {
     return tokens;
   }
 
-  async getFeePriceOracle(from: string, to: string): Promise<IFee> {
-    console.log({ from, to });
+  async getFeePriceOracle(from: string, to: string, amount: number): Promise<IFee> {
+    amount = Math.trunc(amount * 1e8);
+    const sochain_network = 'LTC',
+      sourceAddress = from,
+      utxos = await axios.get(`https://sochain.com/api/v2/get_tx_unspent/${sochain_network}/${sourceAddress}`);
+
+    let totalInputsBalance = 0,
+      fee = 0,
+      inputCount = 0,
+      outputCount = 2;
+
+    utxos.data.data.txs.sort((a: any, b: any) => {
+      if (Number(a.value) > Number(b.value)) {
+        return -1;
+      } else if (Number(a.value) < Number(b.value)) {
+        return 1;
+      } else {
+        return 0;
+      }
+    });
+
+    utxos.data.data.txs.forEach(async (element: any) => {
+      fee = (inputCount * 146 + outputCount * 33 + 10) * 20 * litecoinSatoshisPerByte;
+
+      if (totalInputsBalance - amount - fee > 0) {
+        return;
+      }
+
+      inputCount += 1;
+      totalInputsBalance += Math.floor(Number(element.value) * 100000000);
+    });
+
+    if (totalInputsBalance - amount - fee < 0) {
+      throw new Error('Balance is too low for this transaction');
+    }
+
+    const value = fee * 1e-8;
+
+    const ltcToUSD = (
+      await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/LTC`, {
+        headers: {
+          'auth-client-key': backendApiKey,
+        },
+      })
+    ).data;
+
+    const usd = Math.trunc(Number(ltcToUSD.data.usd) * value * 100) / 100;
 
     return {
-      value: '12324',
-      usd: '2',
+      value,
+      usd,
     };
   }
 
   async getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]> {
-    address = 'ltc1qq5jhxh8z8r042gqeznh9p3gyd2uc2kt00cq88q';
     const { data: ltcToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/LTC`, {
       headers: {
         'auth-client-key': backendApiKey,
@@ -188,13 +229,19 @@ export class litecoinService implements IChainService {
   }
 
   async sendMainToken(data: ISendingTransactionData): Promise<string> {
-    const sochain_network = 'LTCTEST',
+    let netGain = coininfo.litecoin.main.toBitcoinJS();
+
+    const sochain_network = 'LTC',
       privateKey = data.privateKey,
       sourceAddress = this.keys.publicKey,
       utxos = await axios.get(`https://sochain.com/api/v2/get_tx_unspent/${sochain_network}/${sourceAddress}`),
-      transaction = new bitcoin.TransactionBuilder(bitcoin.networks.testnet),
+      // @ts-ignore
+      transaction = new bitcoin.TransactionBuilder(netGain),
       amount = Math.trunc(data.amount * 1e8),
-      privateKeyECpair = bitcoin.ECPair.fromPrivateKey(Buffer.from(privateKey, 'hex'), { network: bitcoin.networks.testnet });
+      privateKeyECpair = bitcoin.ECPair.fromPrivateKey(Buffer.from(privateKey, 'hex'), {
+        // @ts-ignore
+        network: netGain,
+      });
 
     let totalInputsBalance = 0,
       fee = 0,
@@ -202,6 +249,7 @@ export class litecoinService implements IChainService {
       outputCount = 2;
 
     transaction.setVersion(1);
+    console.log(utxos);
 
     utxos.data.data.txs.sort((a: any, b: any) => {
       if (Number(a.value) > Number(b.value)) {
@@ -214,7 +262,8 @@ export class litecoinService implements IChainService {
     });
 
     utxos.data.data.txs.forEach(async (element: any) => {
-      fee = (inputCount * 146 + outputCount * 33 + 10) * 20;
+      fee = (inputCount * 146 + outputCount * 33 + 10) * 20 * litecoinSatoshisPerByte;
+      console.log(fee);
 
       if (totalInputsBalance - amount - fee > 0) {
         return;
@@ -236,6 +285,7 @@ export class litecoinService implements IChainService {
     for (let i = 0; i < inputCount; i++) {
       transaction.sign(i, privateKeyECpair);
     }
+    console.log(transaction.buildIncomplete().toHex());
 
     const { data: trRequest } = await axios.post(
       `${backendApi}transactions/so-chain/${sochain_network}`,
