@@ -7,7 +7,7 @@ import { ICryptoCurrency, IToken } from '../models/token';
 // @ts-ignore
 import * as bitboxSdk from 'bitbox-sdk';
 
-import { imagesURL, backendApi, backendApiKey, bitqueryProxy, bitcoincashSatoshisPerByte } from '../constants/providers';
+import { imagesURL, backendApi, backendApiKey, bitqueryProxy } from '../constants/providers';
 
 // @ts-ignore
 import axios from 'axios';
@@ -16,6 +16,7 @@ import { IResponse } from '../models/response';
 // @ts-ignore
 import litecore from 'bitcore-lib-ltc';
 
+import * as bitcoin from 'bitcoinjs-lib';
 import { CustomError } from '../errors';
 
 // import HDKey from 'hdkey';
@@ -63,7 +64,7 @@ export class bitcoincashService implements IChainService {
   }
 
   async generatePublicKey(privateKey: string): Promise<string> {
-    const publicKey = litecore.PrivateKey(privateKey).toAddress().toString();
+    const publicKey = litecore.PrivateKey(privateKey).toAddress('testnet').toString();
 
     this.keys = {
       privateKey,
@@ -106,15 +107,13 @@ export class bitcoincashService implements IChainService {
 
   async getFeePriceOracle(from: string, to: string, amount: number): Promise<IFee> {
     // Replace the address below with the address you want to send the BCH to.
-    let RECV_ADDR = to;
     const SATOSHIS_TO_SEND = Math.trunc(amount * 1e8);
 
-    const SEND_ADDR = this.keys.publicKey;
-
-    // Send the money back to yourself if the users hasn't specified a destination.
-    if (RECV_ADDR === '') RECV_ADDR = SEND_ADDR;
+    const SEND_ADDR = from;
 
     const u: any = await this.bitbox.Address.utxo(SEND_ADDR);
+
+    const satoshisPerByte = 1.3;
 
     let totalInputsBalance = 0,
       fee = 0,
@@ -123,12 +122,13 @@ export class bitcoincashService implements IChainService {
     this.sortUtxos(u.utxos);
 
     u.utxos.forEach(async (utxo: any) => {
-      fee = Math.floor(this.bitbox.BitcoinCash.getByteCount({ P2PKH: inputCount }, { P2PKH: 2 }) * bitcoincashSatoshisPerByte);
+      fee = Math.floor(this.bitbox.BitcoinCash.getByteCount({ P2PKH: inputCount }, { P2PKH: 2 }) * satoshisPerByte);
 
       if (totalInputsBalance - SATOSHIS_TO_SEND - fee > 0) {
         return;
       }
 
+      inputCount += 1;
       totalInputsBalance = Math.floor(totalInputsBalance + utxo.satoshis);
     });
 
@@ -138,15 +138,15 @@ export class bitcoincashService implements IChainService {
 
     const value = fee * 1e-8;
 
-    const bchToUSD = (
-      await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/BCH`, {
+    const btcToUSD = (
+      await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/BTC`, {
         headers: {
           'auth-client-key': backendApiKey,
         },
       })
     ).data;
 
-    const usd = Math.trunc(Number(bchToUSD.data.usd) * value * 100) / 100;
+    const usd = Math.trunc(Number(btcToUSD.data.usd) * value * 100) / 100;
 
     return {
       value,
@@ -250,66 +250,111 @@ export class bitcoincashService implements IChainService {
 
     const SEND_ADDR = this.keys.publicKey;
 
-    // Send the money back to yourself if the users hasn't specified a destination.
-    if (RECV_ADDR === '') RECV_ADDR = SEND_ADDR;
+    // Get the balance in BCH of a BCH address.
+    const getBCHBalance = async (addr: string, verbose: any) => {
+      try {
+        const bchBalance: any = await this.bitbox.Address.details(addr);
 
-    const RECV_ADDR_LEGACY = this.bitbox.Address.toLegacyAddress(RECV_ADDR);
+        if (verbose) console.log(bchBalance);
 
-    const u: any = await this.bitbox.Address.utxo(SEND_ADDR);
+        return bchBalance.balance;
+      } catch (err) {
+        console.error(`Error in getBCHBalance: `, err);
+        console.log(`addr: ${addr}`);
+        throw err;
+      }
+    };
 
-    const transactionBuilder = new this.bitbox.TransactionBuilder(this.NETWORK);
+    try {
+      // Send the money back to yourself if the users hasn't specified a destination.
+      if (RECV_ADDR === '') RECV_ADDR = SEND_ADDR;
 
-    let totalInputsBalance = 0,
-      fee = 0,
-      inputCount = 0;
+      // Get the balance of the sending address.
+      const balance = await getBCHBalance(SEND_ADDR, false);
+      console.log(`balance: ${JSON.stringify(balance, null, 2)}`);
+      console.log(`Balance of sending address ${SEND_ADDR} is ${balance} BCH.`);
 
-    this.sortUtxos(u.utxos);
-
-    u.utxos.forEach(async (utxo: any) => {
-      fee = Math.floor(this.bitbox.BitcoinCash.getByteCount({ P2PKH: inputCount }, { P2PKH: 2 }) * bitcoincashSatoshisPerByte);
-
-      if (totalInputsBalance - SATOSHIS_TO_SEND - fee > 0) {
-        return;
+      // Exit if the balance is zero.
+      if (balance <= 0.0) {
+        console.log(`Balance of sending address is zero. Exiting.`);
+        process.exit(0);
       }
 
-      // add input with txid and index of vout
-      transactionBuilder.addInput(utxo.txid, utxo.vout);
+      const SEND_ADDR_LEGACY = this.bitbox.Address.toLegacyAddress(SEND_ADDR);
+      const RECV_ADDR_LEGACY = this.bitbox.Address.toLegacyAddress(RECV_ADDR);
+      console.log(`Sender Legacy Address: ${SEND_ADDR_LEGACY}`);
+      console.log(`Receiver Legacy Address: ${RECV_ADDR_LEGACY}`);
 
-      totalInputsBalance = Math.floor(totalInputsBalance + utxo.satoshis);
-    });
+      const balance2 = await getBCHBalance(RECV_ADDR, false);
+      console.log(`Balance of recieving address ${RECV_ADDR} is ${balance2} BCH.`);
 
-    if (totalInputsBalance - SATOSHIS_TO_SEND - fee < 0) {
-      throw new Error('Balance is too low for this transaction');
+      const u: any = await this.bitbox.Address.utxo(SEND_ADDR);
+
+      const transactionBuilder = new this.bitbox.TransactionBuilder(this.NETWORK);
+
+      const satoshisPerByte = 1.3;
+
+      let totalInputsBalance = 0,
+        fee = 0,
+        inputCount = 0;
+
+      this.sortUtxos(u.utxos);
+
+      u.utxos.forEach(async (utxo: any) => {
+        fee = Math.floor(this.bitbox.BitcoinCash.getByteCount({ P2PKH: inputCount }, { P2PKH: 2 }) * satoshisPerByte);
+
+        if (totalInputsBalance - SATOSHIS_TO_SEND - fee > 0) {
+          return;
+        }
+
+        // add input with txid and index of vout
+        transactionBuilder.addInput(utxo.txid, utxo.vout);
+
+        inputCount += 1;
+
+        totalInputsBalance = Math.floor(totalInputsBalance + utxo.satoshis);
+      });
+
+      if (totalInputsBalance - SATOSHIS_TO_SEND - fee < 0) {
+        throw new Error('Balance is too low for this transaction');
+      }
+
+      // amount to send back to the sending address.
+      // It's the original amount - 1 sat/byte for tx size
+      const remainder = totalInputsBalance - SATOSHIS_TO_SEND - fee;
+
+      // add output w/ address and amount to send
+      transactionBuilder.addOutput(RECV_ADDR_LEGACY, SATOSHIS_TO_SEND);
+      if (remainder >= 1000) {
+        transactionBuilder.addOutput(SEND_ADDR, remainder);
+      }
+
+      const ecPair = this.bitbox.ECPair.fromWIF(SEND_WIF);
+
+      // Sign the transaction with the HD node.
+      let redeemScript;
+
+      for (let i = 0; i < inputCount; i++) {
+        transactionBuilder.sign(i, ecPair, redeemScript, transactionBuilder.hashTypes.SIGHASH_ALL, u.utxos[i].satoshis);
+      }
+
+      // build tx
+      const tx = transactionBuilder.build();
+      // output rawhex
+      const hex = tx.toHex();
+      console.log(`TX hex: ${hex}`);
+      console.log(transactionBuilder);
+
+      // Broadcast transation to the network
+      const txidStr = await this.bitbox.RawTransactions.sendRawTransaction([hex]);
+      console.log(`Transaction ID: ${txidStr}`);
+      console.log(`Check the status of your transaction on this block explorer:`);
+      console.log(`https://explorer.bitcoin.com/tbch/tx/${txidStr}`);
+
+      return txidStr;
+    } catch (err) {
+      console.log(`error: `, err);
     }
-
-    // amount to send back to the sending address.
-    // It's the original amount - 1 sat/byte for tx size
-    const remainder = totalInputsBalance - SATOSHIS_TO_SEND - fee;
-
-    // add output w/ address and amount to send
-    transactionBuilder.addOutput(RECV_ADDR_LEGACY, SATOSHIS_TO_SEND);
-    if (remainder >= 1000) {
-      transactionBuilder.addOutput(SEND_ADDR, remainder);
-    }
-
-    const ecPair = this.bitbox.ECPair.fromWIF(SEND_WIF);
-
-    // Sign the transaction with the HD node.
-    let redeemScript;
-
-    for (let i = 0; i < inputCount; i++) {
-      transactionBuilder.sign(i, ecPair, redeemScript, transactionBuilder.hashTypes.SIGHASH_ALL, u.utxos[i].satoshis);
-    }
-
-    // build tx
-    const tx = transactionBuilder.build();
-    // output rawhex
-    const hex = tx.toHex();
-
-    // Broadcast transation to the network
-    const txidStr = await this.bitbox.RawTransactions.sendRawTransaction([hex]);
-
-    return txidStr;
 
     // Returns the utxo with the biggest balance from an array of utxos.
   }
