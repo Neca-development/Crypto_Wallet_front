@@ -7,7 +7,7 @@ import { ICryptoCurrency, IToken } from '../models/token';
 // @ts-ignore
 import * as bitboxSdk from 'bitbox-sdk';
 
-import { imagesURL, backendApi, backendApiKey, bitqueryProxy } from '../constants/providers';
+import { imagesURL, backendApi, backendApiKey, bitqueryProxy, bitcoincashSatoshisPerByte } from '../constants/providers';
 
 // @ts-ignore
 import axios from 'axios';
@@ -113,8 +113,6 @@ export class bitcoincashService implements IChainService {
 
     const u: any = await this.bitbox.Address.utxo(SEND_ADDR);
 
-    const satoshisPerByte = 1.3;
-
     let totalInputsBalance = 0,
       fee = 0,
       inputCount = 0;
@@ -122,7 +120,7 @@ export class bitcoincashService implements IChainService {
     this.sortUtxos(u.utxos);
 
     u.utxos.forEach(async (utxo: any) => {
-      fee = Math.floor(this.bitbox.BitcoinCash.getByteCount({ P2PKH: inputCount }, { P2PKH: 2 }) * satoshisPerByte);
+      fee = Math.floor(this.bitbox.BitcoinCash.getByteCount({ P2PKH: inputCount }, { P2PKH: 2 }) * bitcoincashSatoshisPerByte);
 
       if (totalInputsBalance - SATOSHIS_TO_SEND - fee > 0) {
         return;
@@ -292,8 +290,6 @@ export class bitcoincashService implements IChainService {
 
       const transactionBuilder = new this.bitbox.TransactionBuilder(this.NETWORK);
 
-      const satoshisPerByte = 1.3;
-
       let totalInputsBalance = 0,
         fee = 0,
         inputCount = 0;
@@ -301,7 +297,7 @@ export class bitcoincashService implements IChainService {
       this.sortUtxos(u.utxos);
 
       u.utxos.forEach(async (utxo: any) => {
-        fee = Math.floor(this.bitbox.BitcoinCash.getByteCount({ P2PKH: inputCount }, { P2PKH: 2 }) * satoshisPerByte);
+        fee = Math.floor(this.bitbox.BitcoinCash.getByteCount({ P2PKH: inputCount }, { P2PKH: 2 }) * bitcoincashSatoshisPerByte);
 
         if (totalInputsBalance - SATOSHIS_TO_SEND - fee > 0) {
           return;
