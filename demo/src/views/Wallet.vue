@@ -282,7 +282,7 @@ export default {
 
     this.updateInterval = setInterval(() => {
       this.updateWalletInfo();
-    }, 30000);
+    }, 600000);
   },
   beforeDestroy() {
     clearInterval(this.updateInterval);
