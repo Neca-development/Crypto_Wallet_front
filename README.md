@@ -2,6 +2,19 @@
 
 ---
 
+## Supported blockchains
+
+- Tron
+- Ethereum
+- EthereumClassic
+- Binance
+- Solana
+- Polygon
+- Bitcoin
+- Litecoin
+- Bitcoincash
+- Dogecoin
+
 ## Project installation
 
 1. To begin, you must install the project dependencies by running
@@ -26,7 +39,7 @@ const wallets = await wf.createWallets(mnemonic);
 
 ---
 
-Detailed information on the properties and methods of the wallet can be found in the documentation at link (classes/Wallet.html)
+Detailed information on the properties and methods of the wallet can be found in the documentation at [link](classes/Wallet.html)
 A demo of the library can be found in the folder `demo`
 
 ## Project scripts
