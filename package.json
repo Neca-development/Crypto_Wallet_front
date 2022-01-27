@@ -14,6 +14,7 @@
   "license": "ISC",
   "dependencies": {
     "@binance-chain/javascript-sdk": "^4.2.0",
+    "@dashevo/dashcore-lib": "^0.19.29",
     "@ethereumjs/tx": "^3.4.0",
     "@pefish/js-coin-ltc": "0.0.7",
     "@solana/spl-token": "^0.1.8",
