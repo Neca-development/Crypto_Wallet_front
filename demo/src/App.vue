@@ -30,8 +30,8 @@ export default {
       'Bitcoin'
     );
     console.log({ data, data1, data2 });
-    this.$store.commit('ADD_WALLETS', [data1, data2]);
-    // this.$store.commit('ADD_WALLETS', data.wallets);
+    // this.$store.commit('ADD_WALLETS', [data1, data2]);
+    this.$store.commit('ADD_WALLETS', data.wallets);
   },
   beforeDestroy() {
     clearInterval(this.coinsToUSDIntervalID);

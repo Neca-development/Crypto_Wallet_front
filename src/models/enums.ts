@@ -9,6 +9,7 @@ export enum ChainIds {
   'Litecoin',
   'Bitcoincash',
   'Dogecoin',
+  'Dash',
 }
 
 export enum ErrorsTypes {

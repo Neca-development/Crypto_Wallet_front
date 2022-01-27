@@ -24,4 +24,5 @@ export declare const etcWeb3Provider = "https://www.ethercluster.com/etc";
 export declare const dogeSatoshisPerByte = 10316;
 export declare const litecoinSatoshisPerByte = 200;
 export declare const bitcoincashSatoshisPerByte = 1.3;
+export declare const dashSatoshisPerByte = 20;
 //# sourceMappingURL=providers.d.ts.map
