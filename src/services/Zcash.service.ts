@@ -20,7 +20,8 @@ import { mnemonicToSeedSync } from 'bip39';
 // import createHash from 'create-hash';
 // import bs58check from 'bs58check';
 
-import * as bitcoin from 'bitcoinjs-lib';
+import * as bitcoin from 'bitcoinjs-lib-zcash';
+import * as utxolib from '@bitgo/utxo-lib';
 import { CustomError } from '../errors';
 
 import coininfo from 'coininfo';
@@ -36,10 +37,20 @@ export class zcashService implements IChainService {
 
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
     const seed = mnemonicToSeedSync(mnemonic);
-    console.log(coininfo.zcash.main.toBitcore());
 
-    const privateKey = zcashcore.HDPrivateKey.fromSeed(seed, coininfo.zcash.main.toBitcore()).privateKey.toWIF();
-    const publicKey = zcashcore.HDPrivateKey.fromSeed(seed, coininfo.zcash.main.toBitcore()).privateKey.toAddress().toString();
+    console.log('dash', coininfo.dash.main.toBitcoinJS());
+    console.log('litecoin', coininfo.litecoin.main.toBitcoinJS());
+    console.log('zcash', coininfo.zcash.main.toBitcoinJS());
+    console.log('bitGo-zcash', utxolib);
+
+    const privateKey = zcashcore.HDPrivateKey.fromSeed(seed, coininfo.zcash.main.toBitcore())
+      .derive("m/44'/133'/0'/0/0")
+      .privateKey.toWIF();
+    const publicKey = zcashcore.HDPrivateKey.fromSeed(seed, coininfo.zcash.main.toBitcore())
+      .derive("m/44'/133'/0'/0/0")
+      .privateKey.toAddress()
+      .toString();
+    console.log(zcashcore.PrivateKey(privateKey));
 
     this.keys = {
       privateKey,
@@ -64,8 +75,8 @@ export class zcashService implements IChainService {
     const tokens: Array<IToken> = [];
     let dashToUSD: IResponse<ICryptoCurrency>;
     try {
-      //  TODO попросить бэк добавить курс DASH
-      // dashToUSD  = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/DASH`, {
+      //  TODO попросить бэк добавить курс 	ZEC
+      // dashToUSD  = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/	ZEC`, {
       //   headers: {
       //     'auth-client-key': backendApiKey,
       //   },
@@ -74,7 +85,7 @@ export class zcashService implements IChainService {
       dashToUSD = {
         data: {
           id: 5,
-          coinName: 'DASH',
+          coinName: '	ZEC',
           usd: '95.5',
         },
       };
@@ -82,7 +93,7 @@ export class zcashService implements IChainService {
       console.log('server was dropped');
     }
 
-    const sochain_network = 'DASH';
+    const sochain_network = '	ZEC';
 
     let { data: balance } = await axios.get(`https://sochain.com/api/v2/get_address_balance/${sochain_network}/${address}`);
 
@@ -90,14 +101,14 @@ export class zcashService implements IChainService {
 
     const nativeTokensBalance = balance;
 
-    tokens.push(this.generateTokenObject(nativeTokensBalance, 'DASH', imagesURL + 'DASH.svg', 'native', dashToUSD.data.usd));
+    tokens.push(this.generateTokenObject(nativeTokensBalance, '	ZEC', imagesURL + '	ZEC.svg', 'native', dashToUSD.data.usd));
 
     return tokens;
   }
 
   async getFeePriceOracle(from: string, to: string, amount: number): Promise<IFee> {
     amount = Math.trunc(amount * 1e8);
-    const sochain_network = 'DASH',
+    const sochain_network = '	ZEC',
       sourceAddress = from,
       utxos = await axios.get(`https://sochain.com/api/v2/get_tx_unspent/${sochain_network}/${sourceAddress}`);
 
@@ -133,8 +144,8 @@ export class zcashService implements IChainService {
 
     const value = fee * 1e-8;
 
-    //  TODO попросить бэк добавить курс DASH
-    // const { data: dashToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/DASH`, {
+    //  TODO попросить бэк добавить курс 	ZEC
+    // const { data: dashToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/	ZEC`, {
     //   headers: {
     //     'auth-client-key': backendApiKey,
     //   },
@@ -155,8 +166,8 @@ export class zcashService implements IChainService {
   }
 
   async getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]> {
-    //  TODO попросить бэк добавить курс DASH
-    // const { data: dashToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/DASH`, {
+    //  TODO попросить бэк добавить курс 	ZEC
+    // const { data: dashToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/	ZEC`, {
     //   headers: {
     //     'auth-client-key': backendApiKey,
     //   },
@@ -249,7 +260,7 @@ export class zcashService implements IChainService {
   }
 
   async sendMainToken(data: ISendingTransactionData): Promise<string> {
-    let netGain = coininfo.dash.main.toBitcoinJS();
+    let netGain = utxolib.networks.zcash;
     console.log(
       '%cMyProject%cline:250%cnetGain',
       'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
@@ -258,14 +269,16 @@ export class zcashService implements IChainService {
       netGain
     );
 
-    const sochain_network = 'DASH',
+    const sochain_network = 'ZEC',
       privateKey = data.privateKey,
       sourceAddress = this.keys.publicKey,
       utxos = await axios.get(`https://sochain.com/api/v2/get_tx_unspent/${sochain_network}/${sourceAddress}`),
       // @ts-ignore
-      transaction = new bitcoin.TransactionBuilder(netGain),
-      amount = Math.trunc(data.amount * 1e8),
-      privateKeyECpair = bitcoin.ECPair.fromWIF(privateKey, netGain);
+      transaction = new utxolib.bitgo.createTransactionBuilderForNetwork(netGain),
+      amount = Math.trunc(data.amount * 1e8);
+    console.log(transaction);
+
+    let privateKeyECpair = bitcoin.ECPair.fromWIF(privateKey, netGain);
 
     let totalInputsBalance = 0,
       fee = 0,
@@ -286,7 +299,7 @@ export class zcashService implements IChainService {
     });
 
     utxos.data.data.txs.forEach(async (element: any) => {
-      fee = (inputCount * 146 + outputCount * 33 + 10) * 20 * dashSatoshisPerByte;
+      fee = (inputCount * 146 + outputCount * 33 + 10) * 20 * dashSatoshisPerByte * 10;
       console.log(fee);
 
       if (totalInputsBalance - amount - fee > 0) {
@@ -367,7 +380,7 @@ export class zcashService implements IChainService {
    */
   private convertTransactionToCommonFormat(txData: any, tokenPriceToUSD: number, direction: 'IN' | 'OUT'): ITransaction {
     let amountPriceInUSD = Math.trunc(txData.value * tokenPriceToUSD * 100) / 100;
-    const tokenName = 'DASH';
+    const tokenName = '	ZEC';
     const tokenLogo = imagesURL + tokenName + '.svg';
     const from = direction === 'OUT' ? txData.outputAddress.address : 'unknown';
     const to = direction === 'IN' ? txData.inputAddress.address : 'unknown';
