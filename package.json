@@ -43,7 +43,8 @@
     "typedoc": "^0.22.9",
     "typedoc-plugin-missing-exports": "^0.22.4",
     "uglify-es-webpack-plugin": "^0.10.0",
-    "web3": "^1.6.1"
+    "web3": "^1.6.1",
+    "zcash-bitcore-lib": "^0.13.20-rc3"
   },
   "devDependencies": {
     "@babel/core": "^7.16.0",

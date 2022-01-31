@@ -14,6 +14,7 @@
 - Litecoin
 - Bitcoincash
 - Dogecoin
+- DASH
 
 ## Project installation
 
