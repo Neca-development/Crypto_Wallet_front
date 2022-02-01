@@ -204,6 +204,7 @@ export class binanceService implements IChainService {
     const balanceInUSD = Math.trunc(balance * tokenPriceInUSD * 100) / 100;
 
     return {
+      standard: 'BEP 20',
       balance,
       balanceInUSD,
       contractAddress,

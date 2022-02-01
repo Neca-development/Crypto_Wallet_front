@@ -203,6 +203,7 @@ export class polygonService implements IChainService {
     const balanceInUSD = Math.trunc(balance * tokenPriceInUSD * 100) / 100;
 
     return {
+      standard: 'ERC-20',
       balance,
       balanceInUSD,
       contractAddress,
