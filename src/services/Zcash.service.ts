@@ -41,7 +41,7 @@ export class zcashService implements IChainService {
     console.log('dash', coininfo.dash.main.toBitcoinJS());
     console.log('litecoin', coininfo.litecoin.main.toBitcoinJS());
     console.log('zcash', coininfo.zcash.main.toBitcoinJS());
-    console.log('bitGo-zcash', utxolib);
+    console.log('bitGo-zcash', utxolib.networks.zcash);
 
     const privateKey = zcashcore.HDPrivateKey.fromSeed(seed, coininfo.zcash.main.toBitcore())
       .derive("m/44'/133'/0'/0/0")
@@ -51,6 +51,7 @@ export class zcashService implements IChainService {
       .privateKey.toAddress()
       .toString();
     console.log(zcashcore.PrivateKey(privateKey));
+    console.log('zcashecpair', bitcoin.ECPair.fromWIF(privateKey, utxolib.networks.zcash));
 
     this.keys = {
       privateKey,
@@ -279,13 +280,19 @@ export class zcashService implements IChainService {
     console.log(transaction);
 
     let privateKeyECpair = bitcoin.ECPair.fromWIF(privateKey, netGain);
+    console.log(
+      '%cMyProject%cline:281%cprivateKeyECpair',
+      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
+      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
+      'color:#fff;background:rgb(153, 80, 84);padding:3px;border-radius:2px',
+      privateKeyECpair
+    );
 
     let totalInputsBalance = 0,
       fee = 0,
       inputCount = 0,
       outputCount = 2;
 
-    transaction.setVersion(1);
     console.log(utxos);
 
     utxos.data.data.txs.sort((a: any, b: any) => {
@@ -320,7 +327,8 @@ export class zcashService implements IChainService {
 
     // This assumes all inputs are spending utxos sent to the same Dogecoin P2PKH address (starts with D)
     for (let i = 0; i < inputCount; i++) {
-      transaction.sign(i, privateKeyECpair);
+      utxolib.bitgo.signInputP2shP2pk(transaction, i, privateKeyECpair);
+      // transaction.sign(i, privateKeyECpair);
     }
     console.log(transaction.buildIncomplete().toHex());
 

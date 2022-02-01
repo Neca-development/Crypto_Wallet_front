@@ -24,12 +24,12 @@ export default {
   async created() {
     const wf = new WalletFactory();
     const data = await wf.createWallets('light afraid crawl solve chicken receive sound prize figure turn punch angry');
-    const data1 = await wf.createWalletByPrivateKey('L2iTaRMzSK7cqzXQgivYLP7o1me5WpPhqr9wJysYQkfwT4QEDwpb', 'Bitcoincash');
-    const data2 = await wf.createWalletByPrivateKey(
-      'efbfd14f3a00e033ba8a6958d27aa6180a0f59992fcca65844dccf5bc1f48c9f',
-      'Bitcoin'
-    );
-    console.log({ data, data1, data2 });
+    // const data1 = await wf.createWalletByPrivateKey('L2iTaRMzSK7cqzXQgivYLP7o1me5WpPhqr9wJysYQkfwT4QEDwpb', 'Bitcoincash');
+    // const data2 = await wf.createWalletByPrivateKey(
+    //   'efbfd14f3a00e033ba8a6958d27aa6180a`0f59992fcca65844dccf5bc1f48c9f',
+    //   'Bitcoin'
+    // );
+    // console.log({ data, data1, data2 });
     // this.$store.commit('ADD_WALLETS', [data1, data2]);
     this.$store.commit('ADD_WALLETS', data.wallets);
   },
