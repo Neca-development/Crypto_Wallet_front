@@ -1,4 +1,5 @@
 export interface IToken {
+    standard?: string;
     balance: number;
     balanceInUSD: number;
     tokenPriceInUSD: number;

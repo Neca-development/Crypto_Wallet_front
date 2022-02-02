@@ -15,6 +15,7 @@ import { ethereumClassicService } from './services/EthereumClassic.service';
 import { bitcoincashService } from './services/Bitcoincash.service';
 import { dogecoinService } from './services/Dogecoin.service';
 import { dashService } from './services/Dash.service';
+import { rippleService } from './services/Ripple.service';
 
 export class Wallet {
   private service: IChainService;
@@ -246,6 +247,9 @@ export class Wallet {
           break;
         case ChainIds['Dash']:
           this.service = new dashService();
+          break;
+        case ChainIds['Ripple']:
+          this.service = new rippleService();
           break;
         default:
           break;
