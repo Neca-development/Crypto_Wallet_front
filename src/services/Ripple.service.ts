@@ -13,56 +13,28 @@ import { IResponse } from '../models/response';
 
 // @ts-ignore
 import dogecore from 'bitcore-lib-doge';
-
 import { mnemonicToSeedSync } from 'bip39';
-const bip32 = require('ripple-bip32');
-const ripple = require('ripplelib');
 
-import { deriveKeypair, deriveAddress, generateSeed } from 'ripple-keypairs';
-
-// const coininfo = require('coininfo');
-import * as bitcoin from 'bitcoinjs-lib';
-
-import coininfo from 'coininfo';
-
-import * as accountLib from '@bitgo/account-lib';
-
-// const xrpl = require('xrpl');
+const xrpl = require('xrpl');
 
 import { CustomError } from '../errors';
 import { ErrorsTypes } from '../models/enums';
 
 export class rippleService implements IChainService {
   private keys: IWalletKeys;
+  private wallet;
 
   constructor() {}
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
-    console.log(generateSeed());
+    console.log(mnemonicToSeedSync(mnemonic));
 
-    const seed = mnemonicToSeedSync(mnemonic);
-
-    const m = bip32.fromSeedBuffer(seed);
-
-    const keyPair = m.derivePath("m/44'/144'/0'/0/0").keyPair.getKeyPairs();
-    console.log(keyPair.privateKey);
-
-    const key = ripple.KeyPair.from_json(keyPair.privateKey.substring(2));
-    console.log(key);
-
-    const privateKey = key.to_address_string();
-    console.log(
-      '%cMyProject%cline:46%cprivateKey',
-      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
-      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
-      'color:#fff;background:rgb(39, 72, 98);padding:3px;border-radius:2px',
-      privateKey
-    );
-
-    const publicKey = m.derivePath("m/44'/144'/0'/0/0").getAddress();
+    this.wallet = xrpl.Wallet.fromMnemonic(mnemonic);
+    console.log(this.wallet);
+    console.log(xrpl.Wallet.fromEntropy(mnemonicToSeedSync(mnemonic)));
 
     this.keys = {
-      privateKey,
-      publicKey,
+      privateKey: this.wallet.privateKey,
+      publicKey: this.wallet.address,
     };
 
     return this.keys;
@@ -80,11 +52,13 @@ export class rippleService implements IChainService {
   }
 
   async getTokensByAddress(address: string) {
+    console.log(address);
+
     const tokens: Array<IToken> = [];
     let dogeToUSD: IResponse<ICryptoCurrency>;
     try {
       dogeToUSD = (
-        await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/DOGE`, {
+        await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/XRP`, {
           headers: {
             'auth-client-key': backendApiKey,
           },
@@ -94,66 +68,18 @@ export class rippleService implements IChainService {
       console.log('server was dropped');
     }
 
-    const sochain_network = 'DOGE';
-
-    let { data: balance } = await axios.get(`https://sochain.com/api/v2/get_address_balance/${sochain_network}/${address}`);
-
-    balance = balance.data.confirmed_balance;
+    const balance = 1000;
 
     const nativeTokensBalance = balance;
 
-    tokens.push(this.generateTokenObject(nativeTokensBalance, 'DOGE', imagesURL + 'DOGE.svg', 'native', dogeToUSD.data.usd));
+    tokens.push(this.generateTokenObject(nativeTokensBalance, 'XRP', imagesURL + 'XRP.svg', 'native', dogeToUSD.data.usd));
 
     return tokens;
   }
 
-  async getFeePriceOracle(from: string, to: string, amount: number): Promise<IFee> {
-    amount = Math.trunc(amount * 1e8);
-    const sochain_network = 'DOGE',
-      sourceAddress = from,
-      utxos = await axios.get(`https://sochain.com/api/v2/get_tx_unspent/${sochain_network}/${sourceAddress}`);
-
-    let totalInputsBalance = 0,
-      fee = 0,
-      inputCount = 0,
-      outputCount = 2;
-
-    utxos.data.data.txs.sort((a: any, b: any) => {
-      if (Number(a.value) > Number(b.value)) {
-        return -1;
-      } else if (Number(a.value) < Number(b.value)) {
-        return 1;
-      } else {
-        return 0;
-      }
-    });
-
-    utxos.data.data.txs.forEach(async (element: any) => {
-      fee = (inputCount * 146 + outputCount * 33 + 10) * 20 * dogeSatoshisPerByte;
-
-      if (totalInputsBalance - amount - fee > 0) {
-        return;
-      }
-
-      inputCount += 1;
-      totalInputsBalance += Math.floor(Number(element.value) * 100000000);
-    });
-
-    if (totalInputsBalance - amount - fee < 0) {
-      throw new Error('Balance is too low for this transaction');
-    }
-
-    const value = fee * 1e-8;
-
-    const dogeToUSD = (
-      await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/DOGE`, {
-        headers: {
-          'auth-client-key': backendApiKey,
-        },
-      })
-    ).data;
-
-    const usd = Math.trunc(Number(dogeToUSD.data.usd) * value * 100) / 100;
+  async getFeePriceOracle(): Promise<IFee> {
+    const value = 99;
+    const usd = 1;
 
     return {
       value,
@@ -162,7 +88,7 @@ export class rippleService implements IChainService {
   }
 
   async getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]> {
-    const { data: dogeToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/DOGE`, {
+    const { data: dogeToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/XRP`, {
       headers: {
         'auth-client-key': backendApiKey,
       },
@@ -249,76 +175,38 @@ export class rippleService implements IChainService {
   }
 
   async sendMainToken(data: ISendingTransactionData): Promise<string> {
-    const netGain = coininfo.dogecoin.main.toBitcoinJS();
+    const client = new xrpl.Client('wss://xrplcluster.com');
+    await client.connect();
 
-    const sochain_network = 'DOGE',
-      privateKey = data.privateKey,
-      sourceAddress = this.keys.publicKey,
-      utxos = await axios.get(`https://sochain.com/api/v2/get_tx_unspent/${sochain_network}/${sourceAddress}`),
-      // @ts-ignore
-      transaction = new bitcoin.TransactionBuilder(netGain),
-      amount = Math.trunc(data.amount * 1e8),
-      privateKeyECpair = bitcoin.ECPair.fromPrivateKey(Buffer.from(privateKey, 'hex'), {
-        // @ts-ignore
-        network: netGain,
-      });
-
-    let totalInputsBalance = 0,
-      fee = 0,
-      inputCount = 0,
-      outputCount = 2;
-
-    transaction.setVersion(1);
-
-    utxos.data.data.txs.sort((a: any, b: any) => {
-      if (Number(a.value) > Number(b.value)) {
-        return -1;
-      } else if (Number(a.value) < Number(b.value)) {
-        return 1;
-      } else {
-        return 0;
-      }
+    const prepared = await client.autofill({
+      TransactionType: 'Payment',
+      Account: this.wallet.address,
+      Amount: (data.amount * 1e6).toString(),
+      Destination: data.receiverAddress,
     });
 
-    utxos.data.data.txs.forEach(async (element: any) => {
-      fee = (inputCount * 146 + outputCount * 33 + 10) * 20 * dogeSatoshisPerByte;
-      console.log(fee);
+    // @ts-ignore
+    const max_ledger = prepared.LastLedgerSequence;
+    console.log('Prepared transaction instructions:', prepared);
+    // @ts-ignore
+    console.log('Transaction cost:', xrpl.dropsToXrp(prepared.Fee), 'XRP');
+    console.log('Transaction expires after ledger:', max_ledger);
 
-      if (totalInputsBalance - amount - fee > 0) {
-        return;
-      }
+    const signed = this.wallet.sign(prepared);
+    console.log('Identifying hash:', signed.hash);
+    console.log('Signed blob:', signed.tx_blob);
 
-      transaction.addInput(element.txid, element.output_no);
-      inputCount += 1;
-      totalInputsBalance += Math.floor(Number(element.value) * 100000000);
-    });
-
-    if (totalInputsBalance - amount - fee < 0) {
-      throw new Error('Balance is too low for this transaction');
-    }
-
-    transaction.addOutput(data.receiverAddress, amount);
-    transaction.addOutput(sourceAddress, totalInputsBalance - amount - fee);
-
-    // This assumes all inputs are spending utxos sent to the same Dogecoin P2PKH address (starts with D)
-    for (let i = 0; i < inputCount; i++) {
-      transaction.sign(i, privateKeyECpair);
-    }
-    console.log(transaction.buildIncomplete().toHex());
-
-    const { data: trRequest } = await axios.post(
-      `${backendApi}transactions/so-chain/${sochain_network}`,
-      {
-        tx_hex: transaction.buildIncomplete().toHex(),
-      },
-      {
-        headers: {
-          'auth-client-key': backendApiKey,
-        },
-      }
+    const tx = await client.submitAndWait(signed.tx_blob);
+    console.log(
+      '%cMyProject%cline:270%ctx',
+      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
+      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
+      'color:#fff;background:rgb(20, 68, 106);padding:3px;border-radius:2px',
+      tx
     );
 
-    return trRequest.data.txid;
+    client.disconnect();
+    return tx.result.hash;
   }
 
   async send20Token(): Promise<string> {
@@ -362,7 +250,7 @@ export class rippleService implements IChainService {
    */
   private convertTransactionToCommonFormat(txData: any, tokenPriceToUSD: number, direction: 'IN' | 'OUT'): ITransaction {
     let amountPriceInUSD = Math.trunc(txData.value * tokenPriceToUSD * 100) / 100;
-    const tokenName = 'DOGE';
+    const tokenName = 'XRP';
     const tokenLogo = imagesURL + tokenName + '.svg';
     const from = direction === 'OUT' ? txData.outputAddress.address : 'unknown';
     const to = direction === 'IN' ? txData.inputAddress.address : 'unknown';

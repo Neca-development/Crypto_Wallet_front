@@ -40,6 +40,8 @@
     "hdkey": "^2.0.1",
     "litecore-lib": "^0.13.22",
     "lumi-web-core": "^1.9.2",
+    "node-gyp": "^8.4.1",
+    "rebuild": "^0.1.2",
     "ripple-bip32": "^0.0.3",
     "ripple-keypairs": "^1.1.3",
     "ripplelib": "^1.2.5",
