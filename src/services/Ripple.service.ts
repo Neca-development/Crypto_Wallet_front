@@ -5,15 +5,11 @@ import { IChainService } from '../models/chainService';
 import { ITransaction } from '../models/transaction';
 import { ICryptoCurrency, IToken } from '../models/token';
 
-import { imagesURL, backendApi, backendApiKey, bitqueryProxy, dogeSatoshisPerByte } from '../constants/providers';
+import { imagesURL, backendApi, backendApiKey, bitqueryProxy, rippleProvider } from '../constants/providers';
 
 // @ts-ignore
 import axios from 'axios';
 import { IResponse } from '../models/response';
-
-// @ts-ignore
-import dogecore from 'bitcore-lib-doge';
-import { mnemonicToSeedSync } from 'bip39';
 
 const xrpl = require('xrpl');
 
@@ -23,14 +19,24 @@ import { ErrorsTypes } from '../models/enums';
 export class rippleService implements IChainService {
   private keys: IWalletKeys;
   private wallet;
+  private xrplClient;
+  private connectionPending: boolean;
 
-  constructor() {}
+  constructor() {
+    this.xrplClient = new xrpl.Client(rippleProvider);
+    // this.xrplClient.connect();
+
+    // this.init();
+  }
+
+  async init() {
+    this.connectionPending = true;
+    await this.xrplClient.connect();
+    this.connectionPending = false;
+  }
+
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
-    console.log(mnemonicToSeedSync(mnemonic));
-
     this.wallet = xrpl.Wallet.fromMnemonic(mnemonic);
-    console.log(this.wallet);
-    console.log(xrpl.Wallet.fromEntropy(mnemonicToSeedSync(mnemonic)));
 
     this.keys = {
       privateKey: this.wallet.privateKey,
@@ -41,7 +47,7 @@ export class rippleService implements IChainService {
   }
 
   async generatePublicKey(privateKey: string): Promise<string> {
-    const publicKey = dogecore.PrivateKey(privateKey).toAddress().toString();
+    const publicKey = xrpl.Wallet.fromMnemonic(privateKey).address;
 
     this.keys = {
       privateKey,
@@ -52,12 +58,10 @@ export class rippleService implements IChainService {
   }
 
   async getTokensByAddress(address: string) {
-    console.log(address);
-
     const tokens: Array<IToken> = [];
-    let dogeToUSD: IResponse<ICryptoCurrency>;
+    let xrplToUSD: IResponse<ICryptoCurrency>;
     try {
-      dogeToUSD = (
+      xrplToUSD = (
         await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/XRP`, {
           headers: {
             'auth-client-key': backendApiKey,
@@ -68,18 +72,32 @@ export class rippleService implements IChainService {
       console.log('server was dropped');
     }
 
-    const balance = 1000;
+    await this.checkConnection();
 
-    const nativeTokensBalance = balance;
+    const balance = await this.xrplClient.getXrpBalance(address);
 
-    tokens.push(this.generateTokenObject(nativeTokensBalance, 'XRP', imagesURL + 'XRP.svg', 'native', dogeToUSD.data.usd));
+    tokens.push(this.generateTokenObject(balance, 'XRP', imagesURL + 'XRP.svg', 'native', xrplToUSD.data.usd));
 
     return tokens;
   }
 
-  async getFeePriceOracle(): Promise<IFee> {
-    const value = 99;
-    const usd = 1;
+  async getFeePriceOracle(from: string, to: string, amount: number): Promise<IFee> {
+    const prepared = await this.xrplClient.autofill({
+      TransactionType: 'Payment',
+      Account: this.wallet.address,
+      Amount: (amount * 1e6).toString(),
+      Destination: to,
+    });
+
+    const { data: xrplToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/XRP`, {
+      headers: {
+        'auth-client-key': backendApiKey,
+      },
+    });
+
+    const value = xrpl.dropsToXrp(prepared.Fee);
+
+    const usd = Math.trunc(Number(xrplToUSD.data.usd) * value * 100) / 100;
 
     return {
       value,
@@ -88,78 +106,24 @@ export class rippleService implements IChainService {
   }
 
   async getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]> {
-    const { data: dogeToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/XRP`, {
+    const { data: xrplToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/XRP`, {
       headers: {
         'auth-client-key': backendApiKey,
       },
     });
 
-    let transactions = [];
+    await this.checkConnection();
 
-    let { data: resp } = await axios.post(
-      bitqueryProxy,
-      {
-        body: {
-          query: `
-          query {
-            bitcoin(network: dogecoin) {
-              outputs(outputAddress: {is: "${address}"}) {
-                transaction {
-                  hash
-                }
-                outputIndex
-                outputDirection
-                value(in: BTC)
-                outputAddress {
-                  address
-                }
-                block {
-                  height
-                  timestamp {
-                    time(format: "%Y-%m-%d %H:%M:%S")
-                  }
-                }
-                outputScript
-              }
-              inputs(inputAddress: {is: "${address}'"}) {
-                transaction {
-                  hash
-                }
-                value(in: BTC)
-                block {
-                  height
-                  timestamp {
-                    time(format: "%Y-%m-%d %H:%M:%S")
-                  }
-                }
-                inputAddress {
-                  address
-                }
-              }
-            }
-          }
-        `,
-          variables: {},
-        },
-      },
-      {
-        headers: {
-          'auth-client-key': backendApiKey,
-        },
-      }
+    let transactions = await this.xrplClient.request({
+      command: 'account_tx',
+      account: address,
+    });
+
+    transactions = transactions.result.transactions.map((el: any) =>
+      this.convertTransactionToCommonFormat(el.tx, Number(xrplToUSD.data.usd), address)
     );
 
-    transactions.push(
-      ...resp.data.data.bitcoin.inputs.map((el: any) =>
-        this.convertTransactionToCommonFormat(el, Number(dogeToUSD.data.usd), 'IN')
-      )
-    );
-
-    transactions.push(
-      ...resp.data.data.bitcoin.outputs.map((el: any) =>
-        this.convertTransactionToCommonFormat(el, Number(dogeToUSD.data.usd), 'OUT')
-      )
-    );
+    console.log(transactions);
 
     transactions.sort((a, b) => {
       if (a.timestamp > b.timestamp) {
@@ -175,37 +139,33 @@ export class rippleService implements IChainService {
   }
 
   async sendMainToken(data: ISendingTransactionData): Promise<string> {
-    const client = new xrpl.Client('wss://xrplcluster.com');
-    await client.connect();
+    await this.checkConnection();
 
-    const prepared = await client.autofill({
+    const balance = await this.xrplClient.getXrpBalance(this.wallet.address);
+    console.log(
+      '%cMyProject%cline:144%cbalance',
+      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
+      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
+      'color:#fff;background:rgb(3, 101, 100);padding:3px;border-radius:2px',
+      balance
+    );
+
+    if (balance - data.amount < 20) {
+      throw Error("You can't send more than your account balance (minus the reserved amount (20 xrp)");
+    }
+
+    const prepared = await this.xrplClient.autofill({
       TransactionType: 'Payment',
       Account: this.wallet.address,
       Amount: (data.amount * 1e6).toString(),
       Destination: data.receiverAddress,
+      DestinationTag: data.destinationTag || 0,
     });
 
-    // @ts-ignore
-    const max_ledger = prepared.LastLedgerSequence;
-    console.log('Prepared transaction instructions:', prepared);
-    // @ts-ignore
-    console.log('Transaction cost:', xrpl.dropsToXrp(prepared.Fee), 'XRP');
-    console.log('Transaction expires after ledger:', max_ledger);
-
     const signed = this.wallet.sign(prepared);
-    console.log('Identifying hash:', signed.hash);
-    console.log('Signed blob:', signed.tx_blob);
 
-    const tx = await client.submitAndWait(signed.tx_blob);
-    console.log(
-      '%cMyProject%cline:270%ctx',
-      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
-      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
-      'color:#fff;background:rgb(20, 68, 106);padding:3px;border-radius:2px',
-      tx
-    );
+    const tx = await this.xrplClient.submitAndWait(signed.tx_blob);
 
-    client.disconnect();
     return tx.result.hash;
   }
 
@@ -222,11 +182,11 @@ export class rippleService implements IChainService {
     tokenName: string,
     tokenLogo: string,
     tokenType: 'native' | 'custom',
-    dogeToUSD: string,
+    xrplToUSD: string,
     bnbToCustomToken?: string,
     contractAddress?: string
   ): IToken {
-    let tokenPriceInUSD = tokenType === 'custom' ? (1 / Number(bnbToCustomToken)) * Number(dogeToUSD) : Number(dogeToUSD);
+    let tokenPriceInUSD = tokenType === 'custom' ? (1 / Number(bnbToCustomToken)) * Number(xrplToUSD) : Number(xrplToUSD);
     tokenPriceInUSD = Math.trunc(tokenPriceInUSD * 100) / 100;
 
     const balanceInUSD = Math.trunc(balance * tokenPriceInUSD * 100) / 100;
@@ -248,25 +208,45 @@ export class rippleService implements IChainService {
    * @param {number} trxToUSD:number
    * @returns {ITransaction}
    */
-  private convertTransactionToCommonFormat(txData: any, tokenPriceToUSD: number, direction: 'IN' | 'OUT'): ITransaction {
-    let amountPriceInUSD = Math.trunc(txData.value * tokenPriceToUSD * 100) / 100;
-    const tokenName = 'XRP';
-    const tokenLogo = imagesURL + tokenName + '.svg';
-    const from = direction === 'OUT' ? txData.outputAddress.address : 'unknown';
-    const to = direction === 'IN' ? txData.inputAddress.address : 'unknown';
+  private convertTransactionToCommonFormat(txData: any, tokenPriceToUSD: number, address: string): ITransaction {
+    const amount = txData.Amount / 1e6;
+    const amountPriceInUSD = Math.trunc(amount * tokenPriceToUSD * 100) / 100;
+    const tokenLogo = imagesURL + 'XRP.svg';
+    const to = txData.Destination;
+    const from = txData.Account;
+    const direction = from.toLowerCase() === address.toLowerCase() ? 'OUT' : 'IN';
 
     return {
       to,
       from,
-      amount: txData.value.toFixed(8),
+      amount: amount.toString(),
       amountInUSD: amountPriceInUSD.toString(),
-      txId: txData.transaction.hash,
+      txId: txData.hash,
       direction,
-      tokenName,
-      timestamp: new Date(txData.block.timestamp.time).getTime(),
-      fee: undefined,
+      tokenName: 'XRP',
+      timestamp: txData.date,
+      fee: txData.Fee,
       status: true,
       tokenLogo,
     };
+  }
+
+  private async checkConnection() {
+    return new Promise<void>(async (resolve) => {
+      if (!this.xrplClient.isConnected()) {
+        this.connectionPending = true;
+        await this.xrplClient.connect();
+        this.connectionPending = false;
+        resolve();
+      }
+
+      if (this.connectionPending === true) {
+        this.xrplClient.on('connected', async () => {
+          resolve();
+        });
+      } else {
+        resolve();
+      }
+    });
   }
 }

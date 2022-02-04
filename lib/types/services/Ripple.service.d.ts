@@ -6,11 +6,14 @@ import { IToken } from '../models/token';
 export declare class rippleService implements IChainService {
     private keys;
     private wallet;
+    private xrplClient;
+    private connectionPending;
     constructor();
+    init(): Promise<void>;
     generateKeyPair(mnemonic: string): Promise<IWalletKeys>;
     generatePublicKey(privateKey: string): Promise<string>;
     getTokensByAddress(address: string): Promise<IToken[]>;
-    getFeePriceOracle(): Promise<IFee>;
+    getFeePriceOracle(from: string, to: string, amount: number): Promise<IFee>;
     getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]>;
     sendMainToken(data: ISendingTransactionData): Promise<string>;
     send20Token(): Promise<string>;
@@ -22,5 +25,6 @@ export declare class rippleService implements IChainService {
      * @returns {ITransaction}
      */
     private convertTransactionToCommonFormat;
+    private checkConnection;
 }
 //# sourceMappingURL=Ripple.service.d.ts.map
