@@ -142,13 +142,6 @@ export class rippleService implements IChainService {
     await this.checkConnection();
 
     const balance = await this.xrplClient.getXrpBalance(this.wallet.address);
-    console.log(
-      '%cMyProject%cline:144%cbalance',
-      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
-      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
-      'color:#fff;background:rgb(3, 101, 100);padding:3px;border-radius:2px',
-      balance
-    );
 
     if (balance - data.amount < 20) {
       throw Error("You can't send more than your account balance (minus the reserved amount (20 xrp)");
