@@ -77,4 +77,5 @@ export const dashSatoshisPerByte = 20;
 
 // -------------- Ripple ------------------------
 
-export const rippleProvider = 'wss://s.altnet.rippletest.net:51233';
+// export const rippleProvider = 'wss://s.altnet.rippletest.net:51233';
+export const rippleProvider = 'wss://xrplcluster.com';
