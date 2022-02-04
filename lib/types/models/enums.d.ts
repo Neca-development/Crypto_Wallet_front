@@ -10,7 +10,11 @@ export declare enum ChainIds {
     'Bitcoincash' = 8,
     'Dogecoin' = 9,
     'Dash' = 10,
+<<<<<<< HEAD
     'Zcash' = 11
+=======
+    'Ripple' = 11
+>>>>>>> master
 }
 export declare enum ErrorsTypes {
     'Invalid data' = 0,

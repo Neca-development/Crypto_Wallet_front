@@ -1,6 +1,7 @@
 export const backendApiKey = 'ba9713548726a8b17bcd316e7044c20d';
 
-export const backendApi = 'http://135.181.216.90:49358/api/';
+export const backendApi = 'https://wallet-api.sawe.dev/api/';
+// export const backendApi = 'http://135.181.216.90:49358/api/';
 
 export const imagesURL = `${backendApi}images/`;
 
@@ -73,3 +74,8 @@ export const bitcoincashSatoshisPerByte = 1.3;
 // ------------- BITCOIN CASH -----------------
 
 export const dashSatoshisPerByte = 20;
+
+// -------------- Ripple ------------------------
+
+// export const rippleProvider = 'wss://s.altnet.rippletest.net:51233';
+export const rippleProvider = 'wss://xrplcluster.com';

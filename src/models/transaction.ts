@@ -9,6 +9,7 @@ export interface ISendingTransactionData {
    * @desc take fee in main chain token
    */
   cotractAddress?: string;
+  destinationTag?: number;
 }
 
 export interface ITransaction {

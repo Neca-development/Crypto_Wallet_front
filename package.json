@@ -22,6 +22,7 @@
     "@solana/web3.js": "^1.31.0",
     "assert": "^2.0.0",
     "axios": "^0.24.0",
+    "base58-js": "^1.0.0",
     "bignumber.js": "^9.0.1",
     "bip39": "^3.0.4",
     "bip39-checker": "^1.1.7",
@@ -40,19 +41,14 @@
     "hdkey": "^2.0.1",
     "litecore-lib": "^0.13.22",
     "lumi-web-core": "^1.9.2",
+    "node-gyp": "^8.4.1",
+    "rebuild": "^0.1.2",
     "tron-wallet-hd": "^1.0.2",
     "tronweb": "^4.0.0",
     "typedoc": "^0.22.9",
     "typedoc-plugin-missing-exports": "^0.22.4",
     "uglify-es-webpack-plugin": "^0.10.0",
     "web3": "^1.6.1",
-    "zcash-bitcore-lib": "^0.13.20-rc3"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.16.0",
-    "@types/bs58check": "^2.1.0",
-    "@types/create-hash": "^1.2.2",
-    "@types/hdkey": "^2.0.0",
     "bip32": "^3.0.1",
     "bitcoinjs-lib": "^5.2.0",
     "bitcore-lib-litecoin": "^0.13.17",
@@ -60,6 +56,13 @@
     "bitcore-mnemonic-litecoin": "^1.1.1",
     "bs58check": "^2.1.2",
     "create-hash": "^1.2.0",
+    "xrpl": "^2.1.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.16.0",
+    "@types/bs58check": "^2.1.0",
+    "@types/create-hash": "^1.2.2",
+    "@types/hdkey": "^2.0.0",
     "html-webpack-plugin": "^5.5.0",
     "terser-webpack-plugin": "^5.2.5",
     "typescript": "^4.5.2"
