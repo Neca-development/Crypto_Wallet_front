@@ -123,8 +123,6 @@ export class rippleService implements IChainService {
       this.convertTransactionToCommonFormat(el.tx, Number(xrplToUSD.data.usd), address)
     );
 
-    console.log(transactions);
-
     transactions.sort((a, b) => {
       if (a.timestamp > b.timestamp) {
         return -1;
