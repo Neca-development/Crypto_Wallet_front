@@ -38,11 +38,6 @@ export class zcashService implements IChainService {
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
     const seed = mnemonicToSeedSync(mnemonic);
 
-    console.log('dash', coininfo.dash.main.toBitcoinJS());
-    console.log('litecoin', coininfo.litecoin.main.toBitcoinJS());
-    console.log('zcash', coininfo.zcash.main.toBitcoinJS());
-    console.log('bitGo-zcash', utxolib.networks.zcash);
-
     const privateKey = zcashcore.HDPrivateKey.fromSeed(seed, coininfo.zcash.main.toBitcore())
       .derive("m/44'/133'/0'/0/0")
       .privateKey.toWIF();
@@ -50,8 +45,6 @@ export class zcashService implements IChainService {
       .derive("m/44'/133'/0'/0/0")
       .privateKey.toAddress()
       .toString();
-    console.log(zcashcore.PrivateKey(privateKey));
-    console.log('zcashecpair', bitcoin.ECPair.fromWIF(privateKey, utxolib.networks.zcash));
 
     this.keys = {
       privateKey,
@@ -261,39 +254,28 @@ export class zcashService implements IChainService {
   }
 
   async sendMainToken(data: ISendingTransactionData): Promise<string> {
-    let netGain = utxolib.networks.zcash;
-    console.log(
-      '%cMyProject%cline:250%cnetGain',
-      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
-      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
-      'color:#fff;background:rgb(130, 57, 53);padding:3px;border-radius:2px',
-      netGain
-    );
+    let netGain = coininfo.zcash.main.toBitcoinJS();
+
+    console.log(bitcoin.ECPair.fromWIF(data.privateKey, netGain));
 
     const sochain_network = 'ZEC',
       privateKey = data.privateKey,
       sourceAddress = this.keys.publicKey,
-      utxos = await axios.get(`https://sochain.com/api/v2/get_tx_unspent/${sochain_network}/${sourceAddress}`),
+      amount = Math.trunc(data.amount * 1e8),
+      keyPair = utxolib.ECPair.fromWIF(privateKey, netGain),
       // @ts-ignore
       transaction = new utxolib.bitgo.createTransactionBuilderForNetwork(netGain),
-      amount = Math.trunc(data.amount * 1e8);
-    console.log(transaction);
+      utxos = await axios.get(`https://sochain.com/api/v2/get_tx_unspent/${sochain_network}/${sourceAddress}`);
 
-    let privateKeyECpair = bitcoin.ECPair.fromWIF(privateKey, netGain);
-    console.log(
-      '%cMyProject%cline:281%cprivateKeyECpair',
-      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
-      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
-      'color:#fff;background:rgb(153, 80, 84);padding:3px;border-radius:2px',
-      privateKeyECpair
-    );
+    transaction.setVersion(3);
+    transaction.setVersionGroupId(0x03c48270);
 
     let totalInputsBalance = 0,
       fee = 0,
       inputCount = 0,
       outputCount = 2;
 
-    console.log(utxos);
+    console.log(transaction);
 
     utxos.data.data.txs.sort((a: any, b: any) => {
       if (Number(a.value) > Number(b.value)) {
@@ -306,7 +288,7 @@ export class zcashService implements IChainService {
     });
 
     utxos.data.data.txs.forEach(async (element: any) => {
-      fee = (inputCount * 146 + outputCount * 33 + 10) * 20 * dashSatoshisPerByte * 10;
+      fee = (inputCount * 146 + outputCount * 33 + 10) * 20 * dashSatoshisPerByte;
       console.log(fee);
 
       if (totalInputsBalance - amount - fee > 0) {
@@ -324,27 +306,34 @@ export class zcashService implements IChainService {
 
     transaction.addOutput(data.receiverAddress, amount);
     transaction.addOutput(sourceAddress, totalInputsBalance - amount - fee);
+    // console.log(utxolib);
+
+    // console.log(
+    //   utxolib.payments.p2pk({
+    //     pubkey: keyPair.publicKey,
+    //     network: netGain,
+    //   })
+    // );
 
     // This assumes all inputs are spending utxos sent to the same Dogecoin P2PKH address (starts with D)
     for (let i = 0; i < inputCount; i++) {
-      utxolib.bitgo.signInputP2shP2pk(transaction, i, privateKeyECpair);
-      // transaction.sign(i, privateKeyECpair);
+      transaction.sign(i, keyPair, null, null, totalInputsBalance);
     }
     console.log(transaction.buildIncomplete().toHex());
 
-    const { data: trRequest } = await axios.post(
-      `${backendApi}transactions/so-chain/${sochain_network}`,
-      {
-        tx_hex: transaction.buildIncomplete().toHex(),
-      },
-      {
-        headers: {
-          'auth-client-key': backendApiKey,
-        },
-      }
-    );
+    // const { data: trRequest } = await axios.post(
+    //   `${backendApi}transactions/so-chain/${sochain_network}`,
+    //   {
+    //     tx_hex: transaction.buildIncomplete().toHex(),
+    //   },
+    //   {
+    //     headers: {
+    //       'auth-client-key': backendApiKey,
+    //     },
+    //   }
+    // );
 
-    return trRequest.data.txid;
+    return 'trRequest.data.txid';
   }
 
   async send20Token(): Promise<string> {
