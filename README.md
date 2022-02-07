@@ -69,7 +69,7 @@ Code you need to remove from "fromPrivateKey" method
 typeforce(isOptions, options);
 ```
 
-Detailed information on the properties and methods of the wallet can be found in the documentation at [link](classes/Wallet.html)
+Detailed information on the properties and methods of the wallet can be found in the documentation at [link](https://crypto-wallet-docs.herokuapp.com/res/classes/Wallet.html)
 A demo of the library can be found in the folder `demo`
 
 ## Project scripts
