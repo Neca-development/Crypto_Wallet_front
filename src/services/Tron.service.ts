@@ -191,9 +191,10 @@ export class tronService implements IChainService {
     tokenPriceInUSD = Math.trunc(tokenPriceInUSD * 100) / 100;
 
     const balanceInUSD = Math.trunc(balance * tokenPriceInUSD * 100) / 100;
+    const standard = tokenType === 'custom' ? 'TRC 20' : null;
 
     return {
-      standard: 'TRC 20',
+      standard,
       balance,
       balanceInUSD,
       contractAddress,
