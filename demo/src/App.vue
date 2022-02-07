@@ -32,6 +32,7 @@ export default {
     console.log({ data, data1, data2 });
     // this.$store.commit('ADD_WALLETS', [data1, data2]);
     this.$store.commit('ADD_WALLETS', data.wallets);
+    console.log(await wf.getAllTokens());
   },
   beforeDestroy() {
     clearInterval(this.coinsToUSDIntervalID);

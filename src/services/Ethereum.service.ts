@@ -216,9 +216,10 @@ export class ethereumService implements IChainService {
     tokenPriceInUSD = Math.trunc(tokenPriceInUSD * 100) / 100;
 
     const balanceInUSD = Math.trunc(balance * tokenPriceInUSD * 100) / 100;
+    const standard = tokenType === 'custom' ? 'ERC 20' : null;
 
     return {
-      standard: 'ERC 20',
+      standard,
       balance,
       balanceInUSD,
       contractAddress,

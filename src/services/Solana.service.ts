@@ -195,9 +195,10 @@ export class solanaService implements IChainService {
     tokenPriceInUSD = Math.trunc(tokenPriceInUSD * 100) / 100;
 
     const balanceInUSD = Math.trunc(balance * tokenPriceInUSD * 100) / 100;
+    const standard = tokenType === 'custom' ? 'SPL Token' : null;
 
     return {
-      standard: 'SPL Token',
+      standard,
       balance,
       balanceInUSD,
       tokenName,
