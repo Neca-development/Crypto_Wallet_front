@@ -250,7 +250,7 @@ export class bitcoincashService implements IChainService {
     const SEND_ADDR = this.keys.publicKey;
 
     // Get the balance in BCH of a BCH address.
-    const getBCHBalance = async (addr: string, verbose: any) => {
+    const getBCHBalance = async (addr: string) => {
       try {
         const bchBalance: any = await this.bitbox.Address.details(addr);
 
@@ -266,7 +266,7 @@ export class bitcoincashService implements IChainService {
       if (RECV_ADDR === '') RECV_ADDR = SEND_ADDR;
 
       // Get the balance of the sending address.
-      const balance = await getBCHBalance(SEND_ADDR, false);
+      const balance = await getBCHBalance(SEND_ADDR);
 
       // Exit if the balance is zero.
       if (balance <= 0.0) {
@@ -274,10 +274,7 @@ export class bitcoincashService implements IChainService {
         process.exit(0);
       }
 
-      const SEND_ADDR_LEGACY = this.bitbox.Address.toLegacyAddress(SEND_ADDR);
       const RECV_ADDR_LEGACY = this.bitbox.Address.toLegacyAddress(RECV_ADDR);
-
-      const balance2 = await getBCHBalance(RECV_ADDR, false);
 
       const u: any = await this.bitbox.Address.utxo(SEND_ADDR);
 
