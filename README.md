@@ -15,6 +15,8 @@
 - Bitcoincash
 - Dogecoin
 - DASH
+- ZCASH
+- Ripple
 
 ## Project installation
 
@@ -39,6 +41,33 @@ const wallets = await wf.createWallets(mnemonic);
 ```
 
 ---
+
+## WARNING!
+
+To use ZCASH you need to remove type checking from "fromPrivateKey" method of bitcoin-js-lib
+Path:
+
+```
+...\Crypto_Wallet\node_modules\@bitgo\utxo-lib\node_modules\bitcoinjs-lib\src\ecpair.js
+```
+
+Function you need to find:
+
+```
+function fromPrivateKey(buffer, options) {
+  typeforce(types.Buffer256bit, buffer);
+  if (!ecc.isPrivate(buffer))
+    throw new TypeError('Private key not in range [1, n)');
+  typeforce(isOptions, options);
+  return new ECPair(buffer, undefined, options);
+}
+```
+
+Code you need to remove from "fromPrivateKey" method
+
+```
+typeforce(isOptions, options);
+```
 
 Detailed information on the properties and methods of the wallet can be found in the documentation at [link](classes/Wallet.html)
 A demo of the library can be found in the folder `demo`

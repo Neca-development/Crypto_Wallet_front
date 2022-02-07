@@ -33,10 +33,6 @@ export class tronService implements IChainService {
   }
 
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
-    // TODO remove
-    // if (Math.random() > 0.05) {
-    //   throw new Error('lorem ipsum dolor sit amet');
-    // }
     const data: any = (await hdWallet.generateAccountsWithMnemonic(mnemonic, 1))[0];
     this.Tron.setPrivateKey(data.privateKey);
 

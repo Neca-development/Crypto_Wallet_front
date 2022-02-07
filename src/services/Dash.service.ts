@@ -63,20 +63,13 @@ export class dashService implements IChainService {
     const tokens: Array<IToken> = [];
     let dashToUSD: IResponse<ICryptoCurrency>;
     try {
-      //  TODO попросить бэк добавить курс DASH
-      // dashToUSD  = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/DASH`, {
-      //   headers: {
-      //     'auth-client-key': backendApiKey,
-      //   },
-      // });
-
-      dashToUSD = {
-        data: {
-          id: 5,
-          coinName: 'DASH',
-          usd: '95.5',
-        },
-      };
+      dashToUSD = (
+        await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/DASH`, {
+          headers: {
+            'auth-client-key': backendApiKey,
+          },
+        })
+      ).data;
     } catch (error) {
       console.log('server was dropped');
     }
@@ -132,18 +125,11 @@ export class dashService implements IChainService {
 
     const value = fee * 1e-8;
 
-    //  TODO попросить бэк добавить курс DASH
-    // const { data: dashToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/DASH`, {
-    //   headers: {
-    //     'auth-client-key': backendApiKey,
-    //   },
-    // });
-
-    const dashToUSD = {
-      data: {
-        usd: 95.5,
+    const { data: dashToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/DASH`, {
+      headers: {
+        'auth-client-key': backendApiKey,
       },
-    };
+    });
 
     const usd = Math.trunc(Number(dashToUSD.data.usd) * value * 100) / 100;
 
@@ -154,18 +140,11 @@ export class dashService implements IChainService {
   }
 
   async getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]> {
-    //  TODO попросить бэк добавить курс DASH
-    // const { data: dashToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/DASH`, {
-    //   headers: {
-    //     'auth-client-key': backendApiKey,
-    //   },
-    // });
-
-    const dashToUSD = {
-      data: {
-        usd: 95.5,
+    const { data: dashToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/DASH`, {
+      headers: {
+        'auth-client-key': backendApiKey,
       },
-    };
+    });
 
     let transactions = [];
 
