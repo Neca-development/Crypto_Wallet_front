@@ -265,7 +265,7 @@ export class zcashService implements IChainService {
 
       transaction.addInput(element.txid, element.output_no);
       inputCount += 1;
-      totalInputsBalance += Math.floor(Number(element.value) * 100000000);
+      totalInputsBalance += Math.floor(Number(element.value) * 1e8);
     });
 
     if (totalInputsBalance - amount - fee < 0) {
@@ -275,7 +275,9 @@ export class zcashService implements IChainService {
     transaction.addOutput(data.receiverAddress, amount);
     transaction.addOutput(sourceAddress, totalInputsBalance - amount - fee);
 
-    transaction.sign(0, keyPair, null, utxolib.bitgo.ZcashTransaction.SIGHASH_ALL, totalInputsBalance);
+    for (let i = 0; i < inputCount; i++) {
+      transaction.sign(i, keyPair, null, utxolib.bitgo.ZcashTransaction.SIGHASH_ALL, Number(utxos.data.data.txs[i].value) * 1e8);
+    }
 
     const { data: trRequest } = await axios.post(
       `${backendApi}transactions/so-chain/${sochain_network}`,
