@@ -163,7 +163,6 @@ export class ethereumService implements IChainService {
 
   async sendMainToken(data: ISendingTransactionData): Promise<string> {
     const fee = await this.getFeePriceOracle(this.web3.defaultAccount, data.receiverAddress);
-    console.log(Number(fee.value) * 100000000);
 
     const result = await this.web3.eth.sendTransaction({
       from: this.web3.eth.defaultAccount,
@@ -171,7 +170,6 @@ export class ethereumService implements IChainService {
       value: this.web3.utils.numberToHex(this.web3.utils.toWei(data.amount.toString())).toString(),
       gas: Math.trunc(Number(fee.value) * 1e9),
     });
-    console.log(result);
 
     return result.transactionHash;
   }

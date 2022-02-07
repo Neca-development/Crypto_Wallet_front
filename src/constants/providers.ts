@@ -71,9 +71,13 @@ export const litecoinSatoshisPerByte = 200;
 
 export const bitcoincashSatoshisPerByte = 1.3;
 
-// ------------- BITCOIN CASH -----------------
+// ------------- DASH -----------------
 
 export const dashSatoshisPerByte = 20;
+
+// ------------- ZCASH -----------------
+
+export const zcashSatoshisPerByte = 20;
 
 // -------------- Ripple ------------------------
 

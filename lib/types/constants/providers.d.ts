@@ -25,5 +25,6 @@ export declare const dogeSatoshisPerByte = 10316;
 export declare const litecoinSatoshisPerByte = 200;
 export declare const bitcoincashSatoshisPerByte = 1.3;
 export declare const dashSatoshisPerByte = 20;
+export declare const zcashSatoshisPerByte = 20;
 export declare const rippleProvider = "wss://xrplcluster.com";
 //# sourceMappingURL=providers.d.ts.map

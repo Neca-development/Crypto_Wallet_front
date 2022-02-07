@@ -5,39 +5,40 @@ import { IChainService } from '../models/chainService';
 import { ITransaction } from '../models/transaction';
 import { ICryptoCurrency, IToken } from '../models/token';
 
-import { imagesURL, backendApi, backendApiKey, bitqueryProxy, litecoinSatoshisPerByte } from '../constants/providers';
+import { imagesURL, backendApi, backendApiKey, bitqueryProxy, zcashSatoshisPerByte } from '../constants/providers';
 
 // @ts-ignore
 import axios from 'axios';
 import { IResponse } from '../models/response';
 
 // @ts-ignore
-import litecore from 'bitcore-lib-ltc';
+import zcashcore from 'zcash-bitcore-lib';
 // @ts-ignore
 
 import { mnemonicToSeedSync } from 'bip39';
 
-// import createHash from 'create-hash';
-// import bs58check from 'bs58check';
-
-import * as bitcoin from 'bitcoinjs-lib';
+import * as utxolib from '@bitgo/utxo-lib';
 import { CustomError } from '../errors';
 
 import coininfo from 'coininfo';
 
-// import HDKey from 'hdkey';
-
 import { ErrorsTypes } from '../models/enums';
 
-export class litecoinService implements IChainService {
+export class zcashService implements IChainService {
   private keys: IWalletKeys;
 
   constructor() {}
 
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
     const seed = mnemonicToSeedSync(mnemonic);
-    const privateKey = litecore.HDPrivateKey.fromSeed(seed).deriveChild("m/44'/2'/0'/0/0").privateKey.toString();
-    const publicKey = litecore.HDPrivateKey.fromSeed(seed).deriveChild("m/44'/2'/0'/0/0").privateKey.toAddress().toString();
+
+    const privateKey = zcashcore.HDPrivateKey.fromSeed(seed, coininfo.zcash.main.toBitcore())
+      .derive("m/44'/133'/0'/0/0")
+      .privateKey.toWIF();
+    const publicKey = zcashcore.HDPrivateKey.fromSeed(seed, coininfo.zcash.main.toBitcore())
+      .derive("m/44'/133'/0'/0/0")
+      .privateKey.toAddress()
+      .toString();
 
     this.keys = {
       privateKey,
@@ -48,7 +49,7 @@ export class litecoinService implements IChainService {
   }
 
   async generatePublicKey(privateKey: string): Promise<string> {
-    const publicKey = litecore.PrivateKey(privateKey).toAddress().toString();
+    const publicKey = zcashcore.PrivateKey(privateKey).toAddress().toString();
 
     this.keys = {
       privateKey,
@@ -60,10 +61,10 @@ export class litecoinService implements IChainService {
 
   async getTokensByAddress(address: string) {
     const tokens: Array<IToken> = [];
-    let ltcToUSD: IResponse<ICryptoCurrency>;
+    let zcashToUSD: IResponse<ICryptoCurrency>;
     try {
-      ltcToUSD = (
-        await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/LTC`, {
+      zcashToUSD = (
+        await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/ZEC`, {
           headers: {
             'auth-client-key': backendApiKey,
           },
@@ -73,7 +74,7 @@ export class litecoinService implements IChainService {
       console.log('server was dropped');
     }
 
-    const sochain_network = 'LTC';
+    const sochain_network = 'ZEC';
 
     let { data: balance } = await axios.get(`https://sochain.com/api/v2/get_address_balance/${sochain_network}/${address}`);
 
@@ -81,14 +82,14 @@ export class litecoinService implements IChainService {
 
     const nativeTokensBalance = balance;
 
-    tokens.push(this.generateTokenObject(nativeTokensBalance, 'LTC', imagesURL + 'LTC.svg', 'native', ltcToUSD.data.usd));
+    tokens.push(this.generateTokenObject(nativeTokensBalance, 'ZEC', imagesURL + 'ZEC.svg', 'native', zcashToUSD.data.usd));
 
     return tokens;
   }
 
   async getFeePriceOracle(from: string, to: string, amount: number): Promise<IFee> {
     amount = Math.trunc(amount * 1e8);
-    const sochain_network = 'LTC',
+    const sochain_network = 'ZEC',
       sourceAddress = from,
       utxos = await axios.get(`https://sochain.com/api/v2/get_tx_unspent/${sochain_network}/${sourceAddress}`);
 
@@ -108,7 +109,7 @@ export class litecoinService implements IChainService {
     });
 
     utxos.data.data.txs.forEach(async (element: any) => {
-      fee = (inputCount * 146 + outputCount * 33 + 10) * 20 * litecoinSatoshisPerByte;
+      fee = (inputCount * 146 + outputCount * 33 + 10) * 20 * zcashSatoshisPerByte;
 
       if (totalInputsBalance - amount - fee > 0) {
         return;
@@ -124,15 +125,13 @@ export class litecoinService implements IChainService {
 
     const value = fee * 1e-8;
 
-    const ltcToUSD = (
-      await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/LTC`, {
-        headers: {
-          'auth-client-key': backendApiKey,
-        },
-      })
-    ).data;
+    const { data: zcashToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/ZEC`, {
+      headers: {
+        'auth-client-key': backendApiKey,
+      },
+    });
 
-    const usd = Math.trunc(Number(ltcToUSD.data.usd) * value * 100) / 100;
+    const usd = Math.trunc(Number(zcashToUSD.data.usd) * value * 100) / 100;
 
     return {
       value,
@@ -141,7 +140,7 @@ export class litecoinService implements IChainService {
   }
 
   async getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]> {
-    const { data: ltcToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/LTC`, {
+    const { data: zcashToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/ZEC`, {
       headers: {
         'auth-client-key': backendApiKey,
       },
@@ -155,7 +154,7 @@ export class litecoinService implements IChainService {
         body: {
           query: `
           query {
-            bitcoin(network: litecoin) {
+            bitcoin(network: zcash) {
               outputs(outputAddress: {is: "${address}"}) {
                 transaction {
                   hash
@@ -204,13 +203,13 @@ export class litecoinService implements IChainService {
 
     transactions.push(
       ...resp.data.data.bitcoin.inputs.map((el: any) =>
-        this.convertTransactionToCommonFormat(el, Number(ltcToUSD.data.usd), 'IN')
+        this.convertTransactionToCommonFormat(el, Number(zcashToUSD.data.usd), 'IN')
       )
     );
 
     transactions.push(
       ...resp.data.data.bitcoin.outputs.map((el: any) =>
-        this.convertTransactionToCommonFormat(el, Number(ltcToUSD.data.usd), 'OUT')
+        this.convertTransactionToCommonFormat(el, Number(zcashToUSD.data.usd), 'OUT')
       )
     );
 
@@ -228,26 +227,24 @@ export class litecoinService implements IChainService {
   }
 
   async sendMainToken(data: ISendingTransactionData): Promise<string> {
-    let netGain = coininfo.litecoin.main.toBitcoinJS();
+    let netGain = utxolib.networks.zcash;
 
-    const sochain_network = 'LTC',
+    const sochain_network = 'ZEC',
       privateKey = data.privateKey,
       sourceAddress = this.keys.publicKey,
-      utxos = await axios.get(`https://sochain.com/api/v2/get_tx_unspent/${sochain_network}/${sourceAddress}`),
-      // @ts-ignore
-      transaction = new bitcoin.TransactionBuilder(netGain),
       amount = Math.trunc(data.amount * 1e8),
-      privateKeyECpair = bitcoin.ECPair.fromPrivateKey(Buffer.from(privateKey, 'hex'), {
-        // @ts-ignore
-        network: netGain,
-      });
+      keyPair = utxolib.ECPair.fromWIF(privateKey, netGain),
+      // @ts-ignore
+      transaction = new utxolib.bitgo.ZcashTransactionBuilder(netGain),
+      utxos = await axios.get(`https://sochain.com/api/v2/get_tx_unspent/${sochain_network}/${sourceAddress}`);
+
+    transaction.setVersion(utxolib.bitgo.ZcashTransaction.VERSION_SAPLING);
+    transaction.setVersionGroupId(parseInt('0x892F2085', 16));
 
     let totalInputsBalance = 0,
       fee = 0,
       inputCount = 0,
       outputCount = 2;
-
-    transaction.setVersion(1);
 
     utxos.data.data.txs.sort((a: any, b: any) => {
       if (Number(a.value) > Number(b.value)) {
@@ -260,7 +257,7 @@ export class litecoinService implements IChainService {
     });
 
     utxos.data.data.txs.forEach(async (element: any) => {
-      fee = (inputCount * 146 + outputCount * 33 + 10) * 20 * litecoinSatoshisPerByte;
+      fee = (inputCount * 146 + outputCount * 33 + 10) * 20 * zcashSatoshisPerByte;
 
       if (totalInputsBalance - amount - fee > 0) {
         return;
@@ -278,10 +275,7 @@ export class litecoinService implements IChainService {
     transaction.addOutput(data.receiverAddress, amount);
     transaction.addOutput(sourceAddress, totalInputsBalance - amount - fee);
 
-    // This assumes all inputs are spending utxos sent to the same Dogecoin P2PKH address (starts with D)
-    for (let i = 0; i < inputCount; i++) {
-      transaction.sign(i, privateKeyECpair);
-    }
+    transaction.sign(0, keyPair, null, utxolib.bitgo.ZcashTransaction.SIGHASH_ALL, totalInputsBalance);
 
     const { data: trRequest } = await axios.post(
       `${backendApi}transactions/so-chain/${sochain_network}`,
@@ -311,11 +305,11 @@ export class litecoinService implements IChainService {
     tokenName: string,
     tokenLogo: string,
     tokenType: 'native' | 'custom',
-    ltcToUSD: string,
+    zcashToUSD: string,
     bnbToCustomToken?: string,
     contractAddress?: string
   ): IToken {
-    let tokenPriceInUSD = tokenType === 'custom' ? (1 / Number(bnbToCustomToken)) * Number(ltcToUSD) : Number(ltcToUSD);
+    let tokenPriceInUSD = tokenType === 'custom' ? (1 / Number(bnbToCustomToken)) * Number(zcashToUSD) : Number(zcashToUSD);
     tokenPriceInUSD = Math.trunc(tokenPriceInUSD * 100) / 100;
 
     const balanceInUSD = Math.trunc(balance * tokenPriceInUSD * 100) / 100;
@@ -339,7 +333,7 @@ export class litecoinService implements IChainService {
    */
   private convertTransactionToCommonFormat(txData: any, tokenPriceToUSD: number, direction: 'IN' | 'OUT'): ITransaction {
     let amountPriceInUSD = Math.trunc(txData.value * tokenPriceToUSD * 100) / 100;
-    const tokenName = 'LTC';
+    const tokenName = 'ZEC';
     const tokenLogo = imagesURL + tokenName + '.svg';
     const from = direction === 'OUT' ? txData.outputAddress.address : 'unknown';
     const to = direction === 'IN' ? txData.inputAddress.address : 'unknown';

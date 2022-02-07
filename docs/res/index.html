@@ -18,6 +18,9 @@
 <li>Litecoin</li>
 <li>Bitcoincash</li>
 <li>Dogecoin</li>
+<li>DASH</li>
+<li>ZCASH</li>
+<li>Ripple</li>
 </ul>
 
 <a href="#project-installation" id="project-installation" style="color: inherit; text-decoration: none;">
@@ -39,6 +42,20 @@
 <pre><code><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">wallets</span><span class="hl-1"> = </span><span class="hl-2">await</span><span class="hl-1"> </span><span class="hl-0">wf</span><span class="hl-1">.</span><span class="hl-6">createWallets</span><span class="hl-1">(</span><span class="hl-0">mnemonic</span><span class="hl-1">);</span>
 </code></pre>
 <hr>
+
+<a href="#warning" id="warning" style="color: inherit; text-decoration: none;">
+  <h2>WARNING!</h2>
+</a>
+<p>To use ZCASH you need to remove type checking from &quot;fromPrivateKey&quot; method of bitcoin-js-lib
+Path:</p>
+<pre><code><span class="hl-1">...\</span><span class="hl-0">Crypto_Wallet</span><span class="hl-1">\</span><span class="hl-0">node_modules</span><span class="hl-1">\@</span><span class="hl-0">bitgo</span><span class="hl-1">\</span><span class="hl-0">utxo</span><span class="hl-1">-</span><span class="hl-0">lib</span><span class="hl-1">\</span><span class="hl-0">node_modules</span><span class="hl-1">\</span><span class="hl-0">bitcoinjs</span><span class="hl-1">-</span><span class="hl-0">lib</span><span class="hl-1">\</span><span class="hl-0">src</span><span class="hl-1">\</span><span class="hl-0">ecpair</span><span class="hl-1">.</span><span class="hl-0">js</span>
+</code></pre>
+<p>Function you need to find:</p>
+<pre><code><span class="hl-4">function</span><span class="hl-1"> </span><span class="hl-6">fromPrivateKey</span><span class="hl-1">(</span><span class="hl-0">buffer</span><span class="hl-1">, </span><span class="hl-0">options</span><span class="hl-1">) {</span><br/><span class="hl-1">  </span><span class="hl-6">typeforce</span><span class="hl-1">(</span><span class="hl-0">types</span><span class="hl-1">.</span><span class="hl-0">Buffer256bit</span><span class="hl-1">, </span><span class="hl-0">buffer</span><span class="hl-1">);</span><br/><span class="hl-1">  </span><span class="hl-2">if</span><span class="hl-1"> (!</span><span class="hl-0">ecc</span><span class="hl-1">.</span><span class="hl-6">isPrivate</span><span class="hl-1">(</span><span class="hl-0">buffer</span><span class="hl-1">))</span><br/><span class="hl-1">    </span><span class="hl-2">throw</span><span class="hl-1"> </span><span class="hl-4">new</span><span class="hl-1"> </span><span class="hl-7">TypeError</span><span class="hl-1">(</span><span class="hl-3">&#39;Private key not in range [1, n)&#39;</span><span class="hl-1">);</span><br/><span class="hl-1">  </span><span class="hl-6">typeforce</span><span class="hl-1">(</span><span class="hl-0">isOptions</span><span class="hl-1">, </span><span class="hl-0">options</span><span class="hl-1">);</span><br/><span class="hl-1">  </span><span class="hl-2">return</span><span class="hl-1"> </span><span class="hl-4">new</span><span class="hl-1"> </span><span class="hl-6">ECPair</span><span class="hl-1">(</span><span class="hl-0">buffer</span><span class="hl-1">, </span><span class="hl-4">undefined</span><span class="hl-1">, </span><span class="hl-0">options</span><span class="hl-1">);</span><br/><span class="hl-1">}</span>
+</code></pre>
+<p>Code you need to remove from &quot;fromPrivateKey&quot; method</p>
+<pre><code><span class="hl-6">typeforce</span><span class="hl-1">(</span><span class="hl-0">isOptions</span><span class="hl-1">, </span><span class="hl-0">options</span><span class="hl-1">);</span>
+</code></pre>
 <p>Detailed information on the properties and methods of the wallet can be found in the documentation at <a href="classes/Wallet.html">link</a>
 A demo of the library can be found in the folder <code>demo</code></p>
 
