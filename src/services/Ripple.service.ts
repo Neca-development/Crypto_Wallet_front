@@ -74,7 +74,17 @@ export class rippleService implements IChainService {
 
     await this.checkConnection();
 
-    const balance = await this.xrplClient.getXrpBalance(address);
+    let balance;
+
+    try {
+      balance = await this.xrplClient.getXrpBalance(address);
+    } catch (error) {
+      if (error.message.toLowerCase() === 'account not found.') {
+        balance = 0;
+      } else {
+        throw new Error(error);
+      }
+    }
 
     tokens.push(this.generateTokenObject(balance, 'XRP', imagesURL + 'XRP.svg', 'native', xrplToUSD.data.usd));
 
