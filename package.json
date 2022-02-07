@@ -29,7 +29,6 @@
     "bip39-checker": "^1.1.7",
     "bitbox-sdk": "^8.11.2",
     "bitcoinjs-lib": "^5.2.0",
-    "bitcoinjs-lib-zcash": "^3.6.1",
     "bitcoinjs-testnets": "^1.0.10",
     "bitcore-explorers": "^1.0.1",
     "bitcore-insight": "^1.0.1",

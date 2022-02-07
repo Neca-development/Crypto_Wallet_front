@@ -87,7 +87,7 @@ export class bitcoincashService implements IChainService {
         })
       ).data;
     } catch (error) {
-      console.log('server was dropped');
+      console.error('server was dropped');
     }
 
     let addressInfo: any;
@@ -254,12 +254,9 @@ export class bitcoincashService implements IChainService {
       try {
         const bchBalance: any = await this.bitbox.Address.details(addr);
 
-        if (verbose) console.log(bchBalance);
-
         return bchBalance.balance;
       } catch (err) {
         console.error(`Error in getBCHBalance: `, err);
-        console.log(`addr: ${addr}`);
         throw err;
       }
     };
@@ -270,22 +267,17 @@ export class bitcoincashService implements IChainService {
 
       // Get the balance of the sending address.
       const balance = await getBCHBalance(SEND_ADDR, false);
-      console.log(`balance: ${JSON.stringify(balance, null, 2)}`);
-      console.log(`Balance of sending address ${SEND_ADDR} is ${balance} BCH.`);
 
       // Exit if the balance is zero.
       if (balance <= 0.0) {
-        console.log(`Balance of sending address is zero. Exiting.`);
+        console.error(`Balance of sending address is zero. Exiting.`);
         process.exit(0);
       }
 
       const SEND_ADDR_LEGACY = this.bitbox.Address.toLegacyAddress(SEND_ADDR);
       const RECV_ADDR_LEGACY = this.bitbox.Address.toLegacyAddress(RECV_ADDR);
-      console.log(`Sender Legacy Address: ${SEND_ADDR_LEGACY}`);
-      console.log(`Receiver Legacy Address: ${RECV_ADDR_LEGACY}`);
 
       const balance2 = await getBCHBalance(RECV_ADDR, false);
-      console.log(`Balance of recieving address ${RECV_ADDR} is ${balance2} BCH.`);
 
       const u: any = await this.bitbox.Address.utxo(SEND_ADDR);
 
@@ -339,14 +331,9 @@ export class bitcoincashService implements IChainService {
       const tx = transactionBuilder.build();
       // output rawhex
       const hex = tx.toHex();
-      console.log(`TX hex: ${hex}`);
-      console.log(transactionBuilder);
 
       // Broadcast transation to the network
       const txidStr = await this.bitbox.RawTransactions.sendRawTransaction([hex]);
-      console.log(`Transaction ID: ${txidStr}`);
-      console.log(`Check the status of your transaction on this block explorer:`);
-      console.log(`https://explorer.bitcoin.com/tbch/tx/${txidStr}`);
 
       return txidStr;
     } catch (err) {

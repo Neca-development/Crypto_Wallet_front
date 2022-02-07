@@ -17,7 +17,6 @@ import zcashcore from 'zcash-bitcore-lib';
 
 import { mnemonicToSeedSync } from 'bip39';
 
-import * as bitcoin from 'bitcoinjs-lib-zcash';
 import * as utxolib from '@bitgo/utxo-lib';
 import { CustomError } from '../errors';
 
@@ -230,8 +229,6 @@ export class zcashService implements IChainService {
   async sendMainToken(data: ISendingTransactionData): Promise<string> {
     let netGain = utxolib.networks.zcash;
 
-    console.log(utxolib.ECPair.fromWIF(data.privateKey, netGain));
-
     const sochain_network = 'ZEC',
       privateKey = data.privateKey,
       sourceAddress = this.keys.publicKey,
@@ -249,8 +246,6 @@ export class zcashService implements IChainService {
       inputCount = 0,
       outputCount = 2;
 
-    console.log(transaction);
-
     utxos.data.data.txs.sort((a: any, b: any) => {
       if (Number(a.value) > Number(b.value)) {
         return -1;
@@ -263,7 +258,6 @@ export class zcashService implements IChainService {
 
     utxos.data.data.txs.forEach(async (element: any) => {
       fee = (inputCount * 146 + outputCount * 33 + 10) * 20 * zcashSatoshisPerByte;
-      console.log(fee);
 
       if (totalInputsBalance - amount - fee > 0) {
         return;
@@ -280,20 +274,8 @@ export class zcashService implements IChainService {
 
     transaction.addOutput(data.receiverAddress, amount);
     transaction.addOutput(sourceAddress, totalInputsBalance - amount - fee);
-    // console.log(utxolib);
 
-    // console.log(
-    //   utxolib.payments.p2pk({
-    //     pubkey: keyPair.publicKey,
-    //     network: netGain,
-    //   })
-    // );
-
-    // This assumes all inputs are spending utxos sent to the same Dogecoin P2PKH address (starts with D)
-    // for (let i = 0; i < inputCount; i++) {
     transaction.sign(0, keyPair, null, utxolib.bitgo.ZcashTransaction.SIGHASH_ALL, totalInputsBalance);
-    // }
-    console.log(transaction.buildIncomplete().toHex());
 
     const { data: trRequest } = await axios.post(
       `${backendApi}transactions/so-chain/${sochain_network}`,

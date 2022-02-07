@@ -38,7 +38,6 @@ export class litecoinService implements IChainService {
     const seed = mnemonicToSeedSync(mnemonic);
     const privateKey = litecore.HDPrivateKey.fromSeed(seed).deriveChild("m/44'/2'/0'/0/0").privateKey.toString();
     const publicKey = litecore.HDPrivateKey.fromSeed(seed).deriveChild("m/44'/2'/0'/0/0").privateKey.toAddress().toString();
-    console.log(litecore.HDPrivateKey.fromSeed(seed).deriveChild("m/44'/2'/0'/0/0").privateKey.toWIF());
 
     this.keys = {
       privateKey,
@@ -249,7 +248,6 @@ export class litecoinService implements IChainService {
       outputCount = 2;
 
     transaction.setVersion(1);
-    console.log(utxos);
 
     utxos.data.data.txs.sort((a: any, b: any) => {
       if (Number(a.value) > Number(b.value)) {
@@ -263,7 +261,6 @@ export class litecoinService implements IChainService {
 
     utxos.data.data.txs.forEach(async (element: any) => {
       fee = (inputCount * 146 + outputCount * 33 + 10) * 20 * litecoinSatoshisPerByte;
-      console.log(fee);
 
       if (totalInputsBalance - amount - fee > 0) {
         return;
@@ -285,7 +282,6 @@ export class litecoinService implements IChainService {
     for (let i = 0; i < inputCount; i++) {
       transaction.sign(i, privateKeyECpair);
     }
-    console.log(transaction.buildIncomplete().toHex());
 
     const { data: trRequest } = await axios.post(
       `${backendApi}transactions/so-chain/${sochain_network}`,

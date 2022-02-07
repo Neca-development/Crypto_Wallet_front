@@ -228,13 +228,6 @@ export class dashService implements IChainService {
 
   async sendMainToken(data: ISendingTransactionData): Promise<string> {
     let netGain = coininfo.dash.main.toBitcoinJS();
-    console.log(
-      '%cMyProject%cline:250%cnetGain',
-      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
-      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
-      'color:#fff;background:rgb(130, 57, 53);padding:3px;border-radius:2px',
-      netGain
-    );
 
     const sochain_network = 'DASH',
       privateKey = data.privateKey,
@@ -251,7 +244,6 @@ export class dashService implements IChainService {
       outputCount = 2;
 
     transaction.setVersion(1);
-    console.log(utxos);
 
     utxos.data.data.txs.sort((a: any, b: any) => {
       if (Number(a.value) > Number(b.value)) {
@@ -265,7 +257,6 @@ export class dashService implements IChainService {
 
     utxos.data.data.txs.forEach(async (element: any) => {
       fee = (inputCount * 146 + outputCount * 33 + 10) * 20 * dashSatoshisPerByte;
-      console.log(fee);
 
       if (totalInputsBalance - amount - fee > 0) {
         return;
@@ -287,7 +278,6 @@ export class dashService implements IChainService {
     for (let i = 0; i < inputCount; i++) {
       transaction.sign(i, privateKeyECpair);
     }
-    console.log(transaction.buildIncomplete().toHex());
 
     const { data: trRequest } = await axios.post(
       `${backendApi}transactions/so-chain/${sochain_network}`,
