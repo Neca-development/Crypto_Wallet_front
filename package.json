@@ -49,7 +49,7 @@
     "lumi-web-core": "^1.9.2",
     "node-gyp": "^8.4.1",
     "rebuild": "^0.1.2",
-    "tron-wallet-hd": "^1.0.2",
+    "tron-wallet-hd": "git+https://github.com/Neca-development/tron-wallet-hd.git",
     "tronweb": "^4.0.0",
     "typedoc": "^0.22.9",
     "typedoc-plugin-missing-exports": "^0.22.4",

@@ -6,12 +6,12 @@ export enum ChainIds {
   'Solana',
   'Polygon',
   'Bitcoin',
-  'Litecoin',
+  // 'Litecoin',
   'Bitcoincash',
-  'Dogecoin',
-  'Dash',
+  // 'Dogecoin',
+  // 'Dash',
   'Ripple',
-  'Zcash',
+  // 'Zcash',
 }
 
 export enum ErrorsTypes {

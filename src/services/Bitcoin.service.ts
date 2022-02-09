@@ -12,9 +12,9 @@ import axios from 'axios';
 import { IResponse } from '../models/response';
 
 // @ts-ignore
-const bitcore = require('bitcore-lib');
-// @ts-ignore
-const Mnemonic = require('bitcore-mnemonic');
+import * as bitcore from 'bitcore-lib';
+
+import { mnemonicToSeedSync } from 'bip39';
 
 import * as bitcoin from 'bitcoinjs-lib';
 import { CustomError } from '../errors';
@@ -26,12 +26,10 @@ export class bitcoinService implements IChainService {
   constructor() {}
 
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
-    const addrFromMnemonic = new Mnemonic(mnemonic);
+    const seed = mnemonicToSeedSync(mnemonic);
 
-    const rootKey = addrFromMnemonic.toHDPrivateKey().derive("m/44'/1'/0'/0/0");
-
-    const privateKey = rootKey.privateKey.toString();
-    const publicKey = rootKey.privateKey.toAddress('testnet').toString();
+    const privateKey = bitcore.HDPrivateKey.fromSeed(seed).deriveChild("m/44'/1'/0'/0/0").privateKey.toString();
+    const publicKey = bitcore.HDPrivateKey.fromSeed(seed).deriveChild("m/44'/1'/0'/0/0").privateKey.toAddress().toString();
 
     this.keys = {
       privateKey,
