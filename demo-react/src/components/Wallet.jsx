@@ -11,6 +11,11 @@ const Wallet = () => {
   const [currentWallet, setCurrentWallet] = useState(null);
   const [localTransactionHistory, setLocalTransactionHistory] = useState([]);
   const [tokensByAddress, setTokensByAddress] = useState([]);
+  const [sendTokenForm, setsendTokenForm] = useState({
+    tokenName: '',
+    receiver: '',
+    amount: '',
+  });
 
   const getWalletbyAddress = () => {
     const publicKey = address?.split('&')[0];
