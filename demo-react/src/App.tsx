@@ -29,11 +29,12 @@ function App() {
     dispatch(setWallets(data.wallets));
     // console.log(wallets);
   };
+  // const loadCurrenWallet
 
   useEffect(() => {
     loadWallets();
   }, []);
-
+  // console.log(localTransactionHistory);
   return (
     <div className="App">
       <BrowserRouter>

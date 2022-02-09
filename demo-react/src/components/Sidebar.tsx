@@ -18,7 +18,7 @@ const Sidebar = ({ wallets }: any) => {
   }, [wallets]);
 
   return (
-    <Drawer variant="permanent" anchor="left">
+    <>
       <p>Your Wallets</p>
       <List>
         {wallets.map((w: any) => (
@@ -35,7 +35,7 @@ const Sidebar = ({ wallets }: any) => {
         Total Balance in : {totalBalance}
         <b> $</b>
       </article>
-    </Drawer>
+    </>
   );
 };
 
