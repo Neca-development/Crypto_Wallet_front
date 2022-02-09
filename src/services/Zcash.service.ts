@@ -109,7 +109,7 @@ export class zcashService implements IChainService {
     });
 
     utxos.data.data.txs.forEach(async (element: any) => {
-      fee = (inputCount * 146 + outputCount * 33 + 10) * 20 * zcashSatoshisPerByte;
+      fee = (inputCount * 146 + outputCount * 33 + 10) * zcashSatoshisPerByte;
 
       if (totalInputsBalance - amount - fee > 0) {
         return;

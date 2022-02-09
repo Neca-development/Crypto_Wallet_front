@@ -5,7 +5,7 @@ import { IChainService } from '../models/chainService';
 import { ITransaction } from '../models/transaction';
 import { ICryptoCurrency, IToken } from '../models/token';
 
-import { imagesURL, backendApi, backendApiKey, bitqueryProxy } from '../constants/providers';
+import { imagesURL, backendApi, backendApiKey, bitqueryProxy, bitcoinSatoshisPerByte } from '../constants/providers';
 
 // @ts-ignore
 import axios from 'axios';
@@ -102,7 +102,7 @@ export class bitcoinService implements IChainService {
     });
 
     utxos.data.data.txs.forEach(async (element: any) => {
-      fee = (inputCount * 146 + outputCount * 33 + 10) * 20;
+      fee = (inputCount * 146 + outputCount * 33 + 10) * bitcoinSatoshisPerByte;
 
       if (totalInputsBalance - amount - fee > 0) {
         return;
