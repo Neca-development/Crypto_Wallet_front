@@ -15,7 +15,6 @@
     "vue": "^2.6.12",
     "vue-router": "^3.5.1",
     "vuex": "^3.6.2",
-    "@binance-chain/javascript-sdk": "^4.2.0",
     "@ethereumjs/tx": "^3.4.0",
     "assert": "^2.0.0",
     "axios": "^0.24.0",

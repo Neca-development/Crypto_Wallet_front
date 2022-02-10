@@ -5,6 +5,7 @@ import { ITransaction } from '../models/transaction';
 import { IToken } from '../models/token';
 export declare class zcashService implements IChainService {
     private keys;
+    private network;
     constructor();
     generateKeyPair(mnemonic: string): Promise<IWalletKeys>;
     generatePublicKey(privateKey: string): Promise<string>;
