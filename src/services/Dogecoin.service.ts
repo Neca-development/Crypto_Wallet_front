@@ -11,9 +11,6 @@ import { imagesURL, backendApi, backendApiKey, bitqueryProxy, dogeSatoshisPerByt
 import axios from 'axios';
 import { IResponse } from '../models/response';
 
-// @ts-ignore
-import dogecore from 'bitcore-lib-doge';
-
 import { mnemonicToSeedSync } from 'bip39';
 
 // const coininfo = require('coininfo');
