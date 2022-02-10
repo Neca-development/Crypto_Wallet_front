@@ -5,6 +5,7 @@ import { ITransaction } from '../models/transaction';
 import { IToken } from '../models/token';
 export declare class dashService implements IChainService {
     private keys;
+    network: any;
     constructor();
     generateKeyPair(mnemonic: string): Promise<IWalletKeys>;
     generatePublicKey(privateKey: string): Promise<string>;
