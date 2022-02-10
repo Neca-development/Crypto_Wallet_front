@@ -26,6 +26,7 @@ import { ErrorsTypes } from '../models/enums';
 
 export class zcashService implements IChainService {
   private keys: IWalletKeys;
+  private network = utxolib.networks.zcash;
 
   constructor() {}
 
@@ -39,6 +40,16 @@ export class zcashService implements IChainService {
       .derive("m/44'/133'/0'/0/0")
       .privateKey.toAddress()
       .toString();
+
+    const root = utxolib.bip32.fromSeed(seed, this.network).derivePath("m/44'/133'/0'/0/0");
+    const keyPair = utxolib.ECPair.fromPublicKey(root.publicKey, {network:this.network});
+    const keyPair1 = utxolib.ECPair.fromPrivateKey(root.privateKey,{network:this.network});
+    const keyPair2 = utxolib.ECPair.fromWIF(root.toWIF(), this.network );
+
+    console.log(root.toWIF());
+    console.log(keyPair.publicKey.);
+    console.log(keyPair1);
+    console.log(keyPair2);
 
     this.keys = {
       privateKey,
