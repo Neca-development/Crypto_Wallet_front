@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Drawer, List, ListItem, ListItemIcon, ListItemText } from '@mui/material';
+import { Drawer, List, ListItem, ListItemIcon, ListItemText, Typography } from '@mui/material';
 
 const Sidebar = ({ wallets }: any) => {
   const [totalBalance, setTotalBalance] = useState(0);
@@ -19,11 +19,11 @@ const Sidebar = ({ wallets }: any) => {
 
   return (
     <>
-      <p>Your Wallets</p>
-      <List>
+      <Typography variant="h3">Your Wallets</Typography>
+      <List sx={{ m: 0, p: 0 }}>
         {wallets.map((w: any) => (
           <Link to={`/${w.address}&${w.chainId}`} key={w.data.chainId}>
-            <ListItem button>
+            <ListItem sx={{ p: 0, m: 0, minWidth: '100%', width: '100%' }} button>
               <ListItemIcon></ListItemIcon>
               <p>{w.chainId}</p>
               <p>{w.address}</p>
