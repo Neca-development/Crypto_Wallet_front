@@ -17,15 +17,10 @@ import dashecore from '@dashevo/dashcore-lib';
 
 import { mnemonicToSeedSync } from 'bip39';
 
-// import createHash from 'create-hash';
-// import bs58check from 'bs58check';
-
 import * as bitcoin from 'bitcoinjs-lib';
 import { CustomError } from '../errors';
 
 import coininfo from 'coininfo';
-
-// import HDKey from 'hdkey';
 
 import { ErrorsTypes } from '../models/enums';
 
