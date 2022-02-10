@@ -24,7 +24,7 @@ import { ErrorsTypes } from '../models/enums';
 
 export class dashService implements IChainService {
   private keys: IWalletKeys;
-  network = coininfo.dash.main.toBitcoinJS();
+  private network = coininfo.dash.main.toBitcoinJS();
 
   constructor() {}
 
