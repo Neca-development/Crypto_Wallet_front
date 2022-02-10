@@ -12,7 +12,8 @@ import { imagesURL, backendApi, backendApiKey, bitqueryProxy, bitcoincashSatoshi
 // @ts-ignore
 import axios from 'axios';
 import { IResponse } from '../models/response';
-
+import { mnemonicToSeedSync } from 'bip39';
+import * as bitcore from 'bitcore-lib-cash';
 import { CustomError } from '../errors';
 
 // import HDKey from 'hdkey';
