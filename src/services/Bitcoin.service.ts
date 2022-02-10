@@ -11,10 +11,7 @@ import { imagesURL, backendApi, backendApiKey, bitqueryProxy, bitcoinSatoshisPer
 import axios from 'axios';
 import { IResponse } from '../models/response';
 
-// @ts-ignore
-const bitcore = require('bitcore-lib');
-// @ts-ignore
-const Mnemonic = require('bitcore-mnemonic');
+import { mnemonicToSeedSync } from 'bip39';
 
 import * as bitcoin from 'bitcoinjs-lib';
 import { CustomError } from '../errors';
@@ -22,16 +19,17 @@ import { ErrorsTypes } from '../models/enums';
 
 export class bitcoinService implements IChainService {
   private keys: IWalletKeys;
+  private network = bitcoin.networks.testnet;
 
   constructor() {}
 
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
-    const addrFromMnemonic = new Mnemonic(mnemonic);
+    const seed = mnemonicToSeedSync(mnemonic);
+    const root = bitcoin.bip32.fromSeed(seed, this.network).derivePath("m/44'/1'/0'/0/0");
+    const keyPair = bitcoin.payments.p2pkh({ pubkey: root.publicKey, network: this.network });
 
-    const rootKey = addrFromMnemonic.toHDPrivateKey().derive("m/44'/1'/0'/0/0");
-
-    const privateKey = rootKey.privateKey.toString();
-    const publicKey = rootKey.privateKey.toAddress('testnet').toString();
+    const privateKey = root.toWIF();
+    const publicKey = keyPair.address;
 
     this.keys = {
       privateKey,
@@ -42,7 +40,8 @@ export class bitcoinService implements IChainService {
   }
 
   async generatePublicKey(privateKey: string): Promise<string> {
-    const publicKey = bitcore.PrivateKey(privateKey).toAddress('testnet').toString();
+    const pubkey = bitcoin.ECPair.fromWIF(privateKey, this.network).publicKey;
+    const publicKey = bitcoin.payments.p2pkh({ pubkey, network: this.network }).address;
 
     this.keys = {
       privateKey,
@@ -227,9 +226,9 @@ export class bitcoinService implements IChainService {
       privateKey = data.privateKey,
       sourceAddress = this.keys.publicKey,
       utxos = await axios.get(`https://sochain.com/api/v2/get_tx_unspent/${sochain_network}/${sourceAddress}`),
-      transaction = new bitcoin.TransactionBuilder(bitcoin.networks.testnet),
+      transaction = new bitcoin.TransactionBuilder(this.network),
       amount = Math.trunc(data.amount * 1e8),
-      privateKeyECpair = bitcoin.ECPair.fromPrivateKey(Buffer.from(privateKey, 'hex'), { network: bitcoin.networks.testnet });
+      privateKeyECpair = bitcoin.ECPair.fromWIF(privateKey, this.network);
 
     let totalInputsBalance = 0,
       fee = 0,

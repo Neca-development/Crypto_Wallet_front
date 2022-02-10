@@ -10,7 +10,7 @@ import { tronWebProvider, tronUSDTContractAddress, backendApi, imagesURL } from 
 // @ts-ignore
 import TronWeb from 'tronweb';
 // @ts-ignore
-import hdWallet from 'tron-wallet-hd';
+import * as hdWallet from 'tron-wallet-hd';
 import axios from 'axios';
 import { getBNFromDecimal } from '../utils/numbers';
 
@@ -26,14 +26,14 @@ export class tronService implements IChainService {
   }
 
   async generatePublicKey(privateKey: string): Promise<string> {
-    const data = await hdWallet.getAccountFromPrivateKey(privateKey);
+    const data = await hdWallet.utils.getAccountFromPrivateKey(privateKey);
     this.Tron.setPrivateKey(privateKey);
 
     return data;
   }
 
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
-    const data: any = (await hdWallet.generateAccountsWithMnemonic(mnemonic, 1))[0];
+    const data: any = (await hdWallet.utils.generateAccountsWithMnemonic(mnemonic, 1))[0];
     this.Tron.setPrivateKey(data.privateKey);
 
     return {
