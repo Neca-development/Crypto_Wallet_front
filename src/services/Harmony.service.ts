@@ -13,7 +13,6 @@ import {
   harmonyUSDTContractAddress,
 } from '../constants/providers';
 import { backendApiKey } from './../constants/providers';
-import { etherUSDTAbi } from '../constants/eth-USDT.abi';
 import { oneUSDTAbi } from '../constants/one-USDT.abi';
 
 // @ts-ignore
@@ -151,29 +150,28 @@ export class harmonyService implements IChainService {
       id: 1
     })
     const history = result.data.result.transactions
-    console.log(history)
 
-    const queries = [];
+    // const queries = [];
     let transactions = [];
 
-    queries.push(this.generateTransactionsQuery(address, 'receiver'));
-    queries.push(this.generateTransactionsQuery(address, 'sender'));
+    // queries.push(this.generateTransactionsQuery(address, 'receiver'));
+    // queries.push(this.generateTransactionsQuery(address, 'sender'));
 
-    for (const query of queries) {
-      let { data: resp } = await axios.post(
-        bitqueryProxy,
-        {
-          body: { query: query, variables: {} },
-        },
-        {
-          headers: {
-            'auth-client-key': backendApiKey,
-          },
-        }
-      );
+    // for (const query of queries) {
+    //   let { data: resp } = await axios.post(
+    //     bitqueryProxy,
+    //     {
+    //       body: { query: query, variables: {} },
+    //     },
+    //     {
+    //       headers: {
+    //         'auth-client-key': backendApiKey,
+    //       },
+    //     }
+    //   );
 
-      transactions.push(...resp.data.data.ethereum.transfers);
-    }
+    //   transactions.push(...resp.data.data.ethereum.transfers);
+    // }
 
     transactions = history.map((el: any) =>
       this.convertTransactionToCommonFormat(el, address, Number(oneToUSD.data.usd), Number(oneToUSD.data.usdt))
@@ -307,7 +305,6 @@ export class harmonyService implements IChainService {
     tokenPriceToUSD: number,
     nativeTokenToUSD: number
   ): ITransaction {
-    // const amount = new BigNumber(txData.value).toFormat();
     const amount = txData.value * 1e-18
 
     // let amountPriceInUSD = txData.currency.symbol === 'ONE' ? tokenPriceToUSD : (1 / nativeTokenToUSD) * tokenPriceToUSD;
@@ -319,18 +316,20 @@ export class harmonyService implements IChainService {
     const tokenLogo = imagesURL + 'ONE.svg'
     const to = txData.to;
     const from = txData.from;
+    const fromHexFormat = converter('one').toHex(from)
+    const toHexFormat = converter('one').toHex(to)
     const direction = from === address.toLowerCase() ? 'OUT' : 'IN';
 
     return {
-      to,
-      from,
+      to: toHexFormat,
+      from: fromHexFormat,
       amount: amount.toString(),
       amountInUSD: amountPriceInUSD.toString(),
       txId: txData.hash,
       direction,
       // type: txData.tokenType,
       tokenName: 'ONE',
-      timestamp: new Date(txData.timestamp).getTime(),
+      timestamp: +new Date(txData.timestamp * 1000),
       fee: txData.gas * +this.web3.utils.fromWei(txData.gasPrice.toString()),
       status: true,
       tokenLogo,
