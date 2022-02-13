@@ -4,6 +4,7 @@ import * as hdWallet from 'tron-wallet-hd';
 import { ChainIds, ErrorsTypes } from './models/enums';
 import { ICreateWalletsData } from './models/wallet';
 import { CustomError } from './errors';
+import wallet from '@pefish/js-coin-ltc/types/wallet';
 
 export class WalletFactory {
   wallets: Wallet[] = [];
@@ -53,9 +54,10 @@ export class WalletFactory {
    * @returns {Promise<Wallet>}
    */
   async createWalletByPrivateKey(privateKey: string, chainId: ChainIds): Promise<Wallet> {
-    const tronWallet = new Wallet(ChainIds[chainId] as unknown as ChainIds, null, privateKey);
-    await tronWallet.init();
-    return tronWallet;
+    const wallet = new Wallet(ChainIds[chainId] as unknown as ChainIds, null, privateKey);
+    await wallet.init();
+    this.wallets.push(wallet);
+    return wallet;
   }
 
   /**
@@ -132,8 +134,17 @@ export class WalletFactory {
   async getAllTokens(): Promise<any> {
     const tokens = {};
 
-    for (const wallet of this.wallets) {
-      tokens[wallet.chainId] = await wallet.getTokensByAddress();
+    const tokensData = await Promise.all(
+      this.wallets.map((wallet) => {
+        return new Promise(async (resolve) => {
+          const data = await wallet.getTokensByAddress();
+          resolve(data);
+        });
+      })
+    );
+
+    for (let i = 0; i < this.wallets.length; i++) {
+      tokens[this.wallets[i].chainId] = tokensData[i];
     }
 
     return tokens;
