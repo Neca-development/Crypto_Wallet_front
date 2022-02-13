@@ -260,7 +260,7 @@ export class litecoinService implements IChainService {
     });
 
     utxos.data.data.txs.forEach(async (element: any) => {
-      fee = (inputCount * 146 + outputCount * 33 + 10) * 20 * litecoinSatoshisPerByte;
+      fee = (inputCount * 146 + outputCount * 33 + 10) * litecoinSatoshisPerByte;
 
       if (totalInputsBalance - amount - fee > 0) {
         return;

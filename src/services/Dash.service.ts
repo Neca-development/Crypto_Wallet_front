@@ -109,7 +109,7 @@ export class dashService implements IChainService {
     });
 
     utxos.data.data.txs.forEach(async (element: any) => {
-      fee = (inputCount * 146 + outputCount * 33 + 10) * 20 * dashSatoshisPerByte;
+      fee = (inputCount * 146 + outputCount * 33 + 10) * dashSatoshisPerByte;
 
       if (totalInputsBalance - amount - fee > 0) {
         return;

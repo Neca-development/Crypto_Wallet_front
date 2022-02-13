@@ -1,10 +1,9 @@
 import { Wallet } from './wallet';
 // @ts-ignore
-import hdWallet from 'tron-wallet-hd';
+import * as hdWallet from 'tron-wallet-hd';
 import { ChainIds, ErrorsTypes } from './models/enums';
 import { ICreateWalletsData } from './models/wallet';
 import { CustomError } from './errors';
-import { MintTokenMsg } from '@binance-chain/javascript-sdk/lib/types';
 
 export class WalletFactory {
   wallets: Wallet[] = [];
@@ -16,12 +15,12 @@ export class WalletFactory {
    * @returns {Promise<Wallet[]>}
    */
   async createWallets(mnemonic?: string, chainId?: ChainIds): Promise<ICreateWalletsData> {
-    if (mnemonic !== undefined && mnemonic !== null && hdWallet.validateMnemonic(mnemonic) === false) {
+    if (mnemonic !== undefined && mnemonic !== null && hdWallet.utils.validateMnemonic(mnemonic) === false) {
       throw new CustomError('Invalid seed phrase was provided', 0, ErrorsTypes['Invalid data']);
     }
 
     if (mnemonic === undefined || mnemonic === null) {
-      mnemonic = hdWallet.generateMnemonic();
+      mnemonic = hdWallet.utils.generateMnemonic();
     }
 
     if (chainId !== undefined && chainId !== null) {
