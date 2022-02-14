@@ -11,8 +11,6 @@ import { backendApiKey } from './../constants/providers';
 // @ts-ignore
 import axios from 'axios';
 import Web3 from 'web3';
-// @ts-ignore
-// import Wallet from "lumi-web-core";
 import { ethers } from 'ethers';
 import { ICryptoCurrency, IToken } from '../models/token';
 import { getBNFromDecimal } from '../utils/numbers';

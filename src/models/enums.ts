@@ -13,6 +13,7 @@ export enum ChainIds {
   'Ripple',
   'Zcash',
   'Harmony'
+  // 'Neo',
 }
 
 export enum ErrorsTypes {

@@ -1,0 +1,21 @@
+:root {
+  font-size: 1vw;
+}
+
+body {
+  margin: 0;
+  font-family: 'Roboto', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: rgba(219, 219, 219, 0.74);
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
+.App {
+  max-width: 60rem;
+  padding-top: 2rem;
+  margin: 0 auto;
+  display: flex;
+}
