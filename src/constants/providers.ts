@@ -33,9 +33,11 @@ export const etherGasPrice =
 
 // --- Binance ---
 
-export const binanceWeb3Provider = 'https://data-seed-prebsc-1-s1.binance.org:8545/';
+// export const binanceWeb3Provider = 'https://data-seed-prebsc-1-s1.binance.org:8545/';
+export const binanceWeb3Provider = 'https://bsc-dataseed.binance.org/';
 
-export const binanceUSDTContractAddress = '0x337610d27c682e347c9cd60bd4b3b107c9d34ddd';
+// export const binanceUSDTContractAddress = '0x337610d27c682e347c9cd60bd4b3b107c9d34ddd';
+export const binanceUSDTContractAddress = '0xe9e7cea3dedca5984780bafc599bd69add087d56';
 
 export const binanceScanApi = 'https://api-testnet.bscscan.com/api';
 

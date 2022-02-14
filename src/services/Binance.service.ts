@@ -219,7 +219,7 @@ export class binanceService implements IChainService {
   private generateTransactionsQuery(address: string, direction: 'receiver' | 'sender') {
     return `
       query{
-      ethereum(network: bsc_testnet) {
+      ethereum(network: bsc) {
         transfers(
               options: {desc: "any", limit: 1000}
               amount: {gt: 0}
