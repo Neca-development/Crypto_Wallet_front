@@ -256,9 +256,9 @@ export class Wallet {
         case ChainIds['Ripple']:
           this.service = new rippleService();
           break;
-        case ChainIds['Neo']:
-          this.service = new neoService();
-          break;
+        // case ChainIds['Neo']:
+        //   this.service = new neoService();
+        //   break;
         default:
           break;
       }

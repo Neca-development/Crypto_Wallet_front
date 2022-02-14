@@ -14,6 +14,7 @@ import { IResponse } from '../models/response';
 // @ts-ignore
 import zcashcore from 'zcash-bitcore-lib';
 // @ts-ignore
+import * as zcash from 'bitcoinjs-lib-zcash';
 
 import { mnemonicToSeedSync } from 'bip39';
 
