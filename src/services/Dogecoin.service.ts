@@ -11,9 +11,6 @@ import { imagesURL, backendApi, backendApiKey, bitqueryProxy, dogeSatoshisPerByt
 import axios from 'axios';
 import { IResponse } from '../models/response';
 
-// @ts-ignore
-import dogecore from 'bitcore-lib-doge';
-
 import { mnemonicToSeedSync } from 'bip39';
 
 // const coininfo = require('coininfo');
@@ -26,13 +23,17 @@ import { ErrorsTypes } from '../models/enums';
 
 export class dogecoinService implements IChainService {
   private keys: IWalletKeys;
+  private network = coininfo.dogecoin.main.toBitcoinJS();
 
   constructor() {}
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
     const seed = mnemonicToSeedSync(mnemonic);
-    const privateKey = dogecore.HDPrivateKey.fromSeed(seed).deriveChild("m/44'/3'/0'/0/0").privateKey.toString();
 
-    const publicKey = dogecore.HDPrivateKey.fromSeed(seed).deriveChild("m/44'/3'/0'/0/0").privateKey.toAddress().toString();
+    const root = bitcoin.bip32.fromSeed(seed, this.network).derivePath("m/44'/3'/0'/0/0");
+    const keyPair = bitcoin.payments.p2pkh({ pubkey: root.publicKey, network: this.network });
+
+    const privateKey = root.toWIF();
+    const publicKey = keyPair.address;
 
     this.keys = {
       privateKey,
@@ -43,7 +44,8 @@ export class dogecoinService implements IChainService {
   }
 
   async generatePublicKey(privateKey: string): Promise<string> {
-    const publicKey = dogecore.PrivateKey(privateKey).toAddress().toString();
+    const pubkey = bitcoin.ECPair.fromWIF(privateKey, this.network).publicKey;
+    const publicKey = bitcoin.payments.p2pkh({ pubkey, network: this.network }).address;
 
     this.keys = {
       privateKey,
@@ -103,7 +105,7 @@ export class dogecoinService implements IChainService {
     });
 
     utxos.data.data.txs.forEach(async (element: any) => {
-      fee = (inputCount * 146 + outputCount * 33 + 10) * 20 * dogeSatoshisPerByte;
+      fee = (inputCount * 146 + outputCount * 33 + 10) * dogeSatoshisPerByte;
 
       if (totalInputsBalance - amount - fee > 0) {
         return;
@@ -223,18 +225,16 @@ export class dogecoinService implements IChainService {
   }
 
   async sendMainToken(data: ISendingTransactionData): Promise<string> {
-    const netGain = coininfo.dogecoin.main.toBitcoinJS();
-
     const sochain_network = 'DOGE',
       privateKey = data.privateKey,
       sourceAddress = this.keys.publicKey,
       utxos = await axios.get(`https://sochain.com/api/v2/get_tx_unspent/${sochain_network}/${sourceAddress}`),
       // @ts-ignore
-      transaction = new bitcoin.TransactionBuilder(netGain),
+      transaction = new bitcoin.TransactionBuilder(this.network),
       amount = Math.trunc(data.amount * 1e8),
       privateKeyECpair = bitcoin.ECPair.fromPrivateKey(Buffer.from(privateKey, 'hex'), {
         // @ts-ignore
-        network: netGain,
+        network: this.network,
       });
 
     let totalInputsBalance = 0,
@@ -255,7 +255,7 @@ export class dogecoinService implements IChainService {
     });
 
     utxos.data.data.txs.forEach(async (element: any) => {
-      fee = (inputCount * 146 + outputCount * 33 + 10) * 20 * dogeSatoshisPerByte;
+      fee = (inputCount * 146 + outputCount * 33 + 10) * dogeSatoshisPerByte;
 
       if (totalInputsBalance - amount - fee > 0) {
         return;

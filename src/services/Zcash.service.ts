@@ -14,6 +14,7 @@ import { IResponse } from '../models/response';
 // @ts-ignore
 import zcashcore from 'zcash-bitcore-lib';
 // @ts-ignore
+import * as zcash from 'bitcoinjs-lib-zcash';
 
 import { mnemonicToSeedSync } from 'bip39';
 
@@ -26,6 +27,7 @@ import { ErrorsTypes } from '../models/enums';
 
 export class zcashService implements IChainService {
   private keys: IWalletKeys;
+  private network = utxolib.networks.zcash;
 
   constructor() {}
 
@@ -39,6 +41,12 @@ export class zcashService implements IChainService {
       .derive("m/44'/133'/0'/0/0")
       .privateKey.toAddress()
       .toString();
+
+    // const root = utxolib.bip32.fromSeed(seed, this.network).derivePath("m/44'/133'/0'/0/0");
+    // const keyPair1 = utxolib.bitgo.keyutil.privateKeyBufferToECPair(root.privateKey, this.network);
+
+    // console.log(root.toWIF());
+    // console.log(utxolib.payments.p2pkh({ pubkey: keyPair1.publicKey, network: this.network }).address);
 
     this.keys = {
       privateKey,
@@ -109,7 +117,7 @@ export class zcashService implements IChainService {
     });
 
     utxos.data.data.txs.forEach(async (element: any) => {
-      fee = (inputCount * 146 + outputCount * 33 + 10) * 20 * zcashSatoshisPerByte;
+      fee = (inputCount * 146 + outputCount * 33 + 10) * zcashSatoshisPerByte;
 
       if (totalInputsBalance - amount - fee > 0) {
         return;
@@ -257,7 +265,7 @@ export class zcashService implements IChainService {
     });
 
     utxos.data.data.txs.forEach(async (element: any) => {
-      fee = (inputCount * 146 + outputCount * 33 + 10) * 20 * zcashSatoshisPerByte;
+      fee = (inputCount * 146 + outputCount * 33 + 10) * zcashSatoshisPerByte;
 
       if (totalInputsBalance - amount - fee > 0) {
         return;

@@ -18,6 +18,7 @@ import { dashService } from './services/Dash.service';
 import { zcashService } from './services/Zcash.service';
 import { rippleService } from './services/Ripple.service';
 import { polkadotService } from './services/Polkadot.service';
+import { neoService } from './services/Neo.service';
 
 export class Wallet {
   private service: IChainService;
@@ -259,6 +260,9 @@ export class Wallet {
         case ChainIds['Polkadot']:
           this.service = new polkadotService();
           break;
+        // case ChainIds['Neo']:
+        //   this.service = new neoService();
+        //   break;
         default:
           break;
       }

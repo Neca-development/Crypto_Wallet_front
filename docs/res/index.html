@@ -46,8 +46,7 @@
 <a href="#warning" id="warning" style="color: inherit; text-decoration: none;">
   <h2>WARNING!</h2>
 </a>
-<p>To use ZCASH you need to remove type checking from &quot;fromPrivateKey&quot; method of bitcoin-js-lib
-Path:</p>
+<p>To use ZCASH you need to remove type checking from &quot;fromPrivateKey&quot; method of bitcoin-js-lib<br>Path:</p>
 <pre><code><span class="hl-1">...\</span><span class="hl-0">Crypto_Wallet</span><span class="hl-1">\</span><span class="hl-0">node_modules</span><span class="hl-1">\@</span><span class="hl-0">bitgo</span><span class="hl-1">\</span><span class="hl-0">utxo</span><span class="hl-1">-</span><span class="hl-0">lib</span><span class="hl-1">\</span><span class="hl-0">node_modules</span><span class="hl-1">\</span><span class="hl-0">bitcoinjs</span><span class="hl-1">-</span><span class="hl-0">lib</span><span class="hl-1">\</span><span class="hl-0">src</span><span class="hl-1">\</span><span class="hl-0">ecpair</span><span class="hl-1">.</span><span class="hl-0">js</span>
 </code></pre>
 <p>Function you need to find:</p>
@@ -56,8 +55,116 @@ Path:</p>
 <p>Code you need to remove from &quot;fromPrivateKey&quot; method</p>
 <pre><code><span class="hl-6">typeforce</span><span class="hl-1">(</span><span class="hl-0">isOptions</span><span class="hl-1">, </span><span class="hl-0">options</span><span class="hl-1">);</span>
 </code></pre>
-<p>Detailed information on the properties and methods of the wallet can be found in the documentation at <a href="https://crypto-wallet-docs.herokuapp.com/res/classes/Wallet.html">link</a>
-A demo of the library can be found in the folder <code>demo</code></p>
+<p>Detailed information on the properties and methods of the wallet can be found in the documentation at <a href="https://crypto-wallet-docs.herokuapp.com/res/classes/Wallet.html">link</a><br>A demo of the library can be found in the folder <code>demo</code></p>
+<hr>
+
+<a href="#fee-calculation" id="fee-calculation" style="color: inherit; text-decoration: none;">
+  <h2>Fee Calculation</h2>
+</a>
+<ul>
+<li>
+<a href="#tron" id="tron" style="color: inherit; text-decoration: none;">
+  <h3>Tron</h3>
+</a>
+<p><code>Native token transaction:</code> sending for free while you have enough BandWith, after all the BandWith has been used up, the network will automatically buy the required amount to send the transaction.</p>
+<p><code>Smart contracts interaction (sending smart token):</code> hardcoded and cost 10 TRX</p>
+</li>
+<li>
+<a href="#ethereum" id="ethereum" style="color: inherit; text-decoration: none;">
+  <h3>Ethereum</h3>
+</a>
+<p><code>Native token transaction:</code> The fee for sending a transaction is the result of multiplying the spent gas (considered by the library) and the cost of one unit of gas (requested from the resource).</p>
+<p><code>Smart contracts interaction (sending smart token):</code> hardcoded and cost 100000 Wei</p>
+</li>
+<li>
+<a href="#ethereumclassic" id="ethereumclassic" style="color: inherit; text-decoration: none;">
+  <h3>EthereumClassic</h3>
+</a>
+<p><code>Native token transaction:</code> The fee for sending a transaction is the result of multiplying the spent gas (considered by the library) and the cost of one unit of gas (considered by the library).</p>
+</li>
+<li>
+<a href="#binance" id="binance" style="color: inherit; text-decoration: none;">
+  <h3>Binance</h3>
+</a>
+<p><code>Native token transaction:</code> The fee for sending a transaction is the result of multiplying the spent gas (considered by the library) and the cost of one unit of gas (considered by the library).</p>
+<p><code>Smart contracts interaction (sending smart token):</code> hardcoded and cost 100000 Wei</p>
+</li>
+<li>
+<a href="#solana" id="solana" style="color: inherit; text-decoration: none;">
+  <h3>Solana</h3>
+</a>
+<p><code>Native token transaction:</code> The amount of fee is always the same for any transaction and costs 5000 lamports (0.000005 SOL).</p>
+<p><code>Smart contracts interaction (sending smart token):</code> Same as native token transaction.</p>
+</li>
+<li>
+<a href="#polygon" id="polygon" style="color: inherit; text-decoration: none;">
+  <h3>Polygon</h3>
+</a>
+<p><code>Native token transaction:</code> The fee for sending a transaction is the result of multiplying the spent gas (considered by the library) and the cost of one unit of gas (requested from the resource).</p>
+<p><code>Smart contracts interaction (sending smart token):</code> hardcoded and cost 100000 Wei.</p>
+</li>
+<li>
+<a href="#bitcoin" id="bitcoin" style="color: inherit; text-decoration: none;">
+  <h3>Bitcoin</h3>
+</a>
+<p><code>Native token transaction:</code> Fee calculated by formula</p>
+<pre><code><span class="hl-1">(</span><span class="hl-0">inputCount</span><span class="hl-1"> * </span><span class="hl-8">146</span><span class="hl-1"> + </span><span class="hl-0">outputCount</span><span class="hl-1"> * </span><span class="hl-8">33</span><span class="hl-1"> + </span><span class="hl-8">10</span><span class="hl-1">) * </span><span class="hl-0">multiplier</span>
+</code></pre>
+<p>where multiplier = 20</p>
+</li>
+<li>
+<a href="#litecoin" id="litecoin" style="color: inherit; text-decoration: none;">
+  <h3>Litecoin</h3>
+</a>
+<p><code>Native token transaction:</code> Fee calculated by formula</p>
+<pre><code><span class="hl-1">(</span><span class="hl-0">inputCount</span><span class="hl-1"> * </span><span class="hl-8">146</span><span class="hl-1"> + </span><span class="hl-0">outputCount</span><span class="hl-1"> * </span><span class="hl-8">33</span><span class="hl-1"> + </span><span class="hl-8">10</span><span class="hl-1">) * </span><span class="hl-0">multiplier</span>
+</code></pre>
+<p>where multiplier = 4000</p>
+</li>
+<li>
+<a href="#bitcoincash" id="bitcoincash" style="color: inherit; text-decoration: none;">
+  <h3>Bitcoincash</h3>
+</a>
+<p><code>Native token transaction:</code> Fee calculated by formula</p>
+<pre><code><span class="hl-4">this</span><span class="hl-1">.</span><span class="hl-0">bitbox</span><span class="hl-1">.</span><span class="hl-0">BitcoinCash</span><span class="hl-1">.</span><span class="hl-6">getByteCount</span><span class="hl-1">({ </span><span class="hl-0">P2PKH:</span><span class="hl-1"> </span><span class="hl-0">inputCount</span><span class="hl-1"> }, { </span><span class="hl-0">P2PKH:</span><span class="hl-1"> </span><span class="hl-8">2</span><span class="hl-1"> }) * </span><span class="hl-0">multiplier</span>
+</code></pre>
+<p>where getByteCount is library method,<br>multiplier is constant and equals to 1.3</p>
+</li>
+<li>
+<a href="#dogecoin" id="dogecoin" style="color: inherit; text-decoration: none;">
+  <h3>Dogecoin</h3>
+</a>
+<p><code>Native token transaction:</code> Fee calculated by formula</p>
+<pre><code><span class="hl-1">(</span><span class="hl-0">inputCount</span><span class="hl-1"> * </span><span class="hl-8">146</span><span class="hl-1"> + </span><span class="hl-0">outputCount</span><span class="hl-1"> * </span><span class="hl-8">33</span><span class="hl-1"> + </span><span class="hl-8">10</span><span class="hl-1">) * </span><span class="hl-0">multiplier</span>
+</code></pre>
+<p>where multiplier = 10316</p>
+</li>
+<li>
+<a href="#dash" id="dash" style="color: inherit; text-decoration: none;">
+  <h3>DASH</h3>
+</a>
+<p><code>Native token transaction:</code> Fee calculated by formula</p>
+<pre><code><span class="hl-1">(</span><span class="hl-0">inputCount</span><span class="hl-1"> * </span><span class="hl-8">146</span><span class="hl-1"> + </span><span class="hl-0">outputCount</span><span class="hl-1"> * </span><span class="hl-8">33</span><span class="hl-1"> + </span><span class="hl-8">10</span><span class="hl-1">) * </span><span class="hl-0">multiplier</span>
+</code></pre>
+<p>where multiplier = 400</p>
+</li>
+<li>
+<a href="#zcash" id="zcash" style="color: inherit; text-decoration: none;">
+  <h3>ZCASH</h3>
+</a>
+<p><code>Native token transaction:</code> Fee calculated by formula</p>
+<pre><code><span class="hl-1">(</span><span class="hl-0">inputCount</span><span class="hl-1"> * </span><span class="hl-8">146</span><span class="hl-1"> + </span><span class="hl-0">outputCount</span><span class="hl-1"> * </span><span class="hl-8">33</span><span class="hl-1"> + </span><span class="hl-8">10</span><span class="hl-1">) * </span><span class="hl-0">multiplier</span>
+</code></pre>
+<p>where multiplier = 400</p>
+</li>
+<li>
+<a href="#ripple" id="ripple" style="color: inherit; text-decoration: none;">
+  <h3>Ripple</h3>
+</a>
+<p><code>Native token transaction:</code> Fee considered by library, ussualy 12 &quot;drops&quot; of XRP, where 1,000,000 drops equals 1 XRP</p>
+</li>
+</ul>
+<hr>
 
 <a href="#project-scripts" id="project-scripts" style="color: inherit; text-decoration: none;">
   <h2>Project scripts</h2>
