@@ -37,18 +37,18 @@ export class harmonyService implements IChainService {
     const wallet = ethers.Wallet.fromMnemonic(mnemonic);
     this.web3.eth.accounts.wallet.add(this.web3.eth.accounts.privateKeyToAccount(wallet.privateKey));
     this.web3.eth.defaultAccount = wallet.address;
-    // const harmonyAddress = converter('one').toBech32(wallet.address)
+    const harmonyAddress = converter('one').toBech32(wallet.address)
 
     return {
       privateKey: wallet.privateKey,
-      publicKey: wallet.address,
+      publicKey: harmonyAddress,
     };
   }
 
   async generatePublicKey(privateKey: string): Promise<string> {
     const { address } = this.web3.eth.accounts.privateKeyToAccount(privateKey);
-    // const harmonyAddress = converter('one').toBech32(address)
-    return address;
+    const harmonyAddress = converter('one').toBech32(address)
+    return harmonyAddress;
   }
 
   async getTokensByAddress(address: string) {
@@ -64,10 +64,10 @@ export class harmonyService implements IChainService {
         usdt: '1'
       }
     }
+    const ethAddress = this.getEthAddress(address)
 
-
-    const nativeTokensBalance = await this.web3.eth.getBalance(address);
-    const USDTTokenBalance = await this.getCustomTokenBalance(address, harmonyUSDTContractAddress);
+    const nativeTokensBalance = await this.web3.eth.getBalance(ethAddress);
+    const USDTTokenBalance = await this.getCustomTokenBalance(ethAddress, harmonyUSDTContractAddress);
 
     tokens.push(
       this.generateTokenObject(
@@ -124,7 +124,7 @@ export class harmonyService implements IChainService {
    * @returns {any}
    */
   async getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]> {
-    // const { data: ethToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/ETH`, {
+    // const { data: oneToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/ONE`, {
     //   headers: {
     //     'auth-client-key': backendApiKey,
     //   },
@@ -194,9 +194,11 @@ export class harmonyService implements IChainService {
     const gasPrice = await this.web3.eth.getGasPrice();
     const gasLimit = 6721900;
 
+    const recieverEth = this.getEthAddress(data.receiverAddress)
+
     const transactionObject = {
       from: this.web3.eth.defaultAccount,
-      to: data.receiverAddress,
+      to: recieverEth,
       value: this.web3.utils.numberToHex(this.web3.utils.toWei(data.amount.toString())).toString(),
       gasPrice,
       gasLimit
@@ -212,8 +214,9 @@ export class harmonyService implements IChainService {
     const contract = new this.web3.eth.Contract(oneUSDTAbi as any, tokenAddress);
     const decimals = getBNFromDecimal(+(await contract.methods.decimals().call()));
     const amount = new BigNumber(data.amount).multipliedBy(decimals).toNumber();
+    const recieverEth = this.getEthAddress(data.receiverAddress)
     const result = await contract.methods
-      .transfer(data.receiverAddress, this.web3.utils.toHex(amount))
+      .transfer(recieverEth, this.web3.utils.toHex(amount))
       .approve(this.web3.eth.defaultAccount, this.web3.utils.toHex(amount))
     console.log(result);
 
@@ -316,13 +319,13 @@ export class harmonyService implements IChainService {
     const tokenLogo = imagesURL + 'ONE.svg'
     const to = txData.to;
     const from = txData.from;
-    const fromHexFormat = converter('one').toHex(from)
-    const toHexFormat = converter('one').toHex(to)
+    // const fromHexFormat = converter('one').toHex(from)
+    // const toHexFormat = converter('one').toHex(to)
     const direction = from === address.toLowerCase() ? 'OUT' : 'IN';
 
     return {
-      to: toHexFormat,
-      from: fromHexFormat,
+      to: to,
+      from: from,
       amount: amount.toString(),
       amountInUSD: amountPriceInUSD.toString(),
       txId: txData.hash,
@@ -334,5 +337,13 @@ export class harmonyService implements IChainService {
       status: true,
       tokenLogo,
     };
+  }
+
+  private getEthAddress(address: string) {
+    if (address.substring(0, 3) === 'one') {
+      return converter('one').toHex(address)
+    } else {
+      return address
+    }
   }
 }

@@ -27,5 +27,6 @@ export declare class harmonyService implements IChainService {
      * @returns {ITransaction}
      */
     private convertTransactionToCommonFormat;
+    private getEthAddress;
 }
 //# sourceMappingURL=Harmony.service.d.ts.map
