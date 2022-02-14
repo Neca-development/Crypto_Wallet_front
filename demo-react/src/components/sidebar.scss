@@ -1,0 +1,36 @@
+a {
+  text-decoration: none;
+}
+.sidebar {
+  width: 20rem;
+  padding-right: 1.5rem;
+}
+.sidabar__list-item {
+  background-color: rgba(32, 87, 109, 0.171);
+  display: flex;
+  border-radius: 0.5rem;
+  padding: 1.125rem;
+  margin-bottom: 0.3125rem;
+  align-items: center;
+
+  img {
+    height: 2.5rem;
+    margin-right: 0.625rem;
+  }
+  .list-item__chain {
+    font-size: 1.25rem;
+  }
+  span {
+    p {
+      margin: 0;
+      line-height: 1.2;
+      font-size: 0.875rem;
+      width: 13.75rem;
+      color: black;
+      white-space: nowrap;
+      overflow: hidden;
+      position: relative;
+      text-overflow: ellipsis;
+    }
+  }
+}
