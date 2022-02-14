@@ -44,8 +44,8 @@ export class litecoinService implements IChainService {
   }
 
   async generatePublicKey(privateKey: string): Promise<string> {
-  const pubkey = bitcoin.ECPair.fromWIF(privateKey, this.network).publicKey;
-  const publicKey = bitcoin.payments.p2pkh({ pubkey, network: this.network }).address;
+    const pubkey = bitcoin.ECPair.fromWIF(privateKey, this.network).publicKey;
+    const publicKey = bitcoin.payments.p2pkh({ pubkey, network: this.network }).address;
 
     this.keys = {
       privateKey,
@@ -105,7 +105,7 @@ export class litecoinService implements IChainService {
     });
 
     utxos.data.data.txs.forEach(async (element: any) => {
-      fee = (inputCount * 146 + outputCount * 33 + 10) * 20 * litecoinSatoshisPerByte;
+      fee = (inputCount * 146 + outputCount * 33 + 10) * litecoinSatoshisPerByte;
 
       if (totalInputsBalance - amount - fee > 0) {
         return;
