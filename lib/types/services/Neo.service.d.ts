@@ -3,18 +3,23 @@ import { IWalletKeys } from '../models/wallet';
 import { IChainService } from '../models/chainService';
 import { ITransaction } from '../models/transaction';
 import { IToken } from '../models/token';
-export declare class bitcoinService implements IChainService {
-    private keys;
-    private network;
+export declare class neoService implements IChainService {
+    private web3;
     constructor();
     generateKeyPair(mnemonic: string): Promise<IWalletKeys>;
     generatePublicKey(privateKey: string): Promise<string>;
     getTokensByAddress(address: string): Promise<IToken[]>;
-    getFeePriceOracle(from: string, to: string, amount: number): Promise<IFee>;
+    getFeePriceOracle(from: string, to: string): Promise<IFee>;
+    /**
+     * @param {ISendingTransactionData} data:ISendingTransactionData
+     * @returns {any}
+     */
     getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]>;
     sendMainToken(data: ISendingTransactionData): Promise<string>;
-    send20Token(): Promise<string>;
+    send20Token(data: ISendingTransactionData): Promise<string>;
+    private getCustomTokenBalance;
     private generateTokenObject;
+    private generateTransactionsQuery;
     /**
      * @param {any} txData:any
      * @param {string} address:string
@@ -23,4 +28,4 @@ export declare class bitcoinService implements IChainService {
      */
     private convertTransactionToCommonFormat;
 }
-//# sourceMappingURL=Bitcoin.service.d.ts.map
+//# sourceMappingURL=Neo.service.d.ts.map

@@ -16,7 +16,6 @@ import { mnemonicToSeedSync } from 'bip39';
 import * as bitcore from 'bitcore-lib-cash';
 import { CustomError } from '../errors';
 
-// import HDKey from 'hdkey';
 
 import { ErrorsTypes } from '../models/enums';
 
