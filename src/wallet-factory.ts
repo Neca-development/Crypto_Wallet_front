@@ -4,7 +4,6 @@ import * as hdWallet from 'tron-wallet-hd';
 import { ChainIds, ErrorsTypes } from './models/enums';
 import { ICreateWalletsData } from './models/wallet';
 import { CustomError } from './errors';
-
 export class WalletFactory {
   wallets: Wallet[] = [];
 
@@ -53,9 +52,10 @@ export class WalletFactory {
    * @returns {Promise<Wallet>}
    */
   async createWalletByPrivateKey(privateKey: string, chainId: ChainIds): Promise<Wallet> {
-    const tronWallet = new Wallet(ChainIds[chainId] as unknown as ChainIds, null, privateKey);
-    await tronWallet.init();
-    return tronWallet;
+    const wallet = new Wallet(ChainIds[chainId] as unknown as ChainIds, null, privateKey);
+    await wallet.init();
+    this.wallets.push(wallet);
+    return wallet;
   }
 
   /**
@@ -131,10 +131,14 @@ export class WalletFactory {
    */
   async getAllTokens(): Promise<any> {
     const tokens = {};
-
-    for (const wallet of this.wallets) {
-      tokens[wallet.chainId] = await wallet.getTokensByAddress();
-    }
+    await Promise.all(
+      this.wallets.map((wallet) => {
+        return new Promise<void>(async (resolve) => {
+          tokens[wallet.chainId] = await wallet.getTokensByAddress();
+          resolve();
+        });
+      })
+    );
 
     return tokens;
   }
