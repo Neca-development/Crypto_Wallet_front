@@ -4,6 +4,7 @@ import * as hdWallet from 'tron-wallet-hd';
 import { ChainIds, ErrorsTypes } from './models/enums';
 import { ICreateWalletsData } from './models/wallet';
 import { CustomError } from './errors';
+import { generateMnemonic } from 'bip39';
 export class WalletFactory {
   wallets: Wallet[] = [];
 
@@ -19,7 +20,7 @@ export class WalletFactory {
     }
 
     if (mnemonic === undefined || mnemonic === null) {
-      mnemonic = hdWallet.utils.generateMnemonic();
+      mnemonic = generateMnemonic(128);
     }
 
     if (chainId !== undefined && chainId !== null) {
