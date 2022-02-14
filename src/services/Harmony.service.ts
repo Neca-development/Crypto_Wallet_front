@@ -217,7 +217,13 @@ export class harmonyService implements IChainService {
     const recieverEth = this.getEthAddress(data.receiverAddress)
     const result = await contract.methods
       .transfer(recieverEth, this.web3.utils.toHex(amount))
-      .approve(this.web3.eth.defaultAccount, this.web3.utils.toHex(amount))
+      .send({ from: this.web3.eth.defaultAccount, gas: "3000000" }, function (err, res) {
+        if (err) {
+          console.log("An error occured", err)
+          return
+        }
+        console.log("Hash of the transaction: " + res)
+      })
     console.log(result);
 
     return result.transactionHash;
