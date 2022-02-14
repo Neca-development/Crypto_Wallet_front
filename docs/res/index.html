@@ -4,6 +4,25 @@
 </a>
 <hr>
 
+<a href="#supported-blockchains" id="supported-blockchains" style="color: inherit; text-decoration: none;">
+  <h2>Supported blockchains</h2>
+</a>
+<ul>
+<li>Tron</li>
+<li>Ethereum</li>
+<li>EthereumClassic</li>
+<li>Binance</li>
+<li>Solana</li>
+<li>Polygon</li>
+<li>Bitcoin</li>
+<li>Litecoin</li>
+<li>Bitcoincash</li>
+<li>Dogecoin</li>
+<li>DASH</li>
+<li>ZCASH</li>
+<li>Ripple</li>
+</ul>
+
 <a href="#project-installation" id="project-installation" style="color: inherit; text-decoration: none;">
   <h2>Project installation</h2>
 </a>
@@ -23,8 +42,129 @@
 <pre><code><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">wallets</span><span class="hl-1"> = </span><span class="hl-2">await</span><span class="hl-1"> </span><span class="hl-0">wf</span><span class="hl-1">.</span><span class="hl-6">createWallets</span><span class="hl-1">(</span><span class="hl-0">mnemonic</span><span class="hl-1">);</span>
 </code></pre>
 <hr>
-<p>Detailed information on the properties and methods of the wallet can be found in the documentation at link (classes/Wallet.html)
-A demo of the library can be found in the folder <code>demo</code></p>
+
+<a href="#warning" id="warning" style="color: inherit; text-decoration: none;">
+  <h2>WARNING!</h2>
+</a>
+<p>To use ZCASH you need to remove type checking from &quot;fromPrivateKey&quot; method of bitcoin-js-lib<br>Path:</p>
+<pre><code><span class="hl-1">...\</span><span class="hl-0">Crypto_Wallet</span><span class="hl-1">\</span><span class="hl-0">node_modules</span><span class="hl-1">\@</span><span class="hl-0">bitgo</span><span class="hl-1">\</span><span class="hl-0">utxo</span><span class="hl-1">-</span><span class="hl-0">lib</span><span class="hl-1">\</span><span class="hl-0">node_modules</span><span class="hl-1">\</span><span class="hl-0">bitcoinjs</span><span class="hl-1">-</span><span class="hl-0">lib</span><span class="hl-1">\</span><span class="hl-0">src</span><span class="hl-1">\</span><span class="hl-0">ecpair</span><span class="hl-1">.</span><span class="hl-0">js</span>
+</code></pre>
+<p>Function you need to find:</p>
+<pre><code><span class="hl-4">function</span><span class="hl-1"> </span><span class="hl-6">fromPrivateKey</span><span class="hl-1">(</span><span class="hl-0">buffer</span><span class="hl-1">, </span><span class="hl-0">options</span><span class="hl-1">) {</span><br/><span class="hl-1">  </span><span class="hl-6">typeforce</span><span class="hl-1">(</span><span class="hl-0">types</span><span class="hl-1">.</span><span class="hl-0">Buffer256bit</span><span class="hl-1">, </span><span class="hl-0">buffer</span><span class="hl-1">);</span><br/><span class="hl-1">  </span><span class="hl-2">if</span><span class="hl-1"> (!</span><span class="hl-0">ecc</span><span class="hl-1">.</span><span class="hl-6">isPrivate</span><span class="hl-1">(</span><span class="hl-0">buffer</span><span class="hl-1">))</span><br/><span class="hl-1">    </span><span class="hl-2">throw</span><span class="hl-1"> </span><span class="hl-4">new</span><span class="hl-1"> </span><span class="hl-7">TypeError</span><span class="hl-1">(</span><span class="hl-3">&#39;Private key not in range [1, n)&#39;</span><span class="hl-1">);</span><br/><span class="hl-1">  </span><span class="hl-6">typeforce</span><span class="hl-1">(</span><span class="hl-0">isOptions</span><span class="hl-1">, </span><span class="hl-0">options</span><span class="hl-1">);</span><br/><span class="hl-1">  </span><span class="hl-2">return</span><span class="hl-1"> </span><span class="hl-4">new</span><span class="hl-1"> </span><span class="hl-6">ECPair</span><span class="hl-1">(</span><span class="hl-0">buffer</span><span class="hl-1">, </span><span class="hl-4">undefined</span><span class="hl-1">, </span><span class="hl-0">options</span><span class="hl-1">);</span><br/><span class="hl-1">}</span>
+</code></pre>
+<p>Code you need to remove from &quot;fromPrivateKey&quot; method</p>
+<pre><code><span class="hl-6">typeforce</span><span class="hl-1">(</span><span class="hl-0">isOptions</span><span class="hl-1">, </span><span class="hl-0">options</span><span class="hl-1">);</span>
+</code></pre>
+<p>Detailed information on the properties and methods of the wallet can be found in the documentation at <a href="https://crypto-wallet-docs.herokuapp.com/res/classes/Wallet.html">link</a><br>A demo of the library can be found in the folder <code>demo</code></p>
+<hr>
+
+<a href="#fee-calculation" id="fee-calculation" style="color: inherit; text-decoration: none;">
+  <h2>Fee Calculation</h2>
+</a>
+<ul>
+<li>
+<a href="#tron" id="tron" style="color: inherit; text-decoration: none;">
+  <h3>Tron</h3>
+</a>
+<p><code>Native token transaction:</code> sending for free while you have enough BandWith, after all the BandWith has been used up, the network will automatically buy the required amount to send the transaction.</p>
+<p><code>Smart contracts interaction (sending smart token):</code> hardcoded and cost 10 TRX</p>
+</li>
+<li>
+<a href="#ethereum" id="ethereum" style="color: inherit; text-decoration: none;">
+  <h3>Ethereum</h3>
+</a>
+<p><code>Native token transaction:</code> The fee for sending a transaction is the result of multiplying the spent gas (considered by the library) and the cost of one unit of gas (requested from the resource).</p>
+<p><code>Smart contracts interaction (sending smart token):</code> hardcoded and cost 100000 Wei</p>
+</li>
+<li>
+<a href="#ethereumclassic" id="ethereumclassic" style="color: inherit; text-decoration: none;">
+  <h3>EthereumClassic</h3>
+</a>
+<p><code>Native token transaction:</code> The fee for sending a transaction is the result of multiplying the spent gas (considered by the library) and the cost of one unit of gas (considered by the library).</p>
+</li>
+<li>
+<a href="#binance" id="binance" style="color: inherit; text-decoration: none;">
+  <h3>Binance</h3>
+</a>
+<p><code>Native token transaction:</code> The fee for sending a transaction is the result of multiplying the spent gas (considered by the library) and the cost of one unit of gas (considered by the library).</p>
+<p><code>Smart contracts interaction (sending smart token):</code> hardcoded and cost 100000 Wei</p>
+</li>
+<li>
+<a href="#solana" id="solana" style="color: inherit; text-decoration: none;">
+  <h3>Solana</h3>
+</a>
+<p><code>Native token transaction:</code> The amount of fee is always the same for any transaction and costs 5000 lamports (0.000005 SOL).</p>
+<p><code>Smart contracts interaction (sending smart token):</code> Same as native token transaction.</p>
+</li>
+<li>
+<a href="#polygon" id="polygon" style="color: inherit; text-decoration: none;">
+  <h3>Polygon</h3>
+</a>
+<p><code>Native token transaction:</code> The fee for sending a transaction is the result of multiplying the spent gas (considered by the library) and the cost of one unit of gas (requested from the resource).</p>
+<p><code>Smart contracts interaction (sending smart token):</code> hardcoded and cost 100000 Wei.</p>
+</li>
+<li>
+<a href="#bitcoin" id="bitcoin" style="color: inherit; text-decoration: none;">
+  <h3>Bitcoin</h3>
+</a>
+<p><code>Native token transaction:</code> Fee calculated by formula</p>
+<pre><code><span class="hl-1">(</span><span class="hl-0">inputCount</span><span class="hl-1"> * </span><span class="hl-8">146</span><span class="hl-1"> + </span><span class="hl-0">outputCount</span><span class="hl-1"> * </span><span class="hl-8">33</span><span class="hl-1"> + </span><span class="hl-8">10</span><span class="hl-1">) * </span><span class="hl-0">multiplier</span>
+</code></pre>
+<p>where multiplier = 20</p>
+</li>
+<li>
+<a href="#litecoin" id="litecoin" style="color: inherit; text-decoration: none;">
+  <h3>Litecoin</h3>
+</a>
+<p><code>Native token transaction:</code> Fee calculated by formula</p>
+<pre><code><span class="hl-1">(</span><span class="hl-0">inputCount</span><span class="hl-1"> * </span><span class="hl-8">146</span><span class="hl-1"> + </span><span class="hl-0">outputCount</span><span class="hl-1"> * </span><span class="hl-8">33</span><span class="hl-1"> + </span><span class="hl-8">10</span><span class="hl-1">) * </span><span class="hl-0">multiplier</span>
+</code></pre>
+<p>where multiplier = 4000</p>
+</li>
+<li>
+<a href="#bitcoincash" id="bitcoincash" style="color: inherit; text-decoration: none;">
+  <h3>Bitcoincash</h3>
+</a>
+<p><code>Native token transaction:</code> Fee calculated by formula</p>
+<pre><code><span class="hl-4">this</span><span class="hl-1">.</span><span class="hl-0">bitbox</span><span class="hl-1">.</span><span class="hl-0">BitcoinCash</span><span class="hl-1">.</span><span class="hl-6">getByteCount</span><span class="hl-1">({ </span><span class="hl-0">P2PKH:</span><span class="hl-1"> </span><span class="hl-0">inputCount</span><span class="hl-1"> }, { </span><span class="hl-0">P2PKH:</span><span class="hl-1"> </span><span class="hl-8">2</span><span class="hl-1"> }) * </span><span class="hl-0">multiplier</span>
+</code></pre>
+<p>where getByteCount is library method,<br>multiplier is constant and equals to 1.3</p>
+</li>
+<li>
+<a href="#dogecoin" id="dogecoin" style="color: inherit; text-decoration: none;">
+  <h3>Dogecoin</h3>
+</a>
+<p><code>Native token transaction:</code> Fee calculated by formula</p>
+<pre><code><span class="hl-1">(</span><span class="hl-0">inputCount</span><span class="hl-1"> * </span><span class="hl-8">146</span><span class="hl-1"> + </span><span class="hl-0">outputCount</span><span class="hl-1"> * </span><span class="hl-8">33</span><span class="hl-1"> + </span><span class="hl-8">10</span><span class="hl-1">) * </span><span class="hl-0">multiplier</span>
+</code></pre>
+<p>where multiplier = 10316</p>
+</li>
+<li>
+<a href="#dash" id="dash" style="color: inherit; text-decoration: none;">
+  <h3>DASH</h3>
+</a>
+<p><code>Native token transaction:</code> Fee calculated by formula</p>
+<pre><code><span class="hl-1">(</span><span class="hl-0">inputCount</span><span class="hl-1"> * </span><span class="hl-8">146</span><span class="hl-1"> + </span><span class="hl-0">outputCount</span><span class="hl-1"> * </span><span class="hl-8">33</span><span class="hl-1"> + </span><span class="hl-8">10</span><span class="hl-1">) * </span><span class="hl-0">multiplier</span>
+</code></pre>
+<p>where multiplier = 400</p>
+</li>
+<li>
+<a href="#zcash" id="zcash" style="color: inherit; text-decoration: none;">
+  <h3>ZCASH</h3>
+</a>
+<p><code>Native token transaction:</code> Fee calculated by formula</p>
+<pre><code><span class="hl-1">(</span><span class="hl-0">inputCount</span><span class="hl-1"> * </span><span class="hl-8">146</span><span class="hl-1"> + </span><span class="hl-0">outputCount</span><span class="hl-1"> * </span><span class="hl-8">33</span><span class="hl-1"> + </span><span class="hl-8">10</span><span class="hl-1">) * </span><span class="hl-0">multiplier</span>
+</code></pre>
+<p>where multiplier = 400</p>
+</li>
+<li>
+<a href="#ripple" id="ripple" style="color: inherit; text-decoration: none;">
+  <h3>Ripple</h3>
+</a>
+<p><code>Native token transaction:</code> Fee considered by library, ussualy 12 &quot;drops&quot; of XRP, where 1,000,000 drops equals 1 XRP</p>
+</li>
+</ul>
+<hr>
 
 <a href="#project-scripts" id="project-scripts" style="color: inherit; text-decoration: none;">
   <h2>Project scripts</h2>
@@ -51,4 +191,4 @@ A demo of the library can be found in the folder <code>demo</code></p>
 </code></pre>
 <pre><code>
 </code></pre>
-</div></div><div class="col-4 col-menu menu-sticky-wrap menu-highlight"><nav class="tsd-navigation primary"><ul><li class="current"><a href="modules.html">Exports</a></li><li class=" tsd-kind-namespace"><a href="modules/_internal_.html">&lt;internal&gt;</a></li></ul></nav><nav class="tsd-navigation secondary menu-sticky"><ul><li class="tsd-kind-class"><a href="classes/Wallet.html" class="tsd-kind-icon">Wallet</a></li><li class="tsd-kind-class"><a href="classes/WalletFactory.html" class="tsd-kind-icon">Wallet<wbr/>Factory</a></li><li class="tsd-kind-interface"><a href="interfaces/IChainService.html" class="tsd-kind-icon">IChain<wbr/>Service</a></li><li class="tsd-kind-interface"><a href="interfaces/ICreateWalletsData.html" class="tsd-kind-icon">ICreate<wbr/>Wallets<wbr/>Data</a></li><li class="tsd-kind-interface"><a href="interfaces/ISendingTransactionData.html" class="tsd-kind-icon">ISending<wbr/>Transaction<wbr/>Data</a></li><li class="tsd-kind-interface"><a href="interfaces/IToken.html" class="tsd-kind-icon">IToken</a></li><li class="tsd-kind-interface"><a href="interfaces/ITransaction.html" class="tsd-kind-icon">ITransaction</a></li></ul></nav></div></div></div><footer class="with-border-bottom"><div class="container"><h2>Legend</h2><div class="tsd-legend-group"><ul class="tsd-legend"><li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li><li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li></ul><ul class="tsd-legend"><li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li><li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li></ul><ul class="tsd-legend"><li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li><li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li></ul></div><h2>Settings</h2><p>Theme <select id="theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></p></div></footer><div class="container tsd-generator"><p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div><div class="overlay"></div><script src="assets/main.js"></script></body></html>
+</div></div><div class="col-4 col-menu menu-sticky-wrap menu-highlight"><nav class="tsd-navigation primary"><ul><li class="current"><a href="modules.html">Exports</a></li><li class=" tsd-kind-namespace"><a href="modules/_internal_.html">&lt;internal&gt;</a></li></ul></nav><nav class="tsd-navigation secondary menu-sticky"><ul><li class="tsd-kind-class"><a href="classes/CustomError.html" class="tsd-kind-icon">Custom<wbr/>Error</a></li><li class="tsd-kind-class"><a href="classes/Wallet.html" class="tsd-kind-icon">Wallet</a></li><li class="tsd-kind-class"><a href="classes/WalletFactory.html" class="tsd-kind-icon">Wallet<wbr/>Factory</a></li><li class="tsd-kind-interface"><a href="interfaces/IChainService.html" class="tsd-kind-icon">IChain<wbr/>Service</a></li><li class="tsd-kind-interface"><a href="interfaces/ICreateWalletsData.html" class="tsd-kind-icon">ICreate<wbr/>Wallets<wbr/>Data</a></li><li class="tsd-kind-interface"><a href="interfaces/ISendingTransactionData.html" class="tsd-kind-icon">ISending<wbr/>Transaction<wbr/>Data</a></li><li class="tsd-kind-interface"><a href="interfaces/IToken.html" class="tsd-kind-icon">IToken</a></li><li class="tsd-kind-interface"><a href="interfaces/ITransaction.html" class="tsd-kind-icon">ITransaction</a></li></ul></nav></div></div></div><footer class="with-border-bottom"><div class="container"><h2>Legend</h2><div class="tsd-legend-group"><ul class="tsd-legend"><li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li><li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li><li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li></ul><ul class="tsd-legend"><li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li><li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li></ul><ul class="tsd-legend"><li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li><li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li></ul></div><h2>Settings</h2><p>Theme <select id="theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></p></div></footer><div class="container tsd-generator"><p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div><div class="overlay"></div><script src="assets/main.js"></script></body></html>

@@ -94,8 +94,8 @@ export class binanceService implements IChainService {
     const usd = Math.trunc(+value * Number(bnbToUSD.data.usd) * 100) / 100;
 
     return {
-      value,
-      usd: usd.toString(),
+      value: Number(value),
+      usd: usd,
     };
   }
 
@@ -202,8 +202,10 @@ export class binanceService implements IChainService {
     tokenPriceInUSD = Math.trunc(tokenPriceInUSD * 100) / 100;
 
     const balanceInUSD = Math.trunc(balance * tokenPriceInUSD * 100) / 100;
+    const standard = tokenType === 'custom' ? 'BEP 20' : null;
 
     return {
+      standard,
       balance,
       balanceInUSD,
       contractAddress,
@@ -260,8 +262,7 @@ export class binanceService implements IChainService {
   ): ITransaction {
     const amount = new BigNumber(txData.amount).toFormat();
 
-    let amountPriceInUSD =
-      txData.currency.symbol === 'BNB' ? tokenPriceToUSD : (1 / nativeTokenToUSD) * tokenPriceToUSD;
+    let amountPriceInUSD = txData.currency.symbol === 'BNB' ? tokenPriceToUSD : (1 / nativeTokenToUSD) * tokenPriceToUSD;
     amountPriceInUSD = Math.trunc(amountPriceInUSD * txData.amount * 100) / 100;
 
     const tokenLogo = imagesURL + txData.currency.symbol.toUpperCase() + '.svg';
@@ -274,7 +275,7 @@ export class binanceService implements IChainService {
       from,
       amount,
       amountInUSD: amountPriceInUSD.toString(),
-      txId: txData.txHash,
+      txId: txData.transaction.hash,
       direction,
       type: txData.tokenType,
       tokenName: txData.currency.symbol,

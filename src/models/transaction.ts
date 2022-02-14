@@ -9,6 +9,7 @@ export interface ISendingTransactionData {
    * @desc take fee in main chain token
    */
   cotractAddress?: string;
+  destinationTag?: number;
 }
 
 export interface ITransaction {
@@ -27,6 +28,6 @@ export interface ITransaction {
 }
 
 export interface IFee {
-  value: string;
-  usd: string;
+  value: number;
+  usd: number;
 }

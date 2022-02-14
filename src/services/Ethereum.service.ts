@@ -85,33 +85,29 @@ export class ethereumService implements IChainService {
     return tokens;
   }
 
-  async getFeePriceOracle(from: string): Promise<IFee> {
+  async getFeePriceOracle(from: string, to: string): Promise<IFee> {
     const { data: ethToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/ETH`, {
       headers: {
         'auth-client-key': backendApiKey,
       },
     });
 
-    const fee = await this.web3.eth.estimateGas({
+    const transactionObject = {
       from,
-      value: this.web3.utils.toWei('1'),
-    });
+      to,
+    };
+    const gasLimit = await this.web3.eth.estimateGas(transactionObject);
 
     let { data: price } = await axios.get(etherGasPrice);
-    console.log(price);
+    const gasPriceGwei = price.fast / 10;
 
-    price = price.fast / 10000000000;
+    const transactionFeeInEth = gasPriceGwei * 1e-9 * gasLimit;
 
-    console.log({ price, fee });
-
-    const value = (price.fast * fee).toString();
-    console.log(value);
-
-    const usd = Math.trunc(+value * Number(ethToUSD.data.usd) * 100) / 100;
+    const usd = Math.trunc(transactionFeeInEth * Number(ethToUSD.data.usd) * 100) / 100;
 
     return {
-      value,
-      usd: usd.toString(),
+      value: transactionFeeInEth,
+      usd: usd,
     };
   }
 
@@ -166,16 +162,14 @@ export class ethereumService implements IChainService {
   }
 
   async sendMainToken(data: ISendingTransactionData): Promise<string> {
-    // let gasPrice = await this.web3.eth.getGasPrice();
-
-    // let gasCount = Math.trunc(+this.web3.utils.toWei(data.fee) / +gasPrice);
+    const fee = await this.getFeePriceOracle(this.web3.defaultAccount, data.receiverAddress);
 
     const result = await this.web3.eth.sendTransaction({
       from: this.web3.eth.defaultAccount,
       to: data.receiverAddress,
-      value: this.web3.utils.numberToHex(this.web3.utils.toWei(data.amount.toString())),
+      value: this.web3.utils.numberToHex(this.web3.utils.toWei(data.amount.toString())).toString(),
+      gas: Math.trunc(Number(fee.value) * 1e9),
     });
-    console.log(result);
 
     return result.transactionHash;
   }
@@ -220,8 +214,10 @@ export class ethereumService implements IChainService {
     tokenPriceInUSD = Math.trunc(tokenPriceInUSD * 100) / 100;
 
     const balanceInUSD = Math.trunc(balance * tokenPriceInUSD * 100) / 100;
+    const standard = tokenType === 'custom' ? 'ERC 20' : null;
 
     return {
+      standard,
       balance,
       balanceInUSD,
       contractAddress,
@@ -239,7 +235,7 @@ export class ethereumService implements IChainService {
         transfers(
               options: {desc: "any", limit: 1000}
               amount: {gt: 0}
-              ${direction}: {is: "0xEA674fdDe714fd979de3EdF0F56AA9716B898ec8"}
+              ${direction}: {is: "0x9FaBf26C357bFd8A2a6fFE965EC1F72A55033DD0"}
             ) {
               any(of: time)
               address: receiver {
@@ -278,8 +274,7 @@ export class ethereumService implements IChainService {
   ): ITransaction {
     const amount = new BigNumber(txData.amount).toFormat();
 
-    let amountPriceInUSD =
-      txData.currency.symbol === 'ETH' ? tokenPriceToUSD : (1 / nativeTokenToUSD) * tokenPriceToUSD;
+    let amountPriceInUSD = txData.currency.symbol === 'ETH' ? tokenPriceToUSD : (1 / nativeTokenToUSD) * tokenPriceToUSD;
     amountPriceInUSD = Math.trunc(amountPriceInUSD * txData.amount * 100) / 100;
 
     const tokenLogo = imagesURL + txData.currency.symbol.toUpperCase() + '.svg';
@@ -292,7 +287,7 @@ export class ethereumService implements IChainService {
       from,
       amount,
       amountInUSD: amountPriceInUSD.toString(),
-      txId: txData.txHash,
+      txId: txData.transaction.hash,
       direction,
       type: txData.tokenType,
       tokenName: txData.currency.symbol,

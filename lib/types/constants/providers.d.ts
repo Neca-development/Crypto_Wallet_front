@@ -1,5 +1,5 @@
 export declare const backendApiKey = "ba9713548726a8b17bcd316e7044c20d";
-export declare const backendApi = "http://135.181.216.90:49354/api/";
+export declare const backendApi = "https://wallet-api.sawe.dev/api/";
 export declare const imagesURL: string;
 export declare const bitqueryProxy: string;
 export declare const tronWebProvider: {
@@ -16,4 +16,16 @@ export declare const etherGasPrice = "https://ethgasstation.info/api/ethgasAPI.j
 export declare const binanceWeb3Provider = "https://data-seed-prebsc-1-s1.binance.org:8545/";
 export declare const binanceUSDTContractAddress = "0x337610d27c682e347c9cd60bd4b3b107c9d34ddd";
 export declare const binanceScanApi = "https://api-testnet.bscscan.com/api";
+export declare const solanaUSDTContractAddress = "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB";
+export declare const polygonWeb3Provider = "https://polygon-rpc.com/";
+export declare const polygonUSDTContractAddress = "0xc2132d05d31c914a87c6611c10748aeb04b58e8f";
+export declare const polygonGasPrice = "https://gasstation-mainnet.matic.network";
+export declare const etcWeb3Provider = "https://www.ethercluster.com/etc";
+export declare const bitcoinSatoshisPerByte = 206320;
+export declare const dogeSatoshisPerByte = 206320;
+export declare const litecoinSatoshisPerByte = 4000;
+export declare const bitcoincashSatoshisPerByte = 1.3;
+export declare const dashSatoshisPerByte = 400;
+export declare const zcashSatoshisPerByte = 400;
+export declare const rippleProvider = "wss://xrplcluster.com";
 //# sourceMappingURL=providers.d.ts.map

@@ -1,6 +1,7 @@
 export const backendApiKey = 'ba9713548726a8b17bcd316e7044c20d';
 
-export const backendApi = 'http://135.181.216.90:49354/api/';
+export const backendApi = 'https://wallet-api.sawe.dev/api/';
+// export const backendApi = 'http://135.181.216.90:49358/api/';
 
 export const imagesURL = `${backendApi}images/`;
 
@@ -35,3 +36,54 @@ export const binanceWeb3Provider = 'https://data-seed-prebsc-1-s1.binance.org:85
 export const binanceUSDTContractAddress = '0x337610d27c682e347c9cd60bd4b3b107c9d34ddd';
 
 export const binanceScanApi = 'https://api-testnet.bscscan.com/api';
+
+// --- Solana ---
+
+export const solanaUSDTContractAddress = 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB';
+
+// --- Polygon ---
+
+// MATIC(mainnet)
+export const polygonWeb3Provider = 'https://polygon-rpc.com/';
+// MUMBAI(testnet)
+// export const polygonWeb3Provider = 'https://rpc-mumbai.maticvigil.com/'
+
+// USDT
+export const polygonUSDTContractAddress = '0xc2132d05d31c914a87c6611c10748aeb04b58e8f';
+//TEST USDT
+// export const polygonUSDTContractAddress = '0xe07D7B44D340216723eD5eA33c724908B817EE9D'
+
+export const polygonGasPrice = 'https://gasstation-mainnet.matic.network';
+
+// --- Ethereum Classic ---
+
+export const etcWeb3Provider = 'https://www.ethercluster.com/etc';
+
+// ------------- BITCOIN -----------------
+
+export const bitcoinSatoshisPerByte = 206320;
+
+// ------------- DOGECOIN -----------------
+
+export const dogeSatoshisPerByte = 206320;
+
+// ------------- LITECOIN -----------------
+
+export const litecoinSatoshisPerByte = 4000;
+
+// ------------- BITCOIN CASH -----------------
+
+export const bitcoincashSatoshisPerByte = 1.3;
+
+// ------------- DASH -----------------
+
+export const dashSatoshisPerByte = 400;
+
+// ------------- ZCASH -----------------
+
+export const zcashSatoshisPerByte = 400;
+
+// -------------- Ripple ------------------------
+
+// export const rippleProvider = 'wss://s.altnet.rippletest.net:51233';
+export const rippleProvider = 'wss://xrplcluster.com';

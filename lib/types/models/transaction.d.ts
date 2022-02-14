@@ -9,6 +9,7 @@ export interface ISendingTransactionData {
      * @desc take fee in main chain token
      */
     cotractAddress?: string;
+    destinationTag?: number;
 }
 export interface ITransaction {
     amount: string;
@@ -25,7 +26,7 @@ export interface ITransaction {
     fee: number;
 }
 export interface IFee {
-    value: string;
-    usd: string;
+    value: number;
+    usd: number;
 }
 //# sourceMappingURL=transaction.d.ts.map

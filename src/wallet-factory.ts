@@ -1,10 +1,12 @@
 import { Wallet } from './wallet';
 // @ts-ignore
-import hdWallet from 'tron-wallet-hd';
-import { ChainIds } from './models/enums';
+import * as hdWallet from 'tron-wallet-hd';
+import { ChainIds, ErrorsTypes } from './models/enums';
 import { ICreateWalletsData } from './models/wallet';
-
+import { CustomError } from './errors';
 export class WalletFactory {
+  wallets: Wallet[] = [];
+
   /**
    * Create a single wallet for every chain
    * @desc set menmonic to restore wallet. By default generate new menmonic. If mnemonic were passed, method restore existing wallets
@@ -12,12 +14,12 @@ export class WalletFactory {
    * @returns {Promise<Wallet[]>}
    */
   async createWallets(mnemonic?: string, chainId?: ChainIds): Promise<ICreateWalletsData> {
-    if (mnemonic !== undefined && mnemonic !== null && hdWallet.validateMnemonic(mnemonic) === false) {
-      throw new Error('Invalid mnemonic seed provided!');
+    if (mnemonic !== undefined && mnemonic !== null && hdWallet.utils.validateMnemonic(mnemonic) === false) {
+      throw new CustomError('Invalid seed phrase was provided', 0, ErrorsTypes['Invalid data']);
     }
 
     if (mnemonic === undefined || mnemonic === null) {
-      mnemonic = hdWallet.generateMnemonic();
+      mnemonic = hdWallet.utils.generateMnemonic();
     }
 
     if (chainId !== undefined && chainId !== null) {
@@ -39,6 +41,8 @@ export class WalletFactory {
       await wallet.init();
     }
 
+    this.wallets = wallets;
+
     return { mnemonic, wallets };
   }
 
@@ -48,8 +52,94 @@ export class WalletFactory {
    * @returns {Promise<Wallet>}
    */
   async createWalletByPrivateKey(privateKey: string, chainId: ChainIds): Promise<Wallet> {
-    const tronWallet = new Wallet(ChainIds[chainId] as unknown as ChainIds, null, privateKey);
-    await tronWallet.init();
-    return tronWallet;
+    const wallet = new Wallet(ChainIds[chainId] as unknown as ChainIds, null, privateKey);
+    await wallet.init();
+    this.wallets.push(wallet);
+    return wallet;
+  }
+
+  /**
+   * @desc return all tokens supported by library with balance
+   * @return
+   * ```typescript
+   * Example of response
+   * 
+   * {
+          "Tron": {
+              "tokens": [
+                  {
+                      "standard": null,
+                      "balance": "0.79176",
+                      "balanceInUSD": 0.04,
+                      "tokenName": "TRX",
+                      "tokenType": "native",
+                      "tokenPriceInUSD": 0.06,
+                      "tokenLogo": "https://wallet-api.sawe.dev/api/images/TRX.svg"
+                  },
+                  {
+                      "standard": "TRC 20",
+                      "balance": 0,
+                      "balanceInUSD": 0,
+                      "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+                      "tokenName": "Tether USDT",
+                      "tokenType": "custom",
+                      "tokenPriceInUSD": 1,
+                      "tokenLogo": "https://wallet-api.sawe.dev/api/images/USDT.svg"
+                  }
+              ],
+              "totalBalanceInUSD": 0.04
+          },
+          "Ethereum": {
+              "tokens": [
+                  {
+                      "standard": null,
+                      "balance": 11.318708173683875,
+                      "balanceInUSD": 34750.81,
+                      "tokenName": "ETH",
+                      "tokenType": "native",
+                      "tokenPriceInUSD": 3070.21,
+                      "tokenLogo": "https://wallet-api.sawe.dev/api/images/ETH.svg"
+                  },
+                  {
+                      "standard": "ERC 20",
+                      "balance": 35.979,
+                      "balanceInUSD": 35.97,
+                      "contractAddress": "0xd92e713d051c37ebb2561803a3b5fbabc4962431",
+                      "tokenName": "Tether USDT",
+                      "tokenType": "custom",
+                      "tokenPriceInUSD": 1,
+                      "tokenLogo": "https://wallet-api.sawe.dev/api/images/USDT.svg"
+                  }
+              ],
+              "totalBalanceInUSD": 34786.78
+          },
+          "EthereumClassic": {
+              "tokens": [
+                  {
+                      "balance": 0,
+                      "balanceInUSD": 0,
+                      "tokenName": "ETC",
+                      "tokenType": "native",
+                      "tokenPriceInUSD": 31.34,
+                      "tokenLogo": "https://wallet-api.sawe.dev/api/images/ETC.svg"
+                  }
+              ],
+              "totalBalanceInUSD": 0
+          },
+      }
+    ```
+   */
+  async getAllTokens(): Promise<any> {
+    const tokens = {};
+    await Promise.all(
+      this.wallets.map((wallet) => {
+        return new Promise<void>(async (resolve) => {
+          tokens[wallet.chainId] = await wallet.getTokensByAddress();
+          resolve();
+        });
+      })
+    );
+
+    return tokens;
   }
 }

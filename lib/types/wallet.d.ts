@@ -1,5 +1,5 @@
 import { ChainIds } from './models/enums';
-import { IToken } from './models/token';
+import { IBalanceInfo } from './models/wallet';
 import { IFee, ISendingTransactionData, ITransaction } from './models/transaction';
 export declare class Wallet {
     private service;
@@ -37,15 +37,10 @@ export declare class Wallet {
      */
     init(): Promise<void>;
     /**
-     * return total wallet balance in USD
-     * @returns {number}
-     */
-    getTotalBalanceInUSD(): Promise<number>;
-    /**
      * Return tokens by wallet address
      * @returns {Promise<IToken[]>}
      */
-    getTokensByAddress(): Promise<IToken[]>;
+    getTokensByAddress(): Promise<IBalanceInfo>;
     /**
      * Return wallet transactions
      * @returns {Promise<ITransaction[]>}
