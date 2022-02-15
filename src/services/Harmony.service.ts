@@ -136,11 +136,14 @@ export class harmonyService implements IChainService {
       }
     }
 
+    const ethAddress = this.getEthAddress(address)
+
     const result = await axios.post(harmonyProvider, {
       jsonrpc: 2.0,
       method: 'hmyv2_getTransactionsHistory',
       params: [{
-        address: '0x5b104aa1ddcc1cf5ff5d88869f46321cb139fd1d',
+        // address: '0x5b104aa1ddcc1cf5ff5d88869f46321cb139fd1d',
+        address: ethAddress,
         pageIndex: 0,
         pageSize: 1000,
         fullTx: true,
