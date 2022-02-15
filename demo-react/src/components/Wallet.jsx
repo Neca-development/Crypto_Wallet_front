@@ -175,7 +175,7 @@ const Wallet = () => {
           <Typography variant="h3">Wallet balance</Typography>
           <br />
           <Typography variant="h4">{currentWallet?.address}</Typography>
-          <button class="button" onClick={copyPrivateKey}>Copy private key(WIF)</button>
+          <button className="button" onClick={copyPrivateKey}>Copy private key(WIF)</button>
           <div className="balance__content-wrap">
             {tokensByAddress &&
               tokensByAddress?.tokens?.map((storyPoint, index = 0) => (
