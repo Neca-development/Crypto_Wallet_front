@@ -26,7 +26,6 @@
     "bitcoinjs-lib": "^5.2.0",
     "bitcoinjs-lib-zcash": "^3.6.1",
     "bitcoinjs-testnets": "^1.0.10",
-    "bitcore-lib-cash": "^8.25.25",
     "coininfo": "^5.1.0",
     "ed25519-hd-key": "^1.2.0",
     "ethers": "^5.5.1",

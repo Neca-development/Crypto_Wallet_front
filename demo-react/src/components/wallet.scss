@@ -59,3 +59,15 @@
     }
   }
 }
+
+.button {
+  padding: 15px 20px;
+  border-radius: 10px;
+  font: 400 18px/20px Arial;
+  cursor: pointer;
+  border: 0;
+  color: #fff;
+  background: linear-gradient(45deg, #b72bd1, #5363d5);
+  margin: 30px 0 40px auto;
+  display: block;
+}

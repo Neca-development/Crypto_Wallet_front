@@ -34,6 +34,17 @@ const Wallet = () => {
     amount: 0.0001,
   });
 
+  const copyPrivateKey = () => {
+    navigator.clipboard.writeText(currentWallet.privateKey).then(
+      function () {
+        console.log('Async: Copying to clipboard was successful!');
+      },
+      function (err) {
+        console.error('Async: Could not copy text: ', err);
+      }
+    );
+  }
+
   const getWalletbyAddress = () => {
     const publicKey = address?.split('&')[0];
     const chainId = address?.split('&')[1];
@@ -162,7 +173,9 @@ const Wallet = () => {
 
         <div className="balance">
           <Typography variant="h3">Wallet balance</Typography>
-
+          <br />
+          <Typography variant="h4">{currentWallet?.address}</Typography>
+          <button className="button" onClick={copyPrivateKey}>Copy private key(WIF)</button>
           <div className="balance__content-wrap">
             {tokensByAddress &&
               tokensByAddress?.tokens?.map((storyPoint, index = 0) => (

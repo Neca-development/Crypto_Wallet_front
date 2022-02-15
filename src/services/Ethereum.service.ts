@@ -235,7 +235,7 @@ export class ethereumService implements IChainService {
         transfers(
               options: {desc: "any", limit: 1000}
               amount: {gt: 0}
-              ${direction}: {is: "0x9FaBf26C357bFd8A2a6fFE965EC1F72A55033DD0"}
+              ${direction}: {is: "${address}"}
             ) {
               any(of: time)
               address: receiver {
