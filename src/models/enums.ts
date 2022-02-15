@@ -11,7 +11,7 @@ export enum ChainIds {
   'Dogecoin',
   'Dash',
   'Ripple',
-  // 'Zcash',
+  'Zcash',
   // 'Neo',
 }
 

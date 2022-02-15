@@ -29,9 +29,9 @@ const Wallet = () => {
   const [isTrxSuccess, setIsTrxSuccess] = useState(false);
 
   const [sendTokenForm, setSendTokenForm] = useState({
-    tokenName: 'Tether USDT',
+    tokenName: '',
     receiver: '0xD6C79898A82868E79a1304CceA14521fAe1797Bd',
-    amount: 0.01,
+    amount: 0.0001,
   });
 
   const [sendTrxForm, setSendTrxForm] = useState({
@@ -128,18 +128,19 @@ const Wallet = () => {
   const sendToken = async () => {
     // const token = currentWallet.tokens.find((x) => x.tokenName === this.sendTokenForm.tokenName);
 
-    const token = tokensByAddress.find((x) => x.tokenName === sendTokenForm.tokenName);
+    const token = tokensByAddress.tokens.find((x) => x.tokenName === sendTokenForm.tokenName);
     const receiverAddress = sendTokenForm.receiver;
-    const cotractAddress = token.contractAddress;
+    const contractAddress = token.contractAddress;
     const amount = sendTokenForm.amount;
     const privateKey = currentWallet.privateKey;
+    console.log(token);
 
     try {
       const req = await currentWallet.send20Token({
-        receiverAddress,
-        cotractAddress,
-        amount,
-        privateKey,
+        receiverAddress: receiverAddress,
+        cotractAddress: contractAddress,
+        amount: amount,
+        privateKey: privateKey,
       });
 
       alert(`Transaction ${req} was successfully sended`);
@@ -180,10 +181,12 @@ const Wallet = () => {
                 <div className="balance__content" key={`${index}_${storyPoint?.txId}`}>
                   <figure className="balance__figure">
                     <img src={storyPoint?.tokenLogo} />
-                    <figcaption>{storyPoint?.tokenName}</figcaption>
+                    <figcaption>
+                      {storyPoint?.tokenName} <b className="balance__content-amount">{storyPoint?.balance}</b>
+                    </figcaption>
                   </figure>
-                  <b>amount {storyPoint?.balance}</b>
-                  <div>amount in USDT: {storyPoint?.balanceInUSD}$</div>
+
+                  <div className="balance__content-amountUSD">in USDT: {storyPoint?.balanceInUSD}$</div>
                 </div>
               ))}
           </div>
@@ -192,22 +195,24 @@ const Wallet = () => {
           <TrxForm
             tokensByAddress={tokensByAddress}
             sendTokenForm={sendTokenForm}
-            sendTrxForm={sendTokenForm}
-            handleOpen={handleOpenToken}
-            setSendTokenForm={setSendTokenForm}
+            sendTrxForm={sendTrxForm}
+            handleOpen={handleOpen}
+            setSendTrxForm={setSendTrxForm}
             setSendTokenForm={setSendTokenForm}
           />
         )}
-        {/* {tokensByAddress.tokens && (
+        {tokensByAddress.tokens && (
           <TrxForm
             tokensByAddress={tokensByAddress}
             sendTokenForm={sendTokenForm}
-            sendTrxForm={sendTrxForm}
-            handleOpen={handleOpen}
+            sendTrxForm={sendTokenForm}
+            handleOpen={handleOpenToken}
+            setSendTrxForm={setSendTrxForm}
             setSendTokenForm={setSendTokenForm}
-            setSendTokenForm={setSendTokenForm}
+            isSetTokens={true}
           />
-        )} */}
+        )}
+
         <div>
           <Typography variant="h3">Transaction history</Typography>
           {localTransactionHistory.length === 0 && <div>...Loading</div>}

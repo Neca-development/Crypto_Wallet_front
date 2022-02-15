@@ -17,13 +17,12 @@ const style = {
   borderRadius: 5,
 };
 
-const ModalAccept = ({ open, handleClose, sendTrx, clearSendTrxForm }) => {
+const ModalAccept = ({ open, handleClose, sendTrx, clearSendTexForm }) => {
   const acept = () => {
     sendTrx();
     handleClose();
-    clearSendTrxForm();
+    clearSendTexForm();
   };
-
   return (
     <div>
       {/* <Button onClick={handleOpen}>Open modal</Button> */}
