@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Drawer, List, ListItem, ListItemIcon, ListItemText, Typography } from '@mui/material';
-import wallet from '../assets/wallet.png';
+import walletPic from '../assets/wallet.png';
 
 import './sidebar.scss';
 
-const Sidebar = ({ wallets }: any) => {
+const Sidebar = ({ wallets, tokens }: any) => {
   const [totalBalance, setTotalBalance] = useState(0);
 
   const getTotalBalance = async () => {
@@ -21,18 +21,25 @@ const Sidebar = ({ wallets }: any) => {
     getTotalBalance();
   }, [wallets]);
 
+  console.log(tokens);
+
   return (
     <>
       <div className="sidebar">
-        <Typography variant="h5">Your Wallets</Typography>
+        <Typography variant="h5">Your Wallets {tokens?.Binance?.totalBalanceInUSD}</Typography>
 
         {wallets.map((w: any) => (
           <Link to={`/${w.address}&${w.chainId}`} key={w.data.chainId}>
-            <div className="sidabar__list-item">
-              <img src={wallet} />
+            <div className="sidebar__list-item">
+              <figure>
+                <img src={walletPic} />
+                <figcaption>{tokens[w.chainId].totalBalanceInUSD}$</figcaption>
+              </figure>
+
               <span>
                 <p className="list-item__chain">{w.chainId}</p>
                 <p>{w.address}</p>
+                <p>{w.chainId}</p>
               </span>
             </div>
           </Link>
