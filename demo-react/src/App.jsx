@@ -9,6 +9,7 @@ import { setWallets } from './store/walletSlice';
 function App() {
   const dispatch = useDispatch();
   const [localWallets, setLocalWallets] = useState([]);
+  const [localTokens, setLocalTokens] = useState({});
 
   const loadWallets = async () => {
     const wf = new WalletFactory();
@@ -22,6 +23,9 @@ function App() {
     //   'aafdd04dd28d1fed7ca6a2ea5ede0453d94a21336a5bee8998ac1255e6e60941',
     //   'Tron'
     // );
+    const allTokens = await wf.getAllTokens();
+    console.log(allTokens);
+    setLocalTokens(allTokens);
     console.log({ data });
     //@ts-ignore
     setLocalWallets(data.wallets);
@@ -38,7 +42,7 @@ function App() {
   return (
     <div className="App">
       <BrowserRouter>
-        <Sidebar wallets={localWallets} />
+        <Sidebar tokens={localTokens} wallets={localWallets} />
         <Routes>
           <Route path="/:address" element={<Wallet />} />
         </Routes>

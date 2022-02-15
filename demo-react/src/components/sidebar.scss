@@ -5,7 +5,7 @@ a {
   width: 20rem;
   padding-right: 1.5rem;
 }
-.sidabar__list-item {
+.sidebar__list-item {
   background-color: rgba(32, 87, 109, 0.171);
   display: flex;
   border-radius: 0.5rem;
@@ -13,9 +13,18 @@ a {
   margin-bottom: 0.3125rem;
   align-items: center;
 
+  figure {
+    margin: 0 0.625rem 0 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    figcaption {
+      color: black;
+      font-weight: 700;
+    }
+  }
   img {
     height: 2.5rem;
-    margin-right: 0.625rem;
   }
   .list-item__chain {
     font-size: 1.25rem;
