@@ -91,3 +91,8 @@ export const zcashSatoshisPerByte = 400;
 
 // export const rippleProvider = 'wss://s.altnet.rippletest.net:51233';
 export const rippleProvider = 'wss://xrplcluster.com';
+
+// -------------- NEO ------------------------
+
+// export const neoProvider = 'https://api.neoscan.io/api/main_net';
+export const neoProvider = 'https://neoscan-testnet.io/api/test_net';

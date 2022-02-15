@@ -104,6 +104,7 @@ export class Wallet {
 
       return { tokens, totalBalanceInUSD };
     } catch (error: any) {
+      console.log(error);
       throw new CustomError(
         `An error occurred while receiving wallet tokens info from ${this.chainId} network`,
         3,

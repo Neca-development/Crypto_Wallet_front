@@ -5,6 +5,9 @@ import { ITransaction } from '../models/transaction';
 import { IToken } from '../models/token';
 export declare class neoService implements IChainService {
     private web3;
+    private network;
+    private apiProvider;
+    private neoWallet;
     constructor();
     generateKeyPair(mnemonic: string): Promise<IWalletKeys>;
     generatePublicKey(privateKey: string): Promise<string>;

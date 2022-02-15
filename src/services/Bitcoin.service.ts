@@ -150,7 +150,9 @@ export class bitcoinService implements IChainService {
           query: `
           query {
             bitcoin(network: bitcoin) {
-              outputs(outputAddress: {is: "${address}"}) {
+              outputs(outputAddress: {is: "${address}"}
+              date: {after: "2021-12-01"}
+              ) {
                 transaction {
                   hash
                 }

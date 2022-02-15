@@ -22,24 +22,31 @@ import Web3 from 'web3';
 import { mnemonicToSeedSync } from 'bip39';
 import { u } from '@cityofzion/neon-core';
 // @ts-ignore
-const { default: Neon } = require('@cityofzion/neon-js');
+const { default: Neon, api } = require('@cityofzion/neon-js');
 import { ICryptoCurrency, IToken } from '../models/token';
 import { getBNFromDecimal } from '../utils/numbers';
 import { BigNumber } from 'bignumber.js';
+import { neoProvider } from './../constants/providers';
 
 export class neoService implements IChainService {
   private web3: Web3;
+  private network = 'MainNet';
+  private apiProvider;
+  private neoWallet;
 
   constructor() {
+    console.log({ api, Neon });
+
     this.web3 = new Web3(ethWeb3Provider);
   }
 
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
     const seed = Array.from(mnemonicToSeedSync(mnemonic).slice(0, 32));
     const privateKey = u.ab2hexstring(seed);
-    const myWallet = Neon.create.wallet();
-    myWallet.addAccount(privateKey);
-    const account = myWallet.accounts[0];
+    this.neoWallet = Neon.create.wallet();
+    this.neoWallet.addAccount(privateKey);
+    const account = this.neoWallet.accounts[0];
+    // console.log(this.neoWallet);
 
     return {
       privateKey: account.WIF,
@@ -53,34 +60,29 @@ export class neoService implements IChainService {
   }
 
   async getTokensByAddress(address: string) {
+    const balance = await api.getTokenBalances(address);
+    console.log(
+      '%cMyProject%cline:70%cbalance',
+      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
+      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
+      'color:#fff;background:rgb(39, 72, 98);padding:3px;border-radius:2px',
+      balance
+    );
     const tokens: Array<IToken> = [];
-    const { data: ethToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/ETH`, {
+    const { data: neoToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/ETH`, {
       headers: {
         'auth-client-key': backendApiKey,
       },
     });
 
-    const nativeTokensBalance = await this.web3.eth.getBalance(address);
-    const USDTTokenBalance = await this.getCustomTokenBalance(address, etherUSDTContractAddress);
-
     tokens.push(
       this.generateTokenObject(
-        Number(this.web3.utils.fromWei(nativeTokensBalance)),
-        'ETH',
-        imagesURL + 'ETH.svg',
+        balance.assets['NEO'].balance.toNumber,
+        'NEO',
+        imagesURL + 'NEO.svg',
         'native',
-        ethToUSD.data.usd
-      )
-    );
-
-    tokens.push(
-      this.generateTokenObject(
-        USDTTokenBalance,
-        'Tether USDT',
-        imagesURL + 'USDT.svg',
-        'custom',
-        ethToUSD.data.usd,
-        ethToUSD.data.usdt,
+        neoToUSD.data.usd,
+        neoToUSD.data.usdt,
         etherUSDTContractAddress
       )
     );
@@ -89,7 +91,7 @@ export class neoService implements IChainService {
   }
 
   async getFeePriceOracle(from: string, to: string): Promise<IFee> {
-    const { data: ethToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/ETH`, {
+    const { data: neoToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/ETH`, {
       headers: {
         'auth-client-key': backendApiKey,
       },
@@ -106,7 +108,7 @@ export class neoService implements IChainService {
 
     const transactionFeeInEth = gasPriceGwei * 1e-9 * gasLimit;
 
-    const usd = Math.trunc(transactionFeeInEth * Number(ethToUSD.data.usd) * 100) / 100;
+    const usd = Math.trunc(transactionFeeInEth * Number(neoToUSD.data.usd) * 100) / 100;
 
     return {
       value: transactionFeeInEth,
@@ -119,7 +121,7 @@ export class neoService implements IChainService {
    * @returns {any}
    */
   async getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]> {
-    const { data: ethToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/ETH`, {
+    const { data: neoToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/ETH`, {
       headers: {
         'auth-client-key': backendApiKey,
       },
@@ -148,7 +150,7 @@ export class neoService implements IChainService {
     }
 
     transactions = transactions.map((el: any) =>
-      this.convertTransactionToCommonFormat(el, address, Number(ethToUSD.data.usd), Number(ethToUSD.data.usdt))
+      this.convertTransactionToCommonFormat(el, address, Number(neoToUSD.data.usd), Number(neoToUSD.data.usdt))
     );
 
     transactions.sort((a, b) => {
@@ -209,11 +211,11 @@ export class neoService implements IChainService {
     tokenName: string,
     tokenLogo: string,
     tokenType: 'native' | 'custom',
-    ethToUSD: string,
+    neoToUSD: string,
     ethToCustomToken?: string,
     contractAddress?: string
   ): IToken {
-    let tokenPriceInUSD = tokenType === 'custom' ? (1 / Number(ethToCustomToken)) * Number(ethToUSD) : Number(ethToUSD);
+    let tokenPriceInUSD = tokenType === 'custom' ? (1 / Number(ethToCustomToken)) * Number(neoToUSD) : Number(neoToUSD);
     tokenPriceInUSD = Math.trunc(tokenPriceInUSD * 100) / 100;
 
     const balanceInUSD = Math.trunc(balance * tokenPriceInUSD * 100) / 100;
