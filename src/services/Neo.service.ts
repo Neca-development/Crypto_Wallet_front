@@ -84,7 +84,7 @@ export class neoService implements IChainService {
 
     const balance = 3;
 
-    const balanceResponse = await rpcClient.execute(
+    const balanceResponse: any = await rpcClient.execute(
       new rpc.Query({
         method: 'getnep17balances',
         params: [address],
@@ -97,6 +97,30 @@ export class neoService implements IChainService {
       'color:#fff;background:rgb(217, 104, 49);padding:3px;border-radius:2px',
       balanceResponse
     );
+
+    for (const balance of balanceResponse.balance) {
+      const { assethash, amount } = balance;
+      const tokenNameResponse = await new rpc.RPCClient(nodes[0].url).invokeFunction(assethash, 'symbol').catch((e) => {
+        console.error({ e });
+      });
+      console.log(
+        '%cMyProject%cline:104%ctokenNameResponse',
+        'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
+        'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
+        'color:#fff;background:rgb(118, 77, 57);padding:3px;border-radius:2px',
+        tokenNameResponse,
+        amount
+      );
+      //@ts-ignore
+      const symbol = atob(tokenNameResponse.stack[0].value);
+      console.log(
+        '%cMyProject%cline:114%csymbol',
+        'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
+        'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
+        'color:#fff;background:rgb(254, 67, 101);padding:3px;border-radius:2px',
+        symbol
+      );
+    }
 
     const tokens: Array<IToken> = [];
     const { data: neoToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/ETH`, {
