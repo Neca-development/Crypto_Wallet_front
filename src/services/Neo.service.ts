@@ -22,12 +22,15 @@ import Web3 from 'web3';
 import { mnemonicToSeedSync } from 'bip39';
 import { u } from '@cityofzion/neon-core';
 // @ts-ignore
-const { default: Neon, api } = require('@cityofzion/neon-js');
+const { default: Neon, api, core } = require('@cityofzion/neon-js');
+
 import { ICryptoCurrency, IToken } from '../models/token';
 import { getBNFromDecimal } from '../utils/numbers';
 import { BigNumber } from 'bignumber.js';
 import { neoProvider } from './../constants/providers';
 
+const apiPlugin = require('@cityofzion/neon-api');
+import { rpc } from '@cityofzion/neon-core';
 export class neoService implements IChainService {
   private web3: Web3;
   private network = 'MainNet';
@@ -36,6 +39,7 @@ export class neoService implements IChainService {
 
   constructor() {
     console.log({ api, Neon });
+    console.log(Neon.create.rpcClient('http://seed1.neo.org:10332'));
 
     this.web3 = new Web3(ethWeb3Provider);
   }
@@ -46,6 +50,9 @@ export class neoService implements IChainService {
     this.neoWallet = Neon.create.wallet();
     this.neoWallet.addAccount(privateKey);
     const account = this.neoWallet.accounts[0];
+
+    console.log(account.WIF);
+
     // console.log(this.neoWallet);
 
     return {
@@ -60,14 +67,37 @@ export class neoService implements IChainService {
   }
 
   async getTokensByAddress(address: string) {
-    const balance = await api.getTokenBalances(address);
+    const nodes = [
+      { url: 'https://mainnet1.neo.coz.io:443' },
+      { url: 'https://mainnet2.neo.coz.io:443' },
+      { url: 'https://mainnet3.neo.coz.io:443' },
+      { url: 'https://mainnet4.neo.coz.io:443' },
+      { url: 'https://mainnet5.neo.coz.io:443' },
+      { url: 'http://seed1.neo.org:10332' },
+      { url: 'http://seed2.neo.org:10332' },
+      { url: 'http://seed3.neo.org:10332' },
+      { url: 'http://seed4.neo.org:10332' },
+      { url: 'http://seed5.neo.org:10332' },
+    ];
+
+    const rpcClient = new rpc.RPCClient('https://mainnet1.neo.coz.io:443');
+
+    const balance = 3;
+
+    const balanceResponse = await rpcClient.execute(
+      new rpc.Query({
+        method: 'getnep17balances',
+        params: [address],
+      })
+    );
     console.log(
-      '%cMyProject%cline:70%cbalance',
+      '%cMyProject%cline:106%cbalanceResponse',
       'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
       'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
-      'color:#fff;background:rgb(39, 72, 98);padding:3px;border-radius:2px',
-      balance
+      'color:#fff;background:rgb(217, 104, 49);padding:3px;border-radius:2px',
+      balanceResponse
     );
+
     const tokens: Array<IToken> = [];
     const { data: neoToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/ETH`, {
       headers: {
@@ -77,7 +107,7 @@ export class neoService implements IChainService {
 
     tokens.push(
       this.generateTokenObject(
-        balance.assets['NEO'].balance.toNumber,
+        balance,
         'NEO',
         imagesURL + 'NEO.svg',
         'native',
