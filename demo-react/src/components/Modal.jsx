@@ -17,9 +17,9 @@ const style = {
   borderRadius: 5,
 };
 
-const ModalAccept = ({ open, handleClose, sendTrx, clearSendTexForm }) => {
-  const acept = () => {
-    sendTrx();
+const ModalAccept = ({ open, handleClose, sendTransaction, clearSendTexForm }) => {
+  const accept = () => {
+    sendTransaction();
     handleClose();
     clearSendTexForm();
   };
@@ -35,10 +35,10 @@ const ModalAccept = ({ open, handleClose, sendTrx, clearSendTexForm }) => {
             Duis mollis, est non commodo luctus, nisi erat porttitor ligula.
           </Typography> */}
           <Box sx={{ mt: 2 }}>
-            <Button color="success" variant="contained" onClick={acept}>
+            <Button color="success" variant="contained" onClick={accept}>
               Сonfirm
             </Button>
-            <Button color="error" sx={{ ml: 2 }} variant="contained" onClick={acept}>
+            <Button color="error" sx={{ ml: 2 }} variant="contained" onClick={handleClose}>
               cancel
             </Button>
           </Box>
