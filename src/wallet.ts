@@ -17,6 +17,7 @@ import { dogecoinService } from './services/Dogecoin.service';
 import { dashService } from './services/Dash.service';
 import { zcashService } from './services/Zcash.service';
 import { rippleService } from './services/Ripple.service';
+import { harmonyService } from './services/Harmony.service';
 import { neoService } from './services/Neo.service';
 
 export class Wallet {
@@ -255,6 +256,9 @@ export class Wallet {
           break;
         case ChainIds['Ripple']:
           this.service = new rippleService();
+          break;
+        case ChainIds['Harmony']:
+          this.service = new harmonyService();
           break;
         // case ChainIds['Neo']:
         //   this.service = new neoService();
