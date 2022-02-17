@@ -19,6 +19,7 @@ const Wallet = () => {
   const [currentWallet, setCurrentWallet] = useState(null);
   const [localTransactionHistory, setLocalTransactionHistory] = useState([]);
   const [tokensByAddress, setTokensByAddress] = useState({});
+  const [fee, setFee] = useState({ usd: null, value: null });
   const [open, setOpen] = React.useState(false);
   const [openToken, setOpenToken] = React.useState(false);
   const handleOpenToken = () => setOpenToken(true);
@@ -29,7 +30,7 @@ const Wallet = () => {
   const [isTrxSuccess, setIsTrxSuccess] = useState(false);
 
   const [sendTokenForm, setSendTokenForm] = useState({
-    tokenName: '',
+    tokenName: 'Tether USDT',
     receiver: '0xD6C79898A82868E79a1304CceA14521fAe1797Bd',
     amount: 0.0001,
   });
@@ -50,6 +51,7 @@ const Wallet = () => {
     );
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const getWalletbyAddress = () => {
     const publicKey = address?.split('&')[0];
     const chainId = address?.split('&')[1];
@@ -151,23 +153,36 @@ const Wallet = () => {
     }
   };
 
+  const calcFee = async () => {
+    if (sendTrxForm.receiver) {
+      const resp = await currentWallet.getFeePriceOracle(currentWallet.address, sendTrxForm.receiver);
+      setFee(resp);
+    }
+  };
+
   useEffect(() => {
     getWalletData();
+    setFee({ value: null, usd: null });
   }, [currentWallet]);
 
   useEffect(() => {
     getWalletbyAddress();
 
-    console.log(currentWallet);
+    // console.log(currentWallet);
   }, [getWalletbyAddress]);
 
-  console.log(tokensByAddress);
+  // console.log(tokensByAddress);
 
   return (
     <>
       <div className="wallet">
-        <ModalAccept clearSendTexForm={clearSendTexForm} sendTrx={sendTrx} open={open} handleClose={handleClose} />
-        <ModalAccept clearSendTexForm={clearSendTokenForm} sendTrx={sendToken} open={openToken} handleClose={handleCloseToken} />
+        <ModalAccept clearSendTexForm={clearSendTexForm} sendTransaction={sendTrx} open={open} handleClose={handleClose} />
+        <ModalAccept
+          clearSendTexForm={clearSendTokenForm}
+          sendTransaction={sendToken}
+          open={openToken}
+          handleClose={handleCloseToken}
+        />
         <div className="balance">
           <Typography variant="h3">Wallet balance</Typography>
           <br />
@@ -199,6 +214,9 @@ const Wallet = () => {
             handleOpen={handleOpen}
             setSendTrxForm={setSendTrxForm}
             setSendTokenForm={setSendTokenForm}
+            calcFee={calcFee}
+            fee={fee}
+            is20Token={false}
           />
         )}
         {tokensByAddress.tokens && (
@@ -210,6 +228,9 @@ const Wallet = () => {
             setSendTrxForm={setSendTrxForm}
             setSendTokenForm={setSendTokenForm}
             isSetTokens={true}
+            calcFee={calcFee}
+            fee={fee}
+            is20Token={true}
           />
         )}
 
