@@ -3,15 +3,13 @@ import { IWalletKeys } from '../models/wallet';
 import { IChainService } from '../models/chainService';
 import { ITransaction } from '../models/transaction';
 import { IToken } from '../models/token';
-export declare class neoService implements IChainService {
+export declare class harmonyService implements IChainService {
     private web3;
-    private neoWallet;
-    private rpcClient;
     constructor();
     generateKeyPair(mnemonic: string): Promise<IWalletKeys>;
     generatePublicKey(privateKey: string): Promise<string>;
     getTokensByAddress(address: string): Promise<IToken[]>;
-    getFeePriceOracle(from: string, to: string): Promise<IFee>;
+    getFeePriceOracle(): Promise<IFee>;
     /**
      * @param {ISendingTransactionData} data:ISendingTransactionData
      * @returns {any}
@@ -29,5 +27,6 @@ export declare class neoService implements IChainService {
      * @returns {ITransaction}
      */
     private convertTransactionToCommonFormat;
+    private getEthAddress;
 }
-//# sourceMappingURL=Neo.service.d.ts.map
+//# sourceMappingURL=Harmony.service.d.ts.map

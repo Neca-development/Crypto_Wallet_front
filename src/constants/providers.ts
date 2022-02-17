@@ -1,7 +1,7 @@
 export const backendApiKey = 'ba9713548726a8b17bcd316e7044c20d';
 
-export const backendApi = 'https://wallet-api.sawe.dev/api/';
-// export const backendApi = 'http://135.181.216.90:49358/api/';
+// export const backendApi = 'https://wallet-api.sawe.dev/api/';
+export const backendApi = 'http://135.181.216.90:49358/api/';
 
 export const imagesURL = `${backendApi}images/`;
 
@@ -94,5 +94,22 @@ export const rippleProvider = 'wss://xrplcluster.com';
 
 // -------------- NEO ------------------------
 
-// export const neoProvider = 'https://api.neoscan.io/api/main_net';
-export const neoProvider = 'https://neoscan-testnet.io/api/test_net';
+//  { url: 'https://mainnet1.neo.coz.io:443' },
+//   { url: 'https://mainnet2.neo.coz.io:443' },
+//   { url: 'https://mainnet3.neo.coz.io:443' },
+//   { url: 'https://mainnet4.neo.coz.io:443' },
+//   { url: 'https://mainnet5.neo.coz.io:443' },
+//   { url: 'http://seed1.neo.org:10332' },
+//   { url: 'http://seed2.neo.org:10332' },
+//   { url: 'http://seed3.neo.org:10332' },
+//   { url: 'http://seed4.neo.org:10332' },
+//   { url: 'http://seed5.neo.org:10332' },
+
+export const neoNode = 'https://mainnet1.neo.coz.io:443';
+
+// ------------- Harmony -------------------------
+
+export const harmonyProvider = 'https://api.harmony.one/';
+// export const harmonyProvider = 'https://api.s0.b.hmny.io'
+
+export const harmonyUSDTContractAddress = '0x3c2b8be99c50593081eaa2a724f0b8285f5aba8f';

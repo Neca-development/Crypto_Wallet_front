@@ -123,6 +123,10 @@ export class ethereumClassicService implements IChainService {
       transactions.push(...resp.data.data.ethereum.transfers);
     }
 
+    if (transactions.length === 0) {
+      return [];
+    }
+
     transactions = transactions.map((el: any) =>
       this.convertTransactionToCommonFormat(el, address, Number(etcToUSD.data.usd), Number(etcToUSD.data.usdt))
     );
@@ -197,6 +201,7 @@ export class ethereumClassicService implements IChainService {
               options: {desc: "any", limit: 1000}
               amount: {gt: 0}
               ${direction}: {is: "${address}"}
+              date: {after: "2021-12-01"}
             ) {
               any(of: time)
               address: receiver {

@@ -22,26 +22,22 @@ import Web3 from 'web3';
 import { mnemonicToSeedSync } from 'bip39';
 import { u } from '@cityofzion/neon-core';
 // @ts-ignore
-const { default: Neon, api, core } = require('@cityofzion/neon-js');
+const { default: Neon, api } = require('@cityofzion/neon-js');
+import { rpc } from '@cityofzion/neon-core';
 
 import { ICryptoCurrency, IToken } from '../models/token';
 import { getBNFromDecimal } from '../utils/numbers';
 import { BigNumber } from 'bignumber.js';
-import { neoProvider } from './../constants/providers';
+import { neoNode } from './../constants/providers';
 
-const apiPlugin = require('@cityofzion/neon-api');
-import { rpc } from '@cityofzion/neon-core';
 export class neoService implements IChainService {
   private web3: Web3;
-  private network = 'MainNet';
-  private apiProvider;
   private neoWallet;
+  private rpcClient;
 
   constructor() {
-    console.log({ api, Neon });
-    console.log(Neon.create.rpcClient('http://seed1.neo.org:10332'));
-
     this.web3 = new Web3(ethWeb3Provider);
+    this.rpcClient = new rpc.RPCClient(neoNode);
   }
 
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
@@ -67,63 +63,30 @@ export class neoService implements IChainService {
   }
 
   async getTokensByAddress(address: string) {
-    const nodes = [
-      { url: 'https://mainnet1.neo.coz.io:443' },
-      { url: 'https://mainnet2.neo.coz.io:443' },
-      { url: 'https://mainnet3.neo.coz.io:443' },
-      { url: 'https://mainnet4.neo.coz.io:443' },
-      { url: 'https://mainnet5.neo.coz.io:443' },
-      { url: 'http://seed1.neo.org:10332' },
-      { url: 'http://seed2.neo.org:10332' },
-      { url: 'http://seed3.neo.org:10332' },
-      { url: 'http://seed4.neo.org:10332' },
-      { url: 'http://seed5.neo.org:10332' },
-    ];
+    let balance = 0;
 
-    const rpcClient = new rpc.RPCClient('https://mainnet1.neo.coz.io:443');
-
-    const balance = 3;
-
-    const balanceResponse: any = await rpcClient.execute(
+    const balanceResponse: any = await this.rpcClient.execute(
       new rpc.Query({
         method: 'getnep17balances',
         params: [address],
       })
     );
-    console.log(
-      '%cMyProject%cline:106%cbalanceResponse',
-      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
-      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
-      'color:#fff;background:rgb(217, 104, 49);padding:3px;border-radius:2px',
-      balanceResponse
-    );
 
-    for (const balance of balanceResponse.balance) {
-      const { assethash, amount } = balance;
-      const tokenNameResponse = await new rpc.RPCClient(nodes[0].url).invokeFunction(assethash, 'symbol').catch((e) => {
+    for (const token of balanceResponse.balance) {
+      const { assethash, amount } = token;
+      const tokenNameResponse = await this.rpcClient.invokeFunction(assethash, 'symbol').catch((e) => {
         console.error({ e });
       });
-      console.log(
-        '%cMyProject%cline:104%ctokenNameResponse',
-        'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
-        'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
-        'color:#fff;background:rgb(118, 77, 57);padding:3px;border-radius:2px',
-        tokenNameResponse,
-        amount
-      );
       //@ts-ignore
       const symbol = atob(tokenNameResponse.stack[0].value);
-      console.log(
-        '%cMyProject%cline:114%csymbol',
-        'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
-        'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
-        'color:#fff;background:rgb(254, 67, 101);padding:3px;border-radius:2px',
-        symbol
-      );
+
+      if (symbol === 'NEO') {
+        balance = amount;
+      }
     }
 
     const tokens: Array<IToken> = [];
-    const { data: neoToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/ETH`, {
+    const { data: neoToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/NEO`, {
       headers: {
         'auth-client-key': backendApiKey,
       },
@@ -145,7 +108,7 @@ export class neoService implements IChainService {
   }
 
   async getFeePriceOracle(from: string, to: string): Promise<IFee> {
-    const { data: neoToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/ETH`, {
+    const { data: neoToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/NEO`, {
       headers: {
         'auth-client-key': backendApiKey,
       },
@@ -175,7 +138,7 @@ export class neoService implements IChainService {
    * @returns {any}
    */
   async getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]> {
-    const { data: neoToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/ETH`, {
+    const { data: neoToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/NEO`, {
       headers: {
         'auth-client-key': backendApiKey,
       },
@@ -247,7 +210,7 @@ export class neoService implements IChainService {
   }
 
   // -------------------------------------------------
-  // ********** PRIVATE METHODS SECTION **************
+  // ********** PRIVATE MNEOODS SECTION **************
   // -------------------------------------------------
 
   private async getCustomTokenBalance(address: string, contractAddress: string): Promise<number> {
@@ -333,7 +296,7 @@ export class neoService implements IChainService {
   ): ITransaction {
     const amount = new BigNumber(txData.amount).toFormat();
 
-    let amountPriceInUSD = txData.currency.symbol === 'ETH' ? tokenPriceToUSD : (1 / nativeTokenToUSD) * tokenPriceToUSD;
+    let amountPriceInUSD = txData.currency.symbol === 'NEO' ? tokenPriceToUSD : (1 / nativeTokenToUSD) * tokenPriceToUSD;
     amountPriceInUSD = Math.trunc(amountPriceInUSD * txData.amount * 100) / 100;
 
     const tokenLogo = imagesURL + txData.currency.symbol.toUpperCase() + '.svg';

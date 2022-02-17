@@ -17,6 +17,7 @@ import { dogecoinService } from './services/Dogecoin.service';
 import { dashService } from './services/Dash.service';
 import { zcashService } from './services/Zcash.service';
 import { rippleService } from './services/Ripple.service';
+import { harmonyService } from './services/Harmony.service';
 import { neoService } from './services/Neo.service';
 
 export class Wallet {
@@ -141,6 +142,7 @@ export class Wallet {
     try {
       return await this.service.getFeePriceOracle(this.data.publicKey, receiverAddress);
     } catch (error: any) {
+      console.error(error);
       throw new CustomError(
         `An error occurred while calculating transaction fee price for ${this.chainId} network`,
         6,
@@ -259,6 +261,9 @@ export class Wallet {
           break;
         case ChainIds['Neo']:
           this.service = new neoService();
+          break;
+        case ChainIds['Harmony']:
+          this.service = new harmonyService();
           break;
         default:
           break;

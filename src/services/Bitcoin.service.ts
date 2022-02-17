@@ -150,9 +150,10 @@ export class bitcoinService implements IChainService {
           query: `
           query {
             bitcoin(network: bitcoin) {
-              outputs(outputAddress: {is: "${address}"}
-              date: {after: "2021-12-01"}
-              ) {
+              outputs(
+                outputAddress: {is: "${address}"}
+                date: {after: "2021-12-01"}
+                ) {
                 transaction {
                   hash
                 }
@@ -170,7 +171,9 @@ export class bitcoinService implements IChainService {
                 }
                 outputScript
               }
-              inputs(inputAddress: {is: "${address}'"}) {
+              inputs(inputAddress: {is: "${address}'"}
+              date: {after: "2021-12-01"}
+              ) {
                 transaction {
                   hash
                 }
@@ -209,6 +212,10 @@ export class bitcoinService implements IChainService {
         this.convertTransactionToCommonFormat(el, Number(btcToUSD.data.usd), 'OUT')
       )
     );
+
+    if (transactions.length === 0) {
+      return [];
+    }
 
     transactions.sort((a, b) => {
       if (a.timestamp > b.timestamp) {

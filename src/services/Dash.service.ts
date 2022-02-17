@@ -153,8 +153,10 @@ export class dashService implements IChainService {
           query: `
           query {
             bitcoin(network: dash) {
-              outputs(outputAddress: {is: "${address}"}) {
-                transaction {
+              outputs(outputAddress: {is: "${address}"}
+              date: {after: "2021-12-01"}
+              ) {
+              transaction {
                   hash
                 }
                 outputIndex
@@ -171,7 +173,9 @@ export class dashService implements IChainService {
                 }
                 outputScript
               }
-              inputs(inputAddress: {is: "${address}'"}) {
+              inputs(inputAddress: {is: "${address}'"}
+              date: {after: "2021-12-01"}
+              ) {
                 transaction {
                   hash
                 }
@@ -210,6 +214,10 @@ export class dashService implements IChainService {
         this.convertTransactionToCommonFormat(el, Number(dashToUSD.data.usd), 'OUT')
       )
     );
+
+    if (transactions.length === 0) {
+      return [];
+    }
 
     transactions.sort((a, b) => {
       if (a.timestamp > b.timestamp) {

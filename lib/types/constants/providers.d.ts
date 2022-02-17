@@ -1,5 +1,5 @@
 export declare const backendApiKey = "ba9713548726a8b17bcd316e7044c20d";
-export declare const backendApi = "https://wallet-api.sawe.dev/api/";
+export declare const backendApi = "http://135.181.216.90:49358/api/";
 export declare const imagesURL: string;
 export declare const bitqueryProxy: string;
 export declare const tronWebProvider: {
@@ -28,5 +28,7 @@ export declare const bitcoincashSatoshisPerByte = 1.3;
 export declare const dashSatoshisPerByte = 400;
 export declare const zcashSatoshisPerByte = 400;
 export declare const rippleProvider = "wss://xrplcluster.com";
-export declare const neoProvider = "https://neoscan-testnet.io/api/test_net";
+export declare const neoNode = "https://mainnet1.neo.coz.io:443";
+export declare const harmonyProvider = "https://api.harmony.one/";
+export declare const harmonyUSDTContractAddress = "0x3c2b8be99c50593081eaa2a724f0b8285f5aba8f";
 //# sourceMappingURL=providers.d.ts.map
