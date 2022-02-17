@@ -141,6 +141,7 @@ export class Wallet {
     try {
       return await this.service.getFeePriceOracle(this.data.publicKey, receiverAddress);
     } catch (error: any) {
+      console.error(error);
       throw new CustomError(
         `An error occurred while calculating transaction fee price for ${this.chainId} network`,
         6,

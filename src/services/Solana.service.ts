@@ -163,6 +163,10 @@ export class solanaService implements IChainService {
       transactions.push(...resp.data.data.solana.transfers);
     }
 
+    if (transactions.length === 0) {
+      return [];
+    }
+
     transactions = transactions.map((el: any) => this.convertTransactionToCommonFormat(el, address, Number(solToUSD.data.usd)));
 
     transactions.sort((a, b) => {
@@ -216,6 +220,7 @@ export class solanaService implements IChainService {
         transfers(
           options: {desc: "any", limit: 1000}
           ${direction}Address: {is: "PinYvHqMTZVrRTpwK9x3dB9vL7tsGtGedSz8EqeynuA"}
+          date: {after: "2021-12-01"}
         ) {
           any(of: time)
           receiver {

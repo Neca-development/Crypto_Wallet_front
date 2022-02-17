@@ -5,13 +5,7 @@ import { IChainService } from '../models/chainService';
 import { IResponse } from '../models/response';
 import { ITransaction } from '../models/transaction';
 
-import {
-  harmonyProvider,
-  backendApi,
-  imagesURL,
-  bitqueryProxy,
-  harmonyUSDTContractAddress,
-} from '../constants/providers';
+import { harmonyProvider, backendApi, imagesURL, bitqueryProxy, harmonyUSDTContractAddress } from '../constants/providers';
 import { backendApiKey } from './../constants/providers';
 import { oneUSDTAbi } from '../constants/one-USDT.abi';
 
@@ -24,7 +18,7 @@ import { ethers } from 'ethers';
 import { ICryptoCurrency, IToken } from '../models/token';
 import { getBNFromDecimal } from '../utils/numbers';
 import { BigNumber } from 'bignumber.js';
-import converter from "bech32-converting"
+import converter from 'bech32-converting';
 
 export class harmonyService implements IChainService {
   private web3: Web3;
@@ -37,7 +31,7 @@ export class harmonyService implements IChainService {
     const wallet = ethers.Wallet.fromMnemonic(mnemonic);
     this.web3.eth.accounts.wallet.add(this.web3.eth.accounts.privateKeyToAccount(wallet.privateKey));
     this.web3.eth.defaultAccount = wallet.address;
-    const harmonyAddress = converter('one').toBech32(wallet.address)
+    const harmonyAddress = converter('one').toBech32(wallet.address);
 
     return {
       privateKey: wallet.privateKey,
@@ -47,7 +41,7 @@ export class harmonyService implements IChainService {
 
   async generatePublicKey(privateKey: string): Promise<string> {
     const { address } = this.web3.eth.accounts.privateKeyToAccount(privateKey);
-    const harmonyAddress = converter('one').toBech32(address)
+    const harmonyAddress = converter('one').toBech32(address);
     return harmonyAddress;
   }
 
@@ -61,10 +55,10 @@ export class harmonyService implements IChainService {
     const oneToUSD = {
       data: {
         usd: '0.22',
-        usdt: '1'
-      }
-    }
-    const ethAddress = this.getEthAddress(address)
+        usdt: '1',
+      },
+    };
+    const ethAddress = this.getEthAddress(address);
 
     const nativeTokensBalance = await this.web3.eth.getBalance(ethAddress);
     const USDTTokenBalance = await this.getCustomTokenBalance(ethAddress, harmonyUSDTContractAddress);
@@ -102,15 +96,15 @@ export class harmonyService implements IChainService {
     // });
     const oneToUSD = {
       data: {
-        usd: '0.22'
-      }
-    }
+        usd: '0.22',
+      },
+    };
 
-    const gasPrice = await this.web3.eth.getGasPrice()
-    const gasPriceInOne = this.web3.utils.fromWei(gasPrice)
+    const gasPrice = await this.web3.eth.getGasPrice();
+    const gasPriceInOne = this.web3.utils.fromWei(gasPrice);
     const gasLimit = 6721900;
 
-    const transactionFeeInOne = +gasPriceInOne * gasLimit
+    const transactionFeeInOne = +gasPriceInOne * gasLimit;
     const usd = Math.trunc(transactionFeeInOne * Number(oneToUSD.data.usd) * 100) / 100;
 
     return {
@@ -132,27 +126,29 @@ export class harmonyService implements IChainService {
     const oneToUSD = {
       data: {
         usd: '0.22',
-        usdt: '1'
-      }
-    }
+        usdt: '1',
+      },
+    };
 
-    const ethAddress = this.getEthAddress(address)
+    const ethAddress = this.getEthAddress(address);
 
     const result = await axios.post(harmonyProvider, {
       jsonrpc: 2.0,
       method: 'hmyv2_getTransactionsHistory',
-      params: [{
-        // address: '0x5b104aa1ddcc1cf5ff5d88869f46321cb139fd1d',
-        address: ethAddress,
-        pageIndex: 0,
-        pageSize: 1000,
-        fullTx: true,
-        txType: 'ALL',
-        order: 'ASC'
-      }],
-      id: 1
-    })
-    const history = result.data.result.transactions
+      params: [
+        {
+          // address: '0x5b104aa1ddcc1cf5ff5d88869f46321cb139fd1d',
+          address: ethAddress,
+          pageIndex: 0,
+          pageSize: 1000,
+          fullTx: true,
+          txType: 'ALL',
+          order: 'ASC',
+        },
+      ],
+      id: 1,
+    });
+    const history = result.data.result.transactions;
 
     // const queries = [];
     let transactions = [];
@@ -176,6 +172,10 @@ export class harmonyService implements IChainService {
     //   transactions.push(...resp.data.data.ethereum.transfers);
     // }
 
+    if (transactions.length === 0) {
+      return [];
+    }
+
     transactions = history.map((el: any) =>
       this.convertTransactionToCommonFormat(el, address, Number(oneToUSD.data.usd), Number(oneToUSD.data.usdt))
     );
@@ -197,14 +197,14 @@ export class harmonyService implements IChainService {
     const gasPrice = await this.web3.eth.getGasPrice();
     const gasLimit = 6721900;
 
-    const recieverEth = this.getEthAddress(data.receiverAddress)
+    const recieverEth = this.getEthAddress(data.receiverAddress);
 
     const transactionObject = {
       from: this.web3.eth.defaultAccount,
       to: recieverEth,
       value: this.web3.utils.numberToHex(this.web3.utils.toWei(data.amount.toString())).toString(),
       gasPrice,
-      gasLimit
+      gasLimit,
     };
 
     const result = await this.web3.eth.sendTransaction(transactionObject);
@@ -217,16 +217,16 @@ export class harmonyService implements IChainService {
     const contract = new this.web3.eth.Contract(oneUSDTAbi as any, tokenAddress);
     const decimals = getBNFromDecimal(+(await contract.methods.decimals().call()));
     const amount = new BigNumber(data.amount).multipliedBy(decimals).toNumber();
-    const recieverEth = this.getEthAddress(data.receiverAddress)
+    const recieverEth = this.getEthAddress(data.receiverAddress);
     const result = await contract.methods
       .transfer(recieverEth, this.web3.utils.toHex(amount))
-      .send({ from: this.web3.eth.defaultAccount, gas: "3000000" }, function (err, res) {
+      .send({ from: this.web3.eth.defaultAccount, gas: '3000000' }, function (err, res) {
         if (err) {
-          console.log("An error occured", err)
-          return
+          console.log('An error occured', err);
+          return;
         }
-        console.log("Hash of the transaction: " + res)
-      })
+        console.log('Hash of the transaction: ' + res);
+      });
     console.log(result);
 
     return result.transactionHash;
@@ -281,6 +281,7 @@ export class harmonyService implements IChainService {
               options: {desc: "any", limit: 1000}
               amount: {gt: 0}
               ${direction}: {is: "0x9FaBf26C357bFd8A2a6fFE965EC1F72A55033DD0"}
+              date: {after: "2021-12-01"}
             ) {
               any(of: time)
               address: receiver {
@@ -317,15 +318,15 @@ export class harmonyService implements IChainService {
     tokenPriceToUSD: number,
     nativeTokenToUSD: number
   ): ITransaction {
-    const amount = txData.value * 1e-18
+    const amount = txData.value * 1e-18;
 
     // let amountPriceInUSD = txData.currency.symbol === 'ONE' ? tokenPriceToUSD : (1 / nativeTokenToUSD) * tokenPriceToUSD;
-    console.log(nativeTokenToUSD)
-    let amountPriceInUSD = tokenPriceToUSD
+    console.log(nativeTokenToUSD);
+    let amountPriceInUSD = tokenPriceToUSD;
     amountPriceInUSD = Math.trunc(amountPriceInUSD * amount * 100) / 100;
 
     // const tokenLogo = imagesURL + txData.currency.symbol.toUpperCase() + '.svg';
-    const tokenLogo = imagesURL + 'ONE.svg'
+    const tokenLogo = imagesURL + 'ONE.svg';
     const to = txData.to;
     const from = txData.from;
     // const fromHexFormat = converter('one').toHex(from)
@@ -350,9 +351,9 @@ export class harmonyService implements IChainService {
 
   private getEthAddress(address: string) {
     if (address.substring(0, 3) === 'one') {
-      return converter('one').toHex(address)
+      return converter('one').toHex(address);
     } else {
-      return address
+      return address;
     }
   }
 }
