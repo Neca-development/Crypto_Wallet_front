@@ -13,11 +13,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@avalabs/avalanche-wallet-sdk": "^0.14.5",
     "@bitgo/utxo-lib": "^2.2.0",
     "@cityofzion/neon-js": "^5.0.0-next.17",
     "@ethereumjs/tx": "^3.4.0",
     "@solana/spl-token": "^0.1.8",
     "@solana/web3.js": "^1.31.0",
+    "avalanche": "^3.12.0",
     "axios": "^0.24.0",
     "bech32-converting": "^1.0.6",
     "bignumber.js": "^9.0.1",
