@@ -80,8 +80,8 @@ export class avalancheService implements IChainService {
     tokens.push(
       this.generateTokenObject(
         Number(this.web3.utils.fromWei(nativeTokensBalance)),
-        'ETH',
-        imagesURL + 'ETH.svg',
+        'AVAX',
+        imagesURL + 'AVAX.svg',
         'native',
         ethToUSD.data.usd
       )
@@ -296,7 +296,7 @@ export class avalancheService implements IChainService {
   ): ITransaction {
     const amount = new BigNumber(txData.amount).toFormat();
 
-    let amountPriceInUSD = txData.currency.symbol === 'ETH' ? tokenPriceToUSD : (1 / nativeTokenToUSD) * tokenPriceToUSD;
+    let amountPriceInUSD = txData.currency.symbol === 'AVAX' ? tokenPriceToUSD : (1 / nativeTokenToUSD) * tokenPriceToUSD;
     amountPriceInUSD = Math.trunc(amountPriceInUSD * txData.amount * 100) / 100;
 
     const tokenLogo = imagesURL + txData.currency.symbol.toUpperCase() + '.svg';
