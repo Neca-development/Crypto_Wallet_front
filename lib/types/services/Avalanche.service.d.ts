@@ -5,6 +5,8 @@ import { ITransaction } from '../models/transaction';
 import { IToken } from '../models/token';
 export declare class avalancheService implements IChainService {
     private web3;
+    private xchain;
+    private keys;
     constructor();
     generateKeyPair(mnemonic: string): Promise<IWalletKeys>;
     generatePublicKey(privateKey: string): Promise<string>;

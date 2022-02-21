@@ -5,14 +5,7 @@ import { IChainService } from '../models/chainService';
 import { IResponse } from '../models/response';
 import { ITransaction } from '../models/transaction';
 
-import {
-  ethWeb3Provider,
-  etherUSDTContractAddress,
-  etherGasPrice,
-  backendApi,
-  imagesURL,
-  bitqueryProxy,
-} from '../constants/providers';
+import { ethWeb3Provider, etherGasPrice, backendApi, imagesURL, bitqueryProxy, avaxAssetId } from '../constants/providers';
 import { backendApiKey } from '../constants/providers';
 import { etherUSDTAbi } from '../constants/eth-USDT.abi';
 
@@ -20,45 +13,50 @@ import { etherUSDTAbi } from '../constants/eth-USDT.abi';
 import axios from 'axios';
 import Web3 from 'web3';
 
-import { MnemonicWallet } from '@avalabs/avalanche-wallet-sdk';
+import { TestnetConfig, setNetwork } from '@avalabs/avalanche-wallet-sdk';
+import { Avalanche, avm, BN, HDNode, Mnemonic } from 'avalanche';
+
+// Set to Fuji Testnet
 // @ts-ignore
 // import Wallet from "lumi-web-core";
-import { ethers } from 'ethers';
 import { ICryptoCurrency, IToken } from '../models/token';
 import { getBNFromDecimal } from '../utils/numbers';
 import { BigNumber } from 'bignumber.js';
 
 export class avalancheService implements IChainService {
   private web3: Web3;
+  private xchain: avm.AVMAPI;
+  private keys;
 
   constructor() {
     this.web3 = new Web3(ethWeb3Provider);
+    setNetwork(TestnetConfig);
+
+    const { apiIp: ip, apiPort: port, apiProtocol: protocol, networkID } = TestnetConfig;
+    const avalanche: Avalanche = new Avalanche(ip, port, protocol, networkID);
+    this.xchain = avalanche.XChain();
   }
 
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
-    let myWallet = MnemonicWallet.fromMnemonic(mnemonic);
-    console.log(
-      '%cMyProject%cline:39%cmyWallet',
-      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
-      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
-      'color:#fff;background:rgb(114, 83, 52);padding:3px;border-radius:2px',
-      myWallet
-    );
+    const mnemonicInst: Mnemonic = Mnemonic.getInstance();
 
-    let addressX = myWallet.getAddressX();
-    let addressP = myWallet.getAddressP();
-    let addressC = myWallet.getAddressC();
+    const xKeychain = this.xchain.keyChain();
+    const seed = mnemonicInst.mnemonicToSeedSync(mnemonic);
+    const hdnode: HDNode = new HDNode(seed);
+    const child: HDNode = hdnode.derive(`m/44'/9000'/0'/0/0`);
 
-    console.log({ addressX, addressP, addressC });
+    xKeychain.importKey(child.privateKeyCB58);
 
-    const wallet = ethers.Wallet.fromMnemonic(mnemonic);
-    this.web3.eth.accounts.wallet.add(this.web3.eth.accounts.privateKeyToAccount(wallet.privateKey));
-    this.web3.eth.defaultAccount = wallet.address;
+    const keys = xKeychain.getKey(xKeychain.getAddresses()[0]);
+    const publicKey = keys.getAddressString();
+    const privateKey = keys.getPrivateKeyString();
 
-    return {
-      privateKey: wallet.privateKey,
-      publicKey: wallet.address,
+    this.keys = {
+      privateKey,
+      publicKey,
     };
+
+    return this.keys;
   }
 
   async generatePublicKey(privateKey: string): Promise<string> {
@@ -74,30 +72,11 @@ export class avalancheService implements IChainService {
       },
     });
 
-    const nativeTokensBalance = await this.web3.eth.getBalance(address);
-    const USDTTokenBalance = await this.getCustomTokenBalance(address, etherUSDTContractAddress);
+    const AVAX: any = await this.xchain.getBalance(address, 'AVAX');
 
-    tokens.push(
-      this.generateTokenObject(
-        Number(this.web3.utils.fromWei(nativeTokensBalance)),
-        'AVAX',
-        imagesURL + 'AVAX.svg',
-        'native',
-        ethToUSD.data.usd
-      )
-    );
+    const nativeTokensBalance = AVAX.balance / 1e9;
 
-    tokens.push(
-      this.generateTokenObject(
-        USDTTokenBalance,
-        'Tether USDT',
-        imagesURL + 'USDT.svg',
-        'custom',
-        ethToUSD.data.usd,
-        ethToUSD.data.usdt,
-        etherUSDTContractAddress
-      )
-    );
+    tokens.push(this.generateTokenObject(nativeTokensBalance, 'AVAX', imagesURL + 'AVAX.svg', 'native', ethToUSD.data.usd));
 
     return tokens;
   }
@@ -183,16 +162,18 @@ export class avalancheService implements IChainService {
   }
 
   async sendMainToken(data: ISendingTransactionData): Promise<string> {
-    const fee = await this.getFeePriceOracle(this.web3.defaultAccount, data.receiverAddress);
+    const address = this.keys.publicKey;
 
-    const result = await this.web3.eth.sendTransaction({
-      from: this.web3.eth.defaultAccount,
-      to: data.receiverAddress,
-      value: this.web3.utils.numberToHex(this.web3.utils.toWei(data.amount.toString())).toString(),
-      gas: Math.trunc(Number(fee.value) * 1e9),
-    });
+    let { utxos } = await this.xchain.getUTXOs(address);
 
-    return result.transactionHash;
+    let sendAmount = new BN(data.amount * 1e9); //amounts are in BN format
+
+    let unsignedTx = await this.xchain.buildBaseTx(utxos, sendAmount, avaxAssetId, [data.receiverAddress], [address], [address]);
+
+    let signedTx = unsignedTx.sign(this.xchain.keyChain());
+    let txid = await this.xchain.issueTx(signedTx);
+
+    return txid;
   }
 
   async send20Token(data: ISendingTransactionData): Promise<string> {

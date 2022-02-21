@@ -18,7 +18,7 @@ import { dashService } from './services/Dash.service';
 import { zcashService } from './services/Zcash.service';
 import { rippleService } from './services/Ripple.service';
 import { harmonyService } from './services/Harmony.service';
-import { neoService } from './services/Neo.service';
+// import { neoService } from './services/Neo.service';
 import { avalancheService } from './services/Avalanche.service';
 
 export class Wallet {
