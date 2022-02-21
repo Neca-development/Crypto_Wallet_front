@@ -100,6 +100,3 @@ export const harmonyProvider = 'https://api.harmony.one/';
 export const harmonyUSDTContractAddress = '0x3c2b8be99c50593081eaa2a724f0b8285f5aba8f';
 
 // ------------- Avalanche -------------------------
-
-// export const avaxAssetId = '23wKfz3viWLmjWo2UZ7xWegjvnZFenGAVkouwQCeB9ubPXodG6';
-export const avaxAssetId = 'U8iRqJoiJm8xZHAacmvYyZVwqQx6uDNtQeP3CQ6fcgQk3JqnK';

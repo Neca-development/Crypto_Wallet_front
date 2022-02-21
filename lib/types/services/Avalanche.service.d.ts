@@ -7,6 +7,8 @@ export declare class avalancheService implements IChainService {
     private web3;
     private xchain;
     private keys;
+    private networkConfog;
+    private avaxAssetId;
     constructor();
     generateKeyPair(mnemonic: string): Promise<IWalletKeys>;
     generatePublicKey(privateKey: string): Promise<string>;

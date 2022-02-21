@@ -5,34 +5,29 @@ import { IChainService } from '../models/chainService';
 import { IResponse } from '../models/response';
 import { ITransaction } from '../models/transaction';
 
-import { ethWeb3Provider, etherGasPrice, backendApi, imagesURL, bitqueryProxy, avaxAssetId } from '../constants/providers';
+import { backendApi, imagesURL } from '../constants/providers';
 import { backendApiKey } from '../constants/providers';
-import { etherUSDTAbi } from '../constants/eth-USDT.abi';
 
 // @ts-ignore
 import axios from 'axios';
-import Web3 from 'web3';
 
-import { TestnetConfig, setNetwork } from '@avalabs/avalanche-wallet-sdk';
-import { Avalanche, avm, BN, HDNode, Mnemonic } from 'avalanche';
+import { TestnetConfig } from '@avalabs/avalanche-wallet-sdk';
+import { Avalanche, avm, BN, HDNode, Mnemonic, utils } from 'avalanche';
 
 // Set to Fuji Testnet
 // @ts-ignore
 // import Wallet from "lumi-web-core";
 import { ICryptoCurrency, IToken } from '../models/token';
-import { getBNFromDecimal } from '../utils/numbers';
 import { BigNumber } from 'bignumber.js';
 
 export class avalancheService implements IChainService {
-  private web3: Web3;
   private xchain: avm.AVMAPI;
   private keys;
+  private networkConfog = TestnetConfig;
+  private avaxAssetId: string = utils.Defaults.network[this.networkConfog.networkID].X['avaxAssetID'];
 
   constructor() {
-    this.web3 = new Web3(ethWeb3Provider);
-    setNetwork(TestnetConfig);
-
-    const { apiIp: ip, apiPort: port, apiProtocol: protocol, networkID } = TestnetConfig;
+    const { apiIp: ip, apiPort: port, apiProtocol: protocol, networkID } = this.networkConfog;
     const avalanche: Avalanche = new Avalanche(ip, port, protocol, networkID);
     this.xchain = avalanche.XChain();
   }
@@ -60,8 +55,18 @@ export class avalancheService implements IChainService {
   }
 
   async generatePublicKey(privateKey: string): Promise<string> {
-    const { address } = this.web3.eth.accounts.privateKeyToAccount(privateKey);
-    return address;
+    const xKeychain = this.xchain.keyChain();
+    xKeychain.importKey(privateKey);
+
+    const keys = xKeychain.getKey(xKeychain.getAddresses()[0]);
+    const publicKey = keys.getAddressString();
+
+    this.keys = {
+      privateKey,
+      publicKey,
+    };
+
+    return publicKey;
   }
 
   async getTokensByAddress(address: string) {
@@ -88,22 +93,13 @@ export class avalancheService implements IChainService {
       },
     });
 
-    const transactionObject = {
-      from,
-      to,
-    };
-    const gasLimit = await this.web3.eth.estimateGas(transactionObject);
+    const value = this.xchain.getDefaultTxFee().toNumber() / 1e9;
 
-    let { data: price } = await axios.get(etherGasPrice);
-    const gasPriceGwei = price.fast / 10;
-
-    const transactionFeeInEth = gasPriceGwei * 1e-9 * gasLimit;
-
-    const usd = Math.trunc(transactionFeeInEth * Number(ethToUSD.data.usd) * 100) / 100;
+    const usd = Math.trunc(value * Number(ethToUSD.data.usd) * 100) / 100;
 
     return {
-      value: transactionFeeInEth,
-      usd: usd,
+      value,
+      usd,
     };
   }
 
@@ -117,59 +113,29 @@ export class avalancheService implements IChainService {
         'auth-client-key': backendApiKey,
       },
     });
+    console.log(ethToUSD);
 
-    const queries = [];
+    console.log(await this.xchain.getAddressTxs(address, null, null, this.avaxAssetId));
+
     let transactions = [];
 
-    queries.push(this.generateTransactionsQuery(address, 'receiver'));
-    queries.push(this.generateTransactionsQuery(address, 'sender'));
-
-    for (const query of queries) {
-      let { data: resp } = await axios.post(
-        bitqueryProxy,
-        {
-          body: { query: query, variables: {} },
-        },
-        {
-          headers: {
-            'auth-client-key': backendApiKey,
-          },
-        }
-      );
-
-      transactions.push(...resp.data.data.ethereum.transfers);
-    }
-
-    if (transactions.length === 0) {
-      return [];
-    }
-
-    transactions = transactions.map((el: any) =>
-      this.convertTransactionToCommonFormat(el, address, Number(ethToUSD.data.usd), Number(ethToUSD.data.usdt))
-    );
-
-    transactions.sort((a, b) => {
-      if (a.timestamp > b.timestamp) {
-        return -1;
-      } else if (a.timestamp < b.timestamp) {
-        return 1;
-      } else {
-        return 0;
-      }
-    });
-
-    return transactions;
+    return [];
   }
 
   async sendMainToken(data: ISendingTransactionData): Promise<string> {
     const address = this.keys.publicKey;
 
     let { utxos } = await this.xchain.getUTXOs(address);
-
     let sendAmount = new BN(data.amount * 1e9); //amounts are in BN format
 
-    let unsignedTx = await this.xchain.buildBaseTx(utxos, sendAmount, avaxAssetId, [data.receiverAddress], [address], [address]);
-
+    let unsignedTx = await this.xchain.buildBaseTx(
+      utxos,
+      sendAmount,
+      this.avaxAssetId,
+      [data.receiverAddress],
+      [address],
+      [address]
+    );
     let signedTx = unsignedTx.sign(this.xchain.keyChain());
     let txid = await this.xchain.issueTx(signedTx);
 
@@ -177,31 +143,12 @@ export class avalancheService implements IChainService {
   }
 
   async send20Token(data: ISendingTransactionData): Promise<string> {
-    const tokenAddress = data.cotractAddress;
-    const contract = new this.web3.eth.Contract(etherUSDTAbi as any, tokenAddress);
-    const decimals = getBNFromDecimal(+(await contract.methods.decimals().call()));
-    const amount = new BigNumber(data.amount).multipliedBy(decimals).toNumber();
-    const result = await contract.methods
-      .transfer(data.receiverAddress, this.web3.utils.toHex(amount))
-      .send({ from: this.web3.eth.defaultAccount, gas: 100000 });
-    console.log(result);
-
-    return result.transactionHash;
+    throw new Error('Avalance Xchain doesnt support this method');
   }
 
   // -------------------------------------------------
   // ********** PRIVATE METHODS SECTION **************
   // -------------------------------------------------
-
-  private async getCustomTokenBalance(address: string, contractAddress: string): Promise<number> {
-    const contract = new this.web3.eth.Contract(etherUSDTAbi as any, contractAddress);
-    const decimals = getBNFromDecimal(Number(await contract.methods.decimals().call()));
-
-    let balance = await contract.methods.balanceOf(address).call();
-    balance = new BigNumber(balance).dividedBy(decimals);
-
-    return balance.toNumber();
-  }
 
   private generateTokenObject(
     balance: number,
@@ -228,39 +175,6 @@ export class avalancheService implements IChainService {
       tokenPriceInUSD,
       tokenLogo,
     };
-  }
-
-  private generateTransactionsQuery(address: string, direction: 'receiver' | 'sender') {
-    return `
-      query{
-      ethereum(network: ethereum) {
-        transfers(
-              options: {desc: "any", limit: 1000}
-              amount: {gt: 0}
-              ${direction}: {is: "${address}"}
-              date: {after: "2021-12-01"}
-            ) {
-              any(of: time)
-              address: receiver {
-                address
-                annotation
-              }
-              sender {
-                address
-              }
-              currency {
-                address
-                symbol
-              }
-              amount
-              transaction {
-                hash
-              }
-              external
-            }
-          }
-      }
-    `;
   }
 
   /**
