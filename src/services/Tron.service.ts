@@ -119,6 +119,10 @@ export class tronService implements IChainService {
       transactions.push(...resp.data.data.tron.outbound);
     }
 
+    if (transactions.length === 0) {
+      return [];
+    }
+
     transactions = transactions.map((el: any) => this.convertTransactionToCommonFormat(el, address, Number(trxToUSD.data.usd)));
 
     transactions.sort((a, b) => {
@@ -205,7 +209,11 @@ export class tronService implements IChainService {
     return `
       query{
       tron(network: tron) {
-        outbound: transfers(${direction}: {is: "${address}"}, options: {desc: "any"}) {
+        outbound: transfers(
+          ${direction}: {is: "${address}"},
+          options: {desc: "any"}
+          date: {after: "2021-12-01"}
+          ) {
           txHash
           currency {
             symbol

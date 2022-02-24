@@ -1,18 +1,22 @@
-import { IFee, ISendingTransactionData, ITransaction } from '../models/transaction';
+import { IFee, ISendingTransactionData } from '../models/transaction';
 import { IWalletKeys } from '../models/wallet';
 import { IChainService } from '../models/chainService';
+import { ITransaction } from '../models/transaction';
 import { IToken } from '../models/token';
-import TronWeb from 'tronweb';
-export declare class tronService implements IChainService {
-    Tron: TronWeb;
+export declare class harmonyService implements IChainService {
+    private web3;
     constructor();
-    generatePublicKey(privateKey: string): Promise<string>;
     generateKeyPair(mnemonic: string): Promise<IWalletKeys>;
+    generatePublicKey(privateKey: string): Promise<string>;
     getTokensByAddress(address: string): Promise<IToken[]>;
     getFeePriceOracle(): Promise<IFee>;
+    /**
+     * @param {ISendingTransactionData} data:ISendingTransactionData
+     * @returns {any}
+     */
     getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]>;
-    sendMainToken(data: ISendingTransactionData): Promise<any>;
-    send20Token(data: ISendingTransactionData): Promise<any>;
+    sendMainToken(data: ISendingTransactionData): Promise<string>;
+    send20Token(data: ISendingTransactionData): Promise<string>;
     private getCustomTokenBalance;
     private generateTokenObject;
     private generateTransactionsQuery;
@@ -23,5 +27,6 @@ export declare class tronService implements IChainService {
      * @returns {ITransaction}
      */
     private convertTransactionToCommonFormat;
+    private getEthAddress;
 }
-//# sourceMappingURL=Tron.service.d.ts.map
+//# sourceMappingURL=Harmony.service.d.ts.map

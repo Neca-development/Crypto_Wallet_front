@@ -2,13 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { useAppDispatch, useAppSelector } from '../hooks/hooks';
-import { Avatar, Card, List, ListItem } from '@mui/material';
+import { Avatar, Card, List, ListItem, MenuItem, Select } from '@mui/material';
 import Button from '@mui/material/Button';
 import { useForm } from 'react-hook-form';
 import { Typography, Box } from '@mui/material';
 import TextField from '@mui/material/TextField';
 import ModalAccept from './Modal';
 import './wallet.scss';
+import { id } from 'ethers/lib/utils';
+import TrxForm from './form/Form';
 
 
 const Wallet = () => {
@@ -18,7 +20,11 @@ const Wallet = () => {
   const [currentWallet, setCurrentWallet] = useState(null);
   const [localTransactionHistory, setLocalTransactionHistory] = useState([]);
   const [tokensByAddress, setTokensByAddress] = useState({});
+  const [fee, setFee] = useState({ usd: null, value: null });
   const [open, setOpen] = React.useState(false);
+  const [openToken, setOpenToken] = React.useState(false);
+  const handleOpenToken = () => setOpenToken(true);
+  const handleCloseToken = () => setOpenToken(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
@@ -27,7 +33,7 @@ const Wallet = () => {
   const [sendTokenForm, setSendTokenForm] = useState({
     tokenName: 'Tether USDT',
     receiver: '0xD6C79898A82868E79a1304CceA14521fAe1797Bd',
-    amount: 0.01,
+    amount: 0.0001,
   });
 
   const [sendTrxForm, setSendTrxForm] = useState({
@@ -35,6 +41,18 @@ const Wallet = () => {
     amount: 0.0001,
   });
 
+  const copyPrivateKey = () => {
+    navigator.clipboard.writeText(currentWallet.privateKey).then(
+      function () {
+        console.log('Async: Copying to clipboard was successful!');
+      },
+      function (err) {
+        console.error('Async: Could not copy text: ', err);
+      }
+    );
+  };
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const getWalletbyAddress = () => {
     const publicKey = address?.split('&')[0];
     const chainId = address?.split('&')[1];
@@ -111,18 +129,21 @@ const Wallet = () => {
   };
 
   const sendToken = async () => {
-    const token = tokensByAddress.find((x) => x.tokenName === sendTokenForm.tokenName);
+    // const token = currentWallet.tokens.find((x) => x.tokenName === this.sendTokenForm.tokenName);
+
+    const token = tokensByAddress.tokens.find((x) => x.tokenName === sendTokenForm.tokenName);
     const receiverAddress = sendTokenForm.receiver;
-    const cotractAddress = token.contractAddress;
+    const contractAddress = token.contractAddress;
     const amount = sendTokenForm.amount;
     const privateKey = currentWallet.privateKey;
+    console.log(token);
 
     try {
       const req = await currentWallet.send20Token({
-        receiverAddress,
-        cotractAddress,
-        amount,
-        privateKey,
+        receiverAddress: receiverAddress,
+        cotractAddress: contractAddress,
+        amount: amount,
+        privateKey: privateKey,
       });
 
       alert(`Transaction ${req} was successfully sended`);
@@ -133,84 +154,87 @@ const Wallet = () => {
     }
   };
 
+  const calcFee = async () => {
+    if (sendTrxForm.receiver) {
+      const resp = await currentWallet.getFeePriceOracle(currentWallet.address, sendTrxForm.receiver);
+      setFee(resp);
+    }
+  };
+
   useEffect(() => {
     getWalletData();
+    setFee({ value: null, usd: null });
   }, [currentWallet]);
 
   useEffect(() => {
     getWalletbyAddress();
 
-    console.log(currentWallet);
+    // console.log(currentWallet);
   }, [getWalletbyAddress]);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm({ mode: 'onBlur' });
-
-  const onSubmit = (data) => {
-    console.log(data);
-    data.amount = Number(data.amount);
-    handleOpen();
-    setSendTrxForm({ amount: data.amount, receiver: data.receiver });
-  };
+  // console.log(tokensByAddress);
 
   return (
     <>
 
       <div className="wallet">
-        <ModalAccept clearSendTexForm={clearSendTexForm} sendTrx={sendTrx} open={open} handleClose={handleClose} />
-
+        <ModalAccept clearSendTexForm={clearSendTexForm} sendTransaction={sendTrx} open={open} handleClose={handleClose} />
+        <ModalAccept
+          clearSendTexForm={clearSendTokenForm}
+          sendTransaction={sendToken}
+          open={openToken}
+          handleClose={handleCloseToken}
+        />
         <div className="balance">
           <Typography variant="h3">Wallet balance</Typography>
-
+          <br />
+          <Typography variant="h4">{currentWallet?.address}</Typography>
+          <button className="button" onClick={copyPrivateKey}>
+            Copy private key(WIF)
+          </button>
           <div className="balance__content-wrap">
             {tokensByAddress &&
               tokensByAddress?.tokens?.map((storyPoint, index = 0) => (
                 <div className="balance__content" key={`${index}_${storyPoint?.txId}`}>
                   <figure className="balance__figure">
                     <img src={storyPoint?.tokenLogo} />
-                    <figcaption>{storyPoint?.tokenName}</figcaption>
+                    <figcaption>
+                      {storyPoint?.tokenName} <b className="balance__content-amount">{storyPoint?.balance}</b>
+                    </figcaption>
                   </figure>
-                  <b>amount {storyPoint?.balance}</b>
-                  <div>amount in USDT: {storyPoint?.balanceInUSD}$</div>
+
+                  <div className="balance__content-amountUSD">in USDT: {storyPoint?.balanceInUSD}$</div>
                 </div>
               ))}
           </div>
         </div>
-
-        <div className="form-contaier">
-          <form className="form" onSubmit={handleSubmit(onSubmit)}>
-            <Typography variant="h3">Send tokens</Typography>
-            <div>
-              <TextField
-                className="form__input"
-                defaultValue={sendTrxForm.receiver}
-                {...register('receiver', { required: true })}
-                id="outlined-required"
-                label="receiver"
-              />
-
-              <label style={{ color: 'red' }}>{errors.header && <span>Пожалуйста заполните поле</span>}</label>
-              <TextField
-                className="form__input"
-                defaultValue={sendTrxForm.amount}
-                {...register('amount', { required: true })}
-                id="outlined-required"
-                label="amount"
-                sx={{ color: '#fff' }}
-              />
-              <div style={{ color: 'red' }}>{errors.content && <span>Пожалуйста заполните поле</span>}</div>
-
-              <Box sx={{ mt: 2 }}>
-                <Button variant="outlined" type="submit">
-                  Send
-                </Button>
-              </Box>
-            </div>
-          </form>
-        </div>
+        {tokensByAddress.tokens && (
+          <TrxForm
+            tokensByAddress={tokensByAddress}
+            sendTokenForm={sendTokenForm}
+            sendTrxForm={sendTrxForm}
+            handleOpen={handleOpen}
+            setSendTrxForm={setSendTrxForm}
+            setSendTokenForm={setSendTokenForm}
+            calcFee={calcFee}
+            fee={fee}
+            is20Token={false}
+          />
+        )}
+        {tokensByAddress.tokens && (
+          <TrxForm
+            tokensByAddress={tokensByAddress}
+            sendTokenForm={sendTokenForm}
+            sendTrxForm={sendTokenForm}
+            handleOpen={handleOpenToken}
+            setSendTrxForm={setSendTrxForm}
+            setSendTokenForm={setSendTokenForm}
+            isSetTokens={true}
+            calcFee={calcFee}
+            fee={fee}
+            is20Token={true}
+          />
+        )}
 
         <div>
           <Typography variant="h3">Transaction history</Typography>

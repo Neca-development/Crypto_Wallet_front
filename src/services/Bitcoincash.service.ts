@@ -13,8 +13,8 @@ import { imagesURL, backendApi, backendApiKey, bitqueryProxy, bitcoincashSatoshi
 import axios from 'axios';
 import { IResponse } from '../models/response';
 import { mnemonicToSeedSync } from 'bip39';
-import { CustomError } from '../errors';
 
+import { CustomError } from '../errors';
 
 import { ErrorsTypes } from '../models/enums';
 
@@ -165,7 +165,10 @@ export class bitcoincashService implements IChainService {
           query: `
           query {
             bitcoin(network: bitcash) {
-              outputs(outputAddress: {is: "${address}"}) {
+              outputs(
+                outputAddress: {is: "${address}"}
+                date: {after: "2021-12-01"}
+                ) {
                 transaction {
                   hash
                 }
@@ -183,7 +186,9 @@ export class bitcoincashService implements IChainService {
                 }
                 outputScript
               }
-              inputs(inputAddress: {is: "${address}'"}) {
+              inputs(inputAddress: {is: "${address}'"}
+              date: {after: "2021-12-01"}
+              ) {
                 transaction {
                   hash
                 }
@@ -222,6 +227,10 @@ export class bitcoincashService implements IChainService {
         this.convertTransactionToCommonFormat(el, Number(bchToUSD.data.usd), 'OUT')
       )
     );
+
+    if (transactions.length === 0) {
+      return [];
+    }
 
     transactions.sort((a, b) => {
       if (a.timestamp > b.timestamp) {

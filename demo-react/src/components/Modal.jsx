@@ -11,27 +11,22 @@ const style = {
   transform: 'translate(-50%, -50%)',
   width: 400,
   bgcolor: 'background.paper',
-  border: '2px solid #000',
+  border: '1px solid #000',
   boxShadow: 24,
   p: 4,
+  borderRadius: 5,
 };
 
-const ModalAccept = ({ open, handleClose, sendTrx, clearSendTexForm }) => {
-  const acept = () => {
-    sendTrx();
+const ModalAccept = ({ open, handleClose, sendTransaction, clearSendTexForm }) => {
+  const accept = () => {
+    sendTransaction();
     handleClose();
     clearSendTexForm();
   };
-
   return (
     <div>
       {/* <Button onClick={handleOpen}>Open modal</Button> */}
-      <Modal
-        open={open}
-        onClose={handleClose}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-      >
+      <Modal open={open} onClose={handleClose} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
         <Box sx={style}>
           <Typography id="modal-modal-title" variant="h6" component="h2">
             Сonfirm the transfer
@@ -40,10 +35,10 @@ const ModalAccept = ({ open, handleClose, sendTrx, clearSendTexForm }) => {
             Duis mollis, est non commodo luctus, nisi erat porttitor ligula.
           </Typography> */}
           <Box sx={{ mt: 2 }}>
-            <Button color="success" variant="contained" onClick={acept}>
+            <Button color="success" variant="contained" onClick={accept}>
               Сonfirm
             </Button>
-            <Button color="error" sx={{ ml: 2 }} variant="contained" onClick={acept}>
+            <Button color="error" sx={{ ml: 2 }} variant="contained" onClick={handleClose}>
               cancel
             </Button>
           </Box>

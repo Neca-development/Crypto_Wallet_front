@@ -1,42 +1,46 @@
-export declare const bnbUSDTAbi: ({
-    inputs: any[];
-    payable: boolean;
-    stateMutability: string;
+export declare const oneUSDTAbi: ({
     type: string;
-    anonymous?: undefined;
-    name?: undefined;
-    constant?: undefined;
-    outputs?: undefined;
-} | {
-    anonymous: boolean;
+    payable: boolean;
     inputs: {
-        indexed: boolean;
-        internalType: string;
         name: string;
         type: string;
+        internalType: string;
     }[];
-    name: string;
+    stateMutability: string;
+    name?: undefined;
+    anonymous?: undefined;
+    outputs?: undefined;
+    constant?: undefined;
+} | {
     type: string;
+    name: string;
+    inputs: {
+        name: string;
+        type: string;
+        internalType: string;
+        indexed: boolean;
+    }[];
+    anonymous: boolean;
     payable?: undefined;
     stateMutability?: undefined;
-    constant?: undefined;
     outputs?: undefined;
+    constant?: undefined;
 } | {
-    constant: boolean;
+    outputs: {
+        name: string;
+        type: string;
+        internalType: string;
+    }[];
+    name: string;
     inputs: {
         internalType: string;
         name: string;
         type: string;
     }[];
-    name: string;
-    outputs: {
-        internalType: string;
-        name: string;
-        type: string;
-    }[];
-    payable: boolean;
     stateMutability: string;
+    payable: boolean;
+    constant: boolean;
     type: string;
     anonymous?: undefined;
 })[];
-//# sourceMappingURL=bnb-USDT.abi.d.ts.map
+//# sourceMappingURL=one-USDT.abi.d.ts.map

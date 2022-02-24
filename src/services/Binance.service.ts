@@ -128,6 +128,10 @@ export class binanceService implements IChainService {
       transactions.push(...resp.data.data.ethereum.transfers);
     }
 
+    if (transactions.length === 0) {
+      return [];
+    }
+
     transactions = transactions.map((el: any) =>
       this.convertTransactionToCommonFormat(el, address, Number(bnbToUSD.data.usd), Number(bnbToUSD.data.usdt))
     );
@@ -219,11 +223,12 @@ export class binanceService implements IChainService {
   private generateTransactionsQuery(address: string, direction: 'receiver' | 'sender') {
     return `
       query{
-      ethereum(network: bsc_testnet) {
+      ethereum(network: bsc) {
         transfers(
               options: {desc: "any", limit: 1000}
               amount: {gt: 0}
               ${direction}: {is: "${address}"}
+              date: {after: "2021-12-01"}
             ) {
               any(of: time)
               address: receiver {
