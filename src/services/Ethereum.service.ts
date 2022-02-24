@@ -97,7 +97,6 @@ export class ethereumService implements IChainService {
       to,
     };
     const gasLimit = await this.web3.eth.estimateGas(transactionObject);
-
     let { data: price } = await axios.get(etherGasPrice);
     const gasPriceGwei = price.fast / 10;
 

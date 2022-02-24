@@ -76,7 +76,6 @@ export class polkadotService implements IChainService {
       }
     });
     const {data:{free: nativeTokensBalance}} = await this._api.query.system.account(this._publicKey);
-    console.log(nativeTokensBalance.toJSON());
     // const USDTTokenBalance = await this.getCustomTokenBalance(address, etherUSDTContractAddress);
 
     tokens.push(
@@ -136,7 +135,6 @@ export class polkadotService implements IChainService {
     });
 
     const {data: {data: data }} = await axios.get(`${blockChairAPI}${address}`)
-    console.log("ss", data[Object.keys(data)[0]].transfers)
     // const queries = [];
     let transactions = [];
 
