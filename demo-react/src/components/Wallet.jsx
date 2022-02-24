@@ -12,6 +12,7 @@ import './wallet.scss';
 import { id } from 'ethers/lib/utils';
 import TrxForm from './form/Form';
 
+
 const Wallet = () => {
   let { address } = useParams();
   const dispatch = useAppDispatch();
@@ -175,6 +176,7 @@ const Wallet = () => {
 
   return (
     <>
+
       <div className="wallet">
         <ModalAccept clearSendTexForm={clearSendTexForm} sendTransaction={sendTrx} open={open} handleClose={handleClose} />
         <ModalAccept

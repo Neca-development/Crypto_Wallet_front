@@ -3,6 +3,7 @@ export const backendApiKey = 'ba9713548726a8b17bcd316e7044c20d';
 export const backendApi = 'https://wallet-api.sawe.dev/api/';
 // export const backendApi = 'http://135.181.216.90:49358/api/';
 
+
 export const imagesURL = `${backendApi}images/`;
 
 export const bitqueryProxy = `${backendApi}bitquery`;
@@ -91,6 +92,9 @@ export const zcashSatoshisPerByte = 400;
 
 // export const rippleProvider = 'wss://s.altnet.rippletest.net:51233';
 export const rippleProvider = 'wss://xrplcluster.com';
+// -------------- Polkadot ------------------------
+// export const polkadotProvider =
+export const blockChairAPI = 'https://api.blockchair.com/polkadot/raw/address/'
 
 // ------------- Harmony -------------------------
 
@@ -98,3 +102,4 @@ export const harmonyProvider = 'https://api.harmony.one/';
 // export const harmonyProvider = 'https://api.s0.b.hmny.io'
 
 export const harmonyUSDTContractAddress = '0x3c2b8be99c50593081eaa2a724f0b8285f5aba8f';
+

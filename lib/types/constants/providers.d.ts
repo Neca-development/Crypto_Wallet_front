@@ -28,6 +28,7 @@ export declare const bitcoincashSatoshisPerByte = 1.3;
 export declare const dashSatoshisPerByte = 400;
 export declare const zcashSatoshisPerByte = 400;
 export declare const rippleProvider = "wss://xrplcluster.com";
+export declare const blockChairAPI = "https://api.blockchair.com/polkadot/raw/address/";
 export declare const harmonyProvider = "https://api.harmony.one/";
 export declare const harmonyUSDTContractAddress = "0x3c2b8be99c50593081eaa2a724f0b8285f5aba8f";
 //# sourceMappingURL=providers.d.ts.map
