@@ -11,7 +11,7 @@ import {
   etherGasPrice,
   backendApi,
   imagesURL,
-  bitqueryProxy,
+  bitqueryProxy, blockChairAPI
 } from '../constants/providers';
 import { backendApiKey } from '../constants/providers';
 import { etherUSDTAbi } from '../constants/eth-USDT.abi';
@@ -25,99 +25,102 @@ import { ICryptoCurrency, IToken } from '../models/token';
 import { getBNFromDecimal } from '../utils/numbers';
 import { BigNumber } from 'bignumber.js';
 
-import { Keyring } from '@polkadot/keyring/bundle';
+import { Keyring } from '@polkadot/keyring';
+import { mnemonicToMiniSecret } from '@polkadot/util-crypto';
+import { ApiPromise, WsProvider } from '@polkadot/api';
+import { BN_HUNDRED, hexToNumber, stringToHex, stringToU8a, u8aToString } from '@polkadot/util';
+import { CustomError } from '../errors';
+import { ErrorsTypes } from '../models/enums';
+
 
 export class polkadotService implements IChainService {
+  private _provider: any;
+  private _api: any;
+  private _publicKey: string;
+  private _keyring: Keyring;
   private web3: Web3;
 
   constructor() {
-    this.web3 = new Web3(ethWeb3Provider);
+    this._provider = new WsProvider('wss://rpc.polkadot.io');
+
+
   }
 
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
-    const keyring = new Keyring({ type: 'sr25519', ss58Format: 2 });
-    const pair = keyring.addFromUri(mnemonic, { name: 'first pair' }, 'ed25519');
-
-    // the pair has been added to our keyring
-    console.log(keyring.pairs.length, 'pairs available');
-
-    // log the name & address (the latter encoded with the ss58Format)
-    console.log(pair.meta.name, 'has address', pair.address);
-
-    const wallet = ethers.Wallet.fromMnemonic(mnemonic);
-    this.web3.eth.accounts.wallet.add(this.web3.eth.accounts.privateKeyToAccount(wallet.privateKey));
-    this.web3.eth.defaultAccount = wallet.address;
-
+    this._api = await ApiPromise.create({ provider: this._provider });
+    this._keyring = new Keyring({ type: 'ed25519', ss58Format: 0 });
+    const pair = this._keyring.addFromUri(mnemonic);
+    this._publicKey = pair.address;
+    const registry  = await this._api.query
+    this._api.tx.balances.setBalance(this._publicKey, 20, 8)
     return {
-      privateKey: wallet.privateKey,
-      publicKey: wallet.address,
+      publicKey: this._publicKey, privateKey: null
     };
+
   }
 
+
   async generatePublicKey(privateKey: string): Promise<string> {
-    const { address } = this.web3.eth.accounts.privateKeyToAccount(privateKey);
+    this._api = await ApiPromise.create({ provider: this._provider });
+    this._keyring = new Keyring({ type: 'ed25519', ss58Format: 0 });
+    this._publicKey = this._keyring.addFromUri(privateKey).address;
+    const address = this._publicKey;
     return address;
   }
 
   async getTokensByAddress(address: string) {
     const tokens: Array<IToken> = [];
-    const { data: ethToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/ETH`, {
+    const { data: dotToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/DOT`, {
       headers: {
-        'auth-client-key': backendApiKey,
-      },
+        'auth-client-key': backendApiKey
+      }
     });
-
-    const nativeTokensBalance = await this.web3.eth.getBalance(address);
-    const USDTTokenBalance = await this.getCustomTokenBalance(address, etherUSDTContractAddress);
+    const {data:{free: nativeTokensBalance}} = await this._api.query.system.account(this._publicKey);
+    console.log(nativeTokensBalance.toJSON());
+    // const USDTTokenBalance = await this.getCustomTokenBalance(address, etherUSDTContractAddress);
 
     tokens.push(
       this.generateTokenObject(
-        Number(this.web3.utils.fromWei(nativeTokensBalance)),
-        'ETH',
-        imagesURL + 'ETH.svg',
+        Number(nativeTokensBalance*10e-10),
+        'DOT',
+        imagesURL + 'DOT.svg',
         'native',
-        ethToUSD.data.usd
+        dotToUSD.data.usd
       )
     );
 
-    tokens.push(
-      this.generateTokenObject(
-        USDTTokenBalance,
-        'Tether USDT',
-        imagesURL + 'USDT.svg',
-        'custom',
-        ethToUSD.data.usd,
-        ethToUSD.data.usdt,
-        etherUSDTContractAddress
-      )
-    );
+    // tokens.push(
+    //   this.generateTokenObject(
+    //     USDTTokenBalance,
+    //     'Tether USDT',
+    //     imagesURL + 'USDT.svg',
+    //     'custom',
+    //     dotToUSD.data.usd,
+    //     dotToUSD.data.usdt,
+    //     etherUSDTContractAddress
+    //   )
+    // );
 
     return tokens;
   }
 
   async getFeePriceOracle(from: string, to: string): Promise<IFee> {
-    const { data: ethToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/ETH`, {
+    const { data: dotToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/DOT`, {
       headers: {
-        'auth-client-key': backendApiKey,
-      },
+        'auth-client-key': backendApiKey
+      }
     });
+    const balanceFrom = await this._api.derive.balances.all(to, this._api)
+    const { partialFee } = await this._api.tx.balances.transfer(to, balanceFrom.availableBalance)
+      .paymentInfo(from).toJSON()
 
-    const transactionObject = {
-      from,
-      to,
-    };
-    const gasLimit = await this.web3.eth.estimateGas(transactionObject);
+    const transactionFeeInDot = 10e-10 * partialFee;
 
-    let { data: price } = await axios.get(etherGasPrice);
-    const gasPriceGwei = price.fast / 10;
-
-    const transactionFeeInEth = gasPriceGwei * 1e-9 * gasLimit;
-
-    const usd = Math.trunc(transactionFeeInEth * Number(ethToUSD.data.usd) * 100) / 100;
+    const usd = Math.trunc(transactionFeeInDot * Number(dotToUSD.data.usd) * 100) / 100;
 
     return {
-      value: transactionFeeInEth,
-      usd: usd,
+      value: transactionFeeInDot,
+      usd
     };
   }
 
@@ -126,36 +129,38 @@ export class polkadotService implements IChainService {
    * @returns {any}
    */
   async getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]> {
-    const { data: ethToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/ETH`, {
+    const { data: ethToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/DOT`, {
       headers: {
-        'auth-client-key': backendApiKey,
-      },
+        'auth-client-key': backendApiKey
+      }
     });
 
-    const queries = [];
+    const {data: {data: data }} = await axios.get(`${blockChairAPI}${address}`)
+    console.log("ss", data[Object.keys(data)[0]].transfers)
+    // const queries = [];
     let transactions = [];
 
-    queries.push(this.generateTransactionsQuery(address, 'receiver'));
-    queries.push(this.generateTransactionsQuery(address, 'sender'));
+    // queries.push(this.generateTransactionsQuery(address, 'receiver'));
+    // queries.push(this.generateTransactionsQuery(address, 'sender'));
+    //
+    // for (const query of queries) {
+    //   let { data: resp } = await axios.post(
+    //     bitqueryProxy,
+    //     {
+    //       body: { query: query, variables: {} }
+    //     },
+    //     {
+    //       headers: {
+    //         'auth-client-key': backendApiKey
+    //       }
+    //     }
+    //   );
+// console.log(resp) }
+      transactions.push(...data[Object.keys(data)[0]].transfers);
 
-    for (const query of queries) {
-      let { data: resp } = await axios.post(
-        bitqueryProxy,
-        {
-          body: { query: query, variables: {} },
-        },
-        {
-          headers: {
-            'auth-client-key': backendApiKey,
-          },
-        }
-      );
-
-      transactions.push(...resp.data.data.ethereum.transfers);
-    }
 
     transactions = transactions.map((el: any) =>
-      this.convertTransactionToCommonFormat(el, address, Number(ethToUSD.data.usd), Number(ethToUSD.data.usdt))
+      this.convertTransactionToCommonFormat(el, address, Number(ethToUSD.data.usd), Number(ethToUSD.data.usdt), 'dot', 'TransferContract')
     );
 
     transactions.sort((a, b) => {
@@ -172,29 +177,22 @@ export class polkadotService implements IChainService {
   }
 
   async sendMainToken(data: ISendingTransactionData): Promise<string> {
-    const fee = await this.getFeePriceOracle(this.web3.defaultAccount, data.receiverAddress);
-
-    const result = await this.web3.eth.sendTransaction({
-      from: this.web3.eth.defaultAccount,
-      to: data.receiverAddress,
-      value: this.web3.utils.numberToHex(this.web3.utils.toWei(data.amount.toString())).toString(),
-      gas: Math.trunc(Number(fee.value) * 1e9),
-    });
-
-    return result.transactionHash;
+    const transactionHash = await this._api.tx.balances.transfer(data.receiverAddress, data.amount)
+    transactionHash.signAndSend(this._publicKey)
+    return transactionHash;
   }
 
   async send20Token(data: ISendingTransactionData): Promise<string> {
-    const tokenAddress = data.cotractAddress;
-    const contract = new this.web3.eth.Contract(etherUSDTAbi as any, tokenAddress);
-    const decimals = getBNFromDecimal(+(await contract.methods.decimals().call()));
-    const amount = new BigNumber(data.amount).multipliedBy(decimals).toNumber();
-    const result = await contract.methods
-      .transfer(data.receiverAddress, this.web3.utils.toHex(amount))
-      .send({ from: this.web3.eth.defaultAccount, gas: 100000 });
-    console.log(result);
+    // const tokenAddress = data.cotractAddress;
+    // const contract = new this.web3.eth.Contract(etherUSDTAbi as any, tokenAddress);
+    // const decimals = getBNFromDecimal(+(await contract.methods.decimals().call()));
+    // const amount = new BigNumber(data.amount).multipliedBy(decimals).toNumber();
+    // const result = await contract.methods
+    //   .transfer(data.receiverAddress, this.web3.utils.toHex(amount))
+    //   .send({ from: this.web3.eth.defaultAccount, gas: 100000 });
+    // console.log(result);
 
-    return result.transactionHash;
+    throw new CustomError('Network doesnt support this method', 14, ErrorsTypes['Unknown error']);;
   }
 
   // -------------------------------------------------
@@ -234,18 +232,18 @@ export class polkadotService implements IChainService {
       tokenName,
       tokenType,
       tokenPriceInUSD,
-      tokenLogo,
+      tokenLogo
     };
   }
 
   private generateTransactionsQuery(address: string, direction: 'receiver' | 'sender') {
     return `
       query{
-      ethereum(network: ethereum) {
+      polkadot(network: polkadot) {
         transfers(
               options: {desc: "any", limit: 1000}
               amount: {gt: 0}
-              ${direction}: {is: "0x9FaBf26C357bFd8A2a6fFE965EC1F72A55033DD0"}
+              ${direction}: {is: "0x7083609fce4d1d8dc0c979aab8c869ea2c873402"}
             ) {
               any(of: time)
               address: receiver {
@@ -280,31 +278,33 @@ export class polkadotService implements IChainService {
     txData: any,
     address: string,
     tokenPriceToUSD: number,
-    nativeTokenToUSD: number
+    nativeTokenToUSD: number,
+    symbol: string,
+    tokenType: 'TransferContract' | 'TriggerSmartContract',
   ): ITransaction {
-    const amount = new BigNumber(txData.amount).toFormat();
+    const amount =  Math.trunc(txData.amount*10e-8) / 100;
 
-    let amountPriceInUSD = txData.currency.symbol === 'ETH' ? tokenPriceToUSD : (1 / nativeTokenToUSD) * tokenPriceToUSD;
-    amountPriceInUSD = Math.trunc(amountPriceInUSD * txData.amount * 100) / 100;
+    let amountPriceInUSD = tokenPriceToUSD
+    amountPriceInUSD = Math.trunc(amountPriceInUSD * amount * 100) / 100;
 
-    const tokenLogo = imagesURL + txData.currency.symbol.toUpperCase() + '.svg';
-    const to = txData.address.address;
-    const from = txData.sender.address;
+    const tokenLogo = imagesURL + symbol.toUpperCase() + '.svg';
+    const to = txData.recipient;
+    const from = txData.sender;
     const direction = from === address.toLowerCase() ? 'OUT' : 'IN';
 
     return {
       to,
       from,
-      amount,
+      amount: amount.toString(),
       amountInUSD: amountPriceInUSD.toString(),
-      txId: txData.transaction.hash,
+      txId: txData.hash,
       direction,
-      type: txData.tokenType,
-      tokenName: txData.currency.symbol,
-      timestamp: new Date(txData.any).getTime(),
+      type: txData.event_id === 'Transfer' ? 'TransferContract' : 'TriggerSmartContract',
+      tokenName: symbol,
+      timestamp: new Date(txData.block_timestamp).getTime(),
       fee: txData.fee,
-      status: txData.success,
-      tokenLogo,
+      status: !txData.failed,
+      tokenLogo
     };
   }
 }

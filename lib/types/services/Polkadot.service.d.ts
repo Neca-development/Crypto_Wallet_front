@@ -4,6 +4,10 @@ import { IChainService } from '../models/chainService';
 import { ITransaction } from '../models/transaction';
 import { IToken } from '../models/token';
 export declare class polkadotService implements IChainService {
+    private _provider;
+    private _api;
+    private _publicKey;
+    private _keyring;
     private web3;
     constructor();
     generateKeyPair(mnemonic: string): Promise<IWalletKeys>;

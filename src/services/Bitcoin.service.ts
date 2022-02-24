@@ -56,7 +56,7 @@ export class bitcoinService implements IChainService {
     let btcToUSD: IResponse<ICryptoCurrency>;
     try {
       btcToUSD = (
-        await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/BTC`, {
+        await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/DOT`, {
           headers: {
             'auth-client-key': backendApiKey,
           },

@@ -10,6 +10,7 @@ import TextField from '@mui/material/TextField';
 import ModalAccept from './Modal';
 import './wallet.scss';
 
+
 const Wallet = () => {
   let { address } = useParams();
   const dispatch = useAppDispatch();
@@ -157,6 +158,7 @@ const Wallet = () => {
 
   return (
     <>
+
       <div className="wallet">
         <ModalAccept clearSendTexForm={clearSendTexForm} sendTrx={sendTrx} open={open} handleClose={handleClose} />
 

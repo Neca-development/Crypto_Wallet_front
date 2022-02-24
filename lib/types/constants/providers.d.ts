@@ -28,4 +28,5 @@ export declare const bitcoincashSatoshisPerByte = 1.3;
 export declare const dashSatoshisPerByte = 400;
 export declare const zcashSatoshisPerByte = 400;
 export declare const rippleProvider = "wss://xrplcluster.com";
+export declare const blockChairAPI = "https://api.blockchair.com/polkadot/raw/address/";
 //# sourceMappingURL=providers.d.ts.map
