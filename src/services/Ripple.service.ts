@@ -91,7 +91,7 @@ export class rippleService implements IChainService {
     return tokens;
   }
 
-  async getFeePriceOracle(from: string, to: string, amount: number): Promise<IFee> {
+  async getFeePriceOracle(from: string, to: string, amount?: number | null, tokenTypes?: 'native' | 'custom'): Promise<IFee> {
     const prepared = await this.xrplClient.autofill({
       TransactionType: 'Payment',
       Account: this.wallet.address,
@@ -105,8 +105,7 @@ export class rippleService implements IChainService {
       },
     });
 
-    const value = xrpl.dropsToXrp(prepared.Fee);
-
+    const value = tokenTypes == 'native' ? xrpl.dropsToXrp(prepared.Fee) : null;
     const usd = Math.trunc(Number(xrplToUSD.data.usd) * value * 100) / 100;
 
     return {

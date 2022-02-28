@@ -138,9 +138,9 @@ export class Wallet {
    * @param {string} receiverAddress
    * @returns {Promise<IFee>}
    */
-  async getFeePriceOracle(receiverAddress: string): Promise<IFee> {
+  async getFeePriceOracle(from:string, receiverAddress: string, ammount?:number, tokenType?: 'native'|'custom'): Promise<IFee> {
     try {
-      return await this.service.getFeePriceOracle(this.data.publicKey, receiverAddress);
+      return await this.service.getFeePriceOracle(this.data.publicKey, receiverAddress, ammount, tokenType);
     } catch (error: any) {
       console.error(error);
       throw new CustomError(

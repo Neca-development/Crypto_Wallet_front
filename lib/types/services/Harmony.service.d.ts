@@ -9,7 +9,7 @@ export declare class harmonyService implements IChainService {
     generateKeyPair(mnemonic: string): Promise<IWalletKeys>;
     generatePublicKey(privateKey: string): Promise<string>;
     getTokensByAddress(address: string): Promise<IToken[]>;
-    getFeePriceOracle(): Promise<IFee>;
+    getFeePriceOracle(from: string, to: string, amount: number, tokenType?: 'native' | 'custom'): Promise<IFee>;
     /**
      * @param {ISendingTransactionData} data:ISendingTransactionData
      * @returns {any}

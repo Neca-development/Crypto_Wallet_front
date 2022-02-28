@@ -85,18 +85,18 @@ export class ethereumService implements IChainService {
     return tokens;
   }
 
-  async getFeePriceOracle(from: string, to: string): Promise<IFee> {
+  async getFeePriceOracle(from: string, to: string, amount?: number | null, tokenTypes?: 'native' | 'custom'): Promise<IFee> {
     const { data: ethToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/ETH`, {
       headers: {
-        'auth-client-key': backendApiKey,
-      },
+        'auth-client-key': backendApiKey
+      }
     });
 
     const transactionObject = {
       from,
-      to,
+      to
     };
-    const gasLimit = await this.web3.eth.estimateGas(transactionObject);
+    const gasLimit = tokenTypes == 'custom' ? 200000 : await this.web3.eth.estimateGas(transactionObject);
     let { data: price } = await axios.get(etherGasPrice);
     const gasPriceGwei = price.fast / 10;
 
@@ -106,7 +106,7 @@ export class ethereumService implements IChainService {
 
     return {
       value: transactionFeeInEth,
-      usd: usd,
+      usd: usd
     };
   }
 
