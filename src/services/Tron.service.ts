@@ -10,9 +10,13 @@ import { tronWebProvider, tronUSDTContractAddress, backendApi, imagesURL } from 
 // @ts-ignore
 import TronWeb from 'tronweb';
 // @ts-ignore
-import * as hdWallet from 'tron-wallet-hd';
+import * as bip39 from 'bip39';
 import axios from 'axios';
 import { getBNFromDecimal } from '../utils/numbers';
+
+import BIP32Factory from 'bip32';
+import * as ecc from 'tiny-secp256k1';
+const bip32 = BIP32Factory(ecc);
 
 import { BigNumber } from 'bignumber.js';
 import { backendApiKey } from './../constants/providers';
@@ -26,19 +30,28 @@ export class tronService implements IChainService {
   }
 
   async generatePublicKey(privateKey: string): Promise<string> {
-    const data = await hdWallet.utils.getAccountFromPrivateKey(privateKey);
+    const publicKey = await this.Tron.address.fromPrivateKey(privateKey);
     this.Tron.setPrivateKey(privateKey);
 
-    return data;
+    return publicKey;
   }
 
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
-    const data: any = (await hdWallet.utils.generateAccountsWithMnemonic(mnemonic, 1))[0];
-    this.Tron.setPrivateKey(data.privateKey);
+    const seed = await bip39.mnemonicToSeed(mnemonic);
+    console.log(bip32);
+
+    const node = await bip32.fromSeed(seed);
+    console.log(node, 'node');
+
+    const child = await node.derivePath("m/44'/195'/0'/0/0");
+    const privateKey = await child.privateKey.toString('hex');
+    const publicKey = await this.Tron.address.fromPrivateKey(privateKey);
+
+    this.Tron.setPrivateKey(privateKey);
 
     return {
-      privateKey: data.privateKey,
-      publicKey: data.address,
+      privateKey,
+      publicKey,
     };
   }
 

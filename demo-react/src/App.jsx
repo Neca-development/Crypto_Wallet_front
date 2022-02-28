@@ -23,6 +23,9 @@ function App() {
     //   'aafdd04dd28d1fed7ca6a2ea5ede0453d94a21336a5bee8998ac1255e6e60941',
     //   'Tron'
     // );
+    console.log('====================================');
+    console.log(data);
+    console.log('====================================');
     const allTokens = await wf.getAllTokens();
     console.log(allTokens);
     setLocalTokens(allTokens);
