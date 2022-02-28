@@ -38,10 +38,8 @@ export class tronService implements IChainService {
 
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
     const seed = await bip39.mnemonicToSeed(mnemonic);
-    console.log(bip32);
 
     const node = await bip32.fromSeed(seed);
-    console.log(node, 'node');
 
     const child = await node.derivePath("m/44'/195'/0'/0/0");
     const privateKey = await child.privateKey.toString('hex');
