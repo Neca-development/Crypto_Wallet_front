@@ -11,17 +11,12 @@ import { imagesURL, backendApi, backendApiKey, bitqueryProxy, zcashSatoshisPerBy
 import axios from 'axios';
 import { IResponse } from '../models/response';
 
-// @ts-ignore
-import zcashcore from 'zcash-bitcore-lib';
-// @ts-ignore
-import * as zcash from 'bitcoinjs-lib-zcash';
+import * as zcashAddress from '@bitgo/utxo-lib/dist/src/bitgo/zcash/address';
 
 import { mnemonicToSeedSync } from 'bip39';
 
 import * as utxolib from '@bitgo/utxo-lib';
 import { CustomError } from '../errors';
-
-import coininfo from 'coininfo';
 
 import { ErrorsTypes } from '../models/enums';
 
@@ -34,19 +29,13 @@ export class zcashService implements IChainService {
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
     const seed = mnemonicToSeedSync(mnemonic);
 
-    const privateKey = zcashcore.HDPrivateKey.fromSeed(seed, coininfo.zcash.main.toBitcore())
-      .derive("m/44'/133'/0'/0/0")
-      .privateKey.toWIF();
-    const publicKey = zcashcore.HDPrivateKey.fromSeed(seed, coininfo.zcash.main.toBitcore())
-      .derive("m/44'/133'/0'/0/0")
-      .privateKey.toAddress()
-      .toString();
+    const root = utxolib.bip32.fromSeed(seed, this.network).derivePath("m/44'/133'/0'/0/0");
+    const keyPair1 = utxolib.bitgo.keyutil.privateKeyBufferToECPair(root.privateKey, this.network);
 
-    // const root = utxolib.bip32.fromSeed(seed, this.network).derivePath("m/44'/133'/0'/0/0");
-    // const keyPair1 = utxolib.bitgo.keyutil.privateKeyBufferToECPair(root.privateKey, this.network);
+    const publicKeyHash160 = utxolib.crypto.hash160(keyPair1.publicKey);
 
-    // console.log(root.toWIF());
-    // console.log(utxolib.payments.p2pkh({ pubkey: keyPair1.publicKey, network: this.network }).address);
+    const privateKey = root.toWIF();
+    const publicKey = zcashAddress.toBase58Check(publicKeyHash160, 7352);
 
     this.keys = {
       privateKey,
@@ -57,7 +46,9 @@ export class zcashService implements IChainService {
   }
 
   async generatePublicKey(privateKey: string): Promise<string> {
-    const publicKey = zcashcore.PrivateKey(privateKey).toAddress().toString();
+    const ECPair = utxolib.ECPair.fromWIF(privateKey);
+    const publickKeyHash = utxolib.crypto.hash160(ECPair.publicKey);
+    const publicKey = zcashAddress.toBase58Check(publickKeyHash, 7352);
 
     this.keys = {
       privateKey,
