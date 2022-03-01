@@ -156,7 +156,7 @@ const Wallet = () => {
 
   const calcFee = async () => {
     if (sendTrxForm.receiver) {
-      const resp = await currentWallet.getFeePriceOracle(currentWallet.address, sendTrxForm.receiver);
+      const resp = await currentWallet.getFeePriceOracle(sendTrxForm.receiver, sendTrxForm.amount, 'slow');
       setFee(resp);
     }
   };

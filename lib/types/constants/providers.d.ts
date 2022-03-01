@@ -22,6 +22,7 @@ export declare const polygonUSDTContractAddress = "0xc2132d05d31c914a87c6611c107
 export declare const polygonGasPrice = "https://gasstation-mainnet.matic.network";
 export declare const etcWeb3Provider = "https://www.ethercluster.com/etc";
 export declare const bitcoinSatoshisPerByte = 20;
+export declare const bitcoinFeesURL = "https://bitcoinfees.earn.com/api/v1/fees/recommended";
 export declare const dogeSatoshisPerByte = 206320;
 export declare const litecoinSatoshisPerByte = 4000;
 export declare const bitcoincashSatoshisPerByte = 1.3;

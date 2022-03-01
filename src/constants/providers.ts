@@ -66,6 +66,7 @@ export const etcWeb3Provider = 'https://www.ethercluster.com/etc';
 // ------------- BITCOIN -----------------
 
 export const bitcoinSatoshisPerByte = 20;
+export const bitcoinFeesURL = 'https://bitcoinfees.earn.com/api/v1/fees/recommended';
 
 // ------------- DOGECOIN -----------------
 

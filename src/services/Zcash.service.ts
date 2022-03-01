@@ -88,6 +88,8 @@ export class zcashService implements IChainService {
 
   async getFeePriceOracle(from: string, to: string, amount: number): Promise<IFee> {
     amount = Math.trunc(amount * 1e8);
+    console.log({ amount });
+
     const sochain_network = 'ZEC',
       sourceAddress = from,
       utxos = await axios.get(`https://sochain.com/api/v2/get_tx_unspent/${sochain_network}/${sourceAddress}`);

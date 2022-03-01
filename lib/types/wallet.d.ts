@@ -49,9 +49,11 @@ export declare class Wallet {
     /**
      * Returns the current fee price oracle.
      * @param {string} receiverAddress
+     * @param {number} amount?:number
+     * @param {'slow'|'medium'|'fast'} rate:by default = 'medium'
      * @returns {Promise<IFee>}
      */
-    getFeePriceOracle(receiverAddress: string): Promise<IFee>;
+    getFeePriceOracle(receiverAddress: string, amount: number, rate?: 'slow' | 'medium' | 'fast'): Promise<IFee>;
     /**
      * send current chain main token e.g. ETH, BTC or TRX. Retutn transaction hash
      * @param {ISendingTransactionData} data:ISendingTransactionData

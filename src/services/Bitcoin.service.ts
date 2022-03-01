@@ -5,7 +5,7 @@ import { IChainService } from '../models/chainService';
 import { ITransaction } from '../models/transaction';
 import { ICryptoCurrency, IToken } from '../models/token';
 
-import { imagesURL, backendApi, backendApiKey, bitqueryProxy, bitcoinSatoshisPerByte } from '../constants/providers';
+import { imagesURL, backendApi, backendApiKey, bitqueryProxy, bitcoinFeesURL } from '../constants/providers';
 
 // @ts-ignore
 import axios from 'axios';
@@ -79,7 +79,29 @@ export class bitcoinService implements IChainService {
     return tokens;
   }
 
-  async getFeePriceOracle(from: string, to: string, amount: number): Promise<IFee> {
+  async getFeePriceOracle(from: string, to: string, amount: number, speed): Promise<IFee> {
+    const { data: btcFeeCost } = await axios.get(bitcoinFeesURL);
+
+    let bitcoinSatoshisPerByte;
+
+    switch (speed) {
+      case 'slow':
+        bitcoinSatoshisPerByte = btcFeeCost.hourFee;
+        break;
+      case 'medium':
+        bitcoinSatoshisPerByte = btcFeeCost.halfHourFee;
+        break;
+      case 'fast':
+        bitcoinSatoshisPerByte = btcFeeCost.fastestFee;
+        break;
+      default:
+        break;
+    }
+
+    console.log('====================================');
+    console.log(bitcoinSatoshisPerByte);
+    console.log('====================================');
+
     amount = Math.trunc(amount * 1e8);
     const sochain_network = 'BTCTEST',
       sourceAddress = from,

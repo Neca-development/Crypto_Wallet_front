@@ -10,6 +10,7 @@ export interface ISendingTransactionData {
    */
   cotractAddress?: string;
   destinationTag?: number;
+  speed: 'slow' | 'medium' | 'fast';
 }
 
 export interface ITransaction {
