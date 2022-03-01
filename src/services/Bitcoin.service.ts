@@ -1,153 +1,154 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { IFee, ISendingTransactionData } from '../models/transaction';
-import { IWalletKeys } from '../models/wallet';
-import { IChainService } from '../models/chainService';
-import { ITransaction } from '../models/transaction';
-import { ICryptoCurrency, IToken } from '../models/token';
+import {IFee, ISendingTransactionData} from '../models/transaction';
+import {IWalletKeys} from '../models/wallet';
+import {IChainService} from '../models/chainService';
+import {ITransaction} from '../models/transaction';
+import {ICryptoCurrency, IToken} from '../models/token';
 
-import { imagesURL, backendApi, backendApiKey, bitqueryProxy, bitcoinSatoshisPerByte } from '../constants/providers';
+import {imagesURL, backendApi, backendApiKey, bitqueryProxy, bitcoinSatoshisPerByte} from '../constants/providers';
 
 // @ts-ignore
 import axios from 'axios';
-import { IResponse } from '../models/response';
+import {IResponse} from '../models/response';
 
-import { mnemonicToSeedSync } from 'bip39';
+import {mnemonicToSeedSync} from 'bip39';
 
 import * as bitcoin from 'bitcoinjs-lib';
-import { CustomError } from '../errors';
-import { ErrorsTypes } from '../models/enums';
+import {CustomError} from '../errors';
+import {ErrorsTypes} from '../models/enums';
 
 export class bitcoinService implements IChainService {
-  private keys: IWalletKeys;
-  private network = bitcoin.networks.testnet;
+    private keys: IWalletKeys;
+    private network = bitcoin.networks.testnet;
 
-  constructor() {}
-
-  async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
-    const seed = mnemonicToSeedSync(mnemonic);
-    const root = bitcoin.bip32.fromSeed(seed, this.network).derivePath("m/44'/1'/0'/0/0");
-    const keyPair = bitcoin.payments.p2pkh({ pubkey: root.publicKey, network: this.network });
-
-    const privateKey = root.toWIF();
-    const publicKey = keyPair.address;
-
-    this.keys = {
-      privateKey,
-      publicKey,
-    };
-
-    return this.keys;
-  }
-
-  async generatePublicKey(privateKey: string): Promise<string> {
-    const pubkey = bitcoin.ECPair.fromWIF(privateKey, this.network).publicKey;
-    const publicKey = bitcoin.payments.p2pkh({ pubkey, network: this.network }).address;
-
-    this.keys = {
-      privateKey,
-      publicKey,
-    };
-
-    return publicKey;
-  }
-
-  async getTokensByAddress(address: string) {
-    const tokens: Array<IToken> = [];
-    let btcToUSD: IResponse<ICryptoCurrency>;
-    try {
-      btcToUSD = (
-        await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/BTC`, {
-          headers: {
-            'auth-client-key': backendApiKey,
-          },
-        })
-      ).data;
-    } catch (error) {
-      console.log('server was dropped');
+    constructor() {
     }
 
-    const sochain_network = 'BTCTEST';
+    async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
+        const seed = mnemonicToSeedSync(mnemonic);
+        const root = bitcoin.bip32.fromSeed(seed, this.network).derivePath("m/44'/1'/0'/0/0");
+        const keyPair = bitcoin.payments.p2pkh({pubkey: root.publicKey, network: this.network});
 
-    let { data: balance } = await axios.get(`https://sochain.com/api/v2/get_address_balance/${sochain_network}/${address}`);
+        const privateKey = root.toWIF();
+        const publicKey = keyPair.address;
 
-    balance = balance.data.confirmed_balance;
+        this.keys = {
+            privateKey,
+            publicKey,
+        };
 
-    const nativeTokensBalance = balance;
-
-    tokens.push(this.generateTokenObject(nativeTokensBalance, 'BTC', imagesURL + 'BTC.svg', 'native', btcToUSD.data.usd));
-
-    return tokens;
-  }
-
-  async getFeePriceOracle(from: string, to: string, amount: number): Promise<IFee> {
-    amount = Math.trunc(amount * 1e8);
-    const sochain_network = 'BTCTEST',
-      sourceAddress = from,
-      utxos = await axios.get(`https://sochain.com/api/v2/get_tx_unspent/${sochain_network}/${sourceAddress}`);
-
-    let totalInputsBalance = 0,
-      fee = 0,
-      inputCount = 0,
-      outputCount = 2;
-
-    utxos.data.data.txs.sort((a: any, b: any) => {
-      if (Number(a.value) > Number(b.value)) {
-        return -1;
-      } else if (Number(a.value) < Number(b.value)) {
-        return 1;
-      } else {
-        return 0;
-      }
-    });
-
-    utxos.data.data.txs.forEach(async (element: any) => {
-      fee = (inputCount * 146 + outputCount * 33 + 10) * bitcoinSatoshisPerByte;
-
-      if (totalInputsBalance - amount - fee > 0) {
-        return;
-      }
-
-      inputCount += 1;
-      totalInputsBalance += Math.floor(Number(element.value) * 100000000);
-    });
-
-    if (totalInputsBalance - amount - fee < 0) {
-      throw new Error('Balance is too low for this transaction');
+        return this.keys;
     }
 
-    const value = fee * 1e-8;
+    async generatePublicKey(privateKey: string): Promise<string> {
+        const pubkey = bitcoin.ECPair.fromWIF(privateKey, this.network).publicKey;
+        const publicKey = bitcoin.payments.p2pkh({pubkey, network: this.network}).address;
 
-    const btcToUSD = (
-      await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/BTC`, {
-        headers: {
-          'auth-client-key': backendApiKey,
-        },
-      })
-    ).data;
+        this.keys = {
+            privateKey,
+            publicKey,
+        };
 
-    const usd = Math.trunc(Number(btcToUSD.data.usd) * value * 100) / 100;
+        return publicKey;
+    }
 
-    return {
-      value,
-      usd,
-    };
-  }
+    async getTokensByAddress(address: string) {
+        const tokens: Array<IToken> = [];
+        let btcToUSD: IResponse<ICryptoCurrency>;
+        try {
+            btcToUSD = (
+                await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/BTC`, {
+                    headers: {
+                        'auth-client-key': backendApiKey,
+                    },
+                })
+            ).data;
+        } catch (error) {
+            console.log('server was dropped');
+        }
 
-  async getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]> {
-    address = '18LT7D1wT4Qi28wrdK1DvKFgTy9gtrK9TK';
-    const { data: btcToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/BTC`, {
-      headers: {
-        'auth-client-key': backendApiKey,
-      },
-    });
+        const sochain_network = 'BTCTEST';
 
-    let transactions = [];
+        let {data: balance} = await axios.get(`https://sochain.com/api/v2/get_address_balance/${sochain_network}/${address}`);
 
-    let { data: resp } = await axios.post(
-      bitqueryProxy,
-      {
-        body: {
-          query: `
+        balance = balance.data.confirmed_balance;
+
+        const nativeTokensBalance = balance;
+
+        tokens.push(this.generateTokenObject(nativeTokensBalance, 'BTC', imagesURL + 'BTC.svg', 'native', btcToUSD.data.usd));
+
+        return tokens;
+    }
+
+    async getFeePriceOracle(from: string, to: string, amount?: number | null, tokenTypes?: 'native' | 'custom'): Promise<IFee> {
+        amount = Math.trunc(amount * 1e8);
+        const sochain_network = 'BTCTEST',
+            sourceAddress = from,
+            utxos = await axios.get(`https://sochain.com/api/v2/get_tx_unspent/${sochain_network}/${sourceAddress}`);
+
+        let totalInputsBalance = 0,
+            fee = 0,
+            inputCount = 0,
+            outputCount = 2;
+
+        utxos.data.data.txs.sort((a: any, b: any) => {
+            if (Number(a.value) > Number(b.value)) {
+                return -1;
+            } else if (Number(a.value) < Number(b.value)) {
+                return 1;
+            } else {
+                return 0;
+            }
+        });
+
+        utxos.data.data.txs.forEach(async (element: any) => {
+            fee = (inputCount * 146 + outputCount * 33 + 10) * bitcoinSatoshisPerByte;
+
+            if (totalInputsBalance - amount - fee > 0) {
+                return;
+            }
+
+            inputCount += 1;
+            totalInputsBalance += Math.floor(Number(element.value) * 100000000);
+        });
+
+        if (totalInputsBalance - amount - fee < 0) {
+            throw new Error('Balance is too low for this transaction');
+        }
+
+        const value = tokenTypes == 'native' ? fee * 1e-8 : null;
+
+        const btcToUSD = (
+            await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/BTC`, {
+                headers: {
+                    'auth-client-key': backendApiKey,
+                },
+            })
+        ).data;
+
+        const usd = Math.trunc(Number(btcToUSD.data.usd) * value * 100) / 100;
+
+        return {
+            value,
+            usd,
+        };
+    }
+
+    async getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]> {
+        address = '18LT7D1wT4Qi28wrdK1DvKFgTy9gtrK9TK';
+        const {data: btcToUSD} = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/BTC`, {
+            headers: {
+                'auth-client-key': backendApiKey,
+            },
+        });
+
+        let transactions = [];
+
+        let {data: resp} = await axios.post(
+            bitqueryProxy,
+            {
+                body: {
+                    query: `
           query {
             bitcoin(network: bitcoin) {
               outputs(
@@ -191,168 +192,168 @@ export class bitcoinService implements IChainService {
             }
           }
         `,
-          variables: {},
-        },
-      },
-      {
-        headers: {
-          'auth-client-key': backendApiKey,
-        },
-      }
-    );
+                    variables: {},
+                },
+            },
+            {
+                headers: {
+                    'auth-client-key': backendApiKey,
+                },
+            }
+        );
 
-    transactions.push(
-      ...resp.data.data.bitcoin.inputs.map((el: any) =>
-        this.convertTransactionToCommonFormat(el, Number(btcToUSD.data.usd), 'IN')
-      )
-    );
+        transactions.push(
+            ...resp.data.data.bitcoin.inputs.map((el: any) =>
+                this.convertTransactionToCommonFormat(el, Number(btcToUSD.data.usd), 'IN')
+            )
+        );
 
-    transactions.push(
-      ...resp.data.data.bitcoin.outputs.map((el: any) =>
-        this.convertTransactionToCommonFormat(el, Number(btcToUSD.data.usd), 'OUT')
-      )
-    );
+        transactions.push(
+            ...resp.data.data.bitcoin.outputs.map((el: any) =>
+                this.convertTransactionToCommonFormat(el, Number(btcToUSD.data.usd), 'OUT')
+            )
+        );
 
-    if (transactions.length === 0) {
-      return [];
+        if (transactions.length === 0) {
+            return [];
+        }
+
+        transactions.sort((a, b) => {
+            if (a.timestamp > b.timestamp) {
+                return -1;
+            } else if (a.timestamp < b.timestamp) {
+                return 1;
+            } else {
+                return 0;
+            }
+        });
+
+        return transactions;
     }
 
-    transactions.sort((a, b) => {
-      if (a.timestamp > b.timestamp) {
-        return -1;
-      } else if (a.timestamp < b.timestamp) {
-        return 1;
-      } else {
-        return 0;
-      }
-    });
+    async sendMainToken(data: ISendingTransactionData): Promise<string> {
+        const sochain_network = 'BTCTEST',
+            privateKey = data.privateKey,
+            sourceAddress = this.keys.publicKey,
+            utxos = await axios.get(`https://sochain.com/api/v2/get_tx_unspent/${sochain_network}/${sourceAddress}`),
+            transaction = new bitcoin.TransactionBuilder(this.network),
+            amount = Math.trunc(data.amount * 1e8),
+            privateKeyECpair = bitcoin.ECPair.fromWIF(privateKey, this.network);
 
-    return transactions;
-  }
+        let totalInputsBalance = 0,
+            fee = 0,
+            inputCount = 0,
+            outputCount = 2;
 
-  async sendMainToken(data: ISendingTransactionData): Promise<string> {
-    const sochain_network = 'BTCTEST',
-      privateKey = data.privateKey,
-      sourceAddress = this.keys.publicKey,
-      utxos = await axios.get(`https://sochain.com/api/v2/get_tx_unspent/${sochain_network}/${sourceAddress}`),
-      transaction = new bitcoin.TransactionBuilder(this.network),
-      amount = Math.trunc(data.amount * 1e8),
-      privateKeyECpair = bitcoin.ECPair.fromWIF(privateKey, this.network);
+        transaction.setVersion(1);
 
-    let totalInputsBalance = 0,
-      fee = 0,
-      inputCount = 0,
-      outputCount = 2;
+        utxos.data.data.txs.sort((a: any, b: any) => {
+            if (Number(a.value) > Number(b.value)) {
+                return -1;
+            } else if (Number(a.value) < Number(b.value)) {
+                return 1;
+            } else {
+                return 0;
+            }
+        });
 
-    transaction.setVersion(1);
+        utxos.data.data.txs.forEach(async (element: any) => {
+            fee = (inputCount * 146 + outputCount * 33 + 10) * 20;
 
-    utxos.data.data.txs.sort((a: any, b: any) => {
-      if (Number(a.value) > Number(b.value)) {
-        return -1;
-      } else if (Number(a.value) < Number(b.value)) {
-        return 1;
-      } else {
-        return 0;
-      }
-    });
+            if (totalInputsBalance - amount - fee > 0) {
+                return;
+            }
 
-    utxos.data.data.txs.forEach(async (element: any) => {
-      fee = (inputCount * 146 + outputCount * 33 + 10) * 20;
+            transaction.addInput(element.txid, element.output_no);
+            inputCount += 1;
+            totalInputsBalance += Math.floor(Number(element.value) * 100000000);
+        });
 
-      if (totalInputsBalance - amount - fee > 0) {
-        return;
-      }
+        if (totalInputsBalance - amount - fee < 0) {
+            throw new Error('Balance is too low for this transaction');
+        }
 
-      transaction.addInput(element.txid, element.output_no);
-      inputCount += 1;
-      totalInputsBalance += Math.floor(Number(element.value) * 100000000);
-    });
+        transaction.addOutput(data.receiverAddress, amount);
+        transaction.addOutput(sourceAddress, totalInputsBalance - amount - fee);
 
-    if (totalInputsBalance - amount - fee < 0) {
-      throw new Error('Balance is too low for this transaction');
+        // This assumes all inputs are spending utxos sent to the same Dogecoin P2PKH address (starts with D)
+        for (let i = 0; i < inputCount; i++) {
+            transaction.sign(i, privateKeyECpair);
+        }
+
+        const {data: trRequest} = await axios.post(
+            `${backendApi}transactions/so-chain/${sochain_network}`,
+            {
+                tx_hex: transaction.buildIncomplete().toHex(),
+            },
+            {
+                headers: {
+                    'auth-client-key': backendApiKey,
+                },
+            }
+        );
+
+        return trRequest.data.txid;
     }
 
-    transaction.addOutput(data.receiverAddress, amount);
-    transaction.addOutput(sourceAddress, totalInputsBalance - amount - fee);
-
-    // This assumes all inputs are spending utxos sent to the same Dogecoin P2PKH address (starts with D)
-    for (let i = 0; i < inputCount; i++) {
-      transaction.sign(i, privateKeyECpair);
+    async send20Token(): Promise<string> {
+        throw new CustomError('Network doesnt support this method', 14, ErrorsTypes['Unknown error']);
     }
 
-    const { data: trRequest } = await axios.post(
-      `${backendApi}transactions/so-chain/${sochain_network}`,
-      {
-        tx_hex: transaction.buildIncomplete().toHex(),
-      },
-      {
-        headers: {
-          'auth-client-key': backendApiKey,
-        },
-      }
-    );
+    // -------------------------------------------------
+    // ********** PRIVATE METHODS SECTION **************
+    // -------------------------------------------------
 
-    return trRequest.data.txid;
-  }
+    private generateTokenObject(
+        balance: number,
+        tokenName: string,
+        tokenLogo: string,
+        tokenType: 'native' | 'custom',
+        btcToUSD: string,
+        bnbToCustomToken?: string,
+        contractAddress?: string
+    ): IToken {
+        let tokenPriceInUSD = tokenType === 'custom' ? (1 / Number(bnbToCustomToken)) * Number(btcToUSD) : Number(btcToUSD);
+        tokenPriceInUSD = Math.trunc(tokenPriceInUSD * 100) / 100;
 
-  async send20Token(): Promise<string> {
-    throw new CustomError('Network doesnt support this method', 14, ErrorsTypes['Unknown error']);
-  }
+        const balanceInUSD = Math.trunc(balance * tokenPriceInUSD * 100) / 100;
 
-  // -------------------------------------------------
-  // ********** PRIVATE METHODS SECTION **************
-  // -------------------------------------------------
+        return {
+            balance,
+            balanceInUSD,
+            contractAddress,
+            tokenName,
+            tokenType,
+            tokenPriceInUSD,
+            tokenLogo,
+        };
+    }
 
-  private generateTokenObject(
-    balance: number,
-    tokenName: string,
-    tokenLogo: string,
-    tokenType: 'native' | 'custom',
-    btcToUSD: string,
-    bnbToCustomToken?: string,
-    contractAddress?: string
-  ): IToken {
-    let tokenPriceInUSD = tokenType === 'custom' ? (1 / Number(bnbToCustomToken)) * Number(btcToUSD) : Number(btcToUSD);
-    tokenPriceInUSD = Math.trunc(tokenPriceInUSD * 100) / 100;
+    /**
+     * @param {any} txData:any
+     * @param {string} address:string
+     * @param {number} trxToUSD:number
+     * @returns {ITransaction}
+     */
+    private convertTransactionToCommonFormat(txData: any, tokenPriceToUSD: number, direction: 'IN' | 'OUT'): ITransaction {
+        let amountPriceInUSD = Math.trunc(txData.value * tokenPriceToUSD * 100) / 100;
+        const tokenName = 'BTC';
+        const tokenLogo = imagesURL + tokenName + '.svg';
+        const from = direction === 'OUT' ? txData.outputAddress.address : 'unknown';
+        const to = direction === 'IN' ? txData.inputAddress.address : 'unknown';
 
-    const balanceInUSD = Math.trunc(balance * tokenPriceInUSD * 100) / 100;
-
-    return {
-      balance,
-      balanceInUSD,
-      contractAddress,
-      tokenName,
-      tokenType,
-      tokenPriceInUSD,
-      tokenLogo,
-    };
-  }
-
-  /**
-   * @param {any} txData:any
-   * @param {string} address:string
-   * @param {number} trxToUSD:number
-   * @returns {ITransaction}
-   */
-  private convertTransactionToCommonFormat(txData: any, tokenPriceToUSD: number, direction: 'IN' | 'OUT'): ITransaction {
-    let amountPriceInUSD = Math.trunc(txData.value * tokenPriceToUSD * 100) / 100;
-    const tokenName = 'BTC';
-    const tokenLogo = imagesURL + tokenName + '.svg';
-    const from = direction === 'OUT' ? txData.outputAddress.address : 'unknown';
-    const to = direction === 'IN' ? txData.inputAddress.address : 'unknown';
-
-    return {
-      to,
-      from,
-      amount: txData.value.toFixed(8),
-      amountInUSD: amountPriceInUSD.toString(),
-      txId: txData.transaction.hash,
-      direction,
-      tokenName,
-      timestamp: new Date(txData.block.timestamp.time).getTime(),
-      fee: undefined,
-      status: true,
-      tokenLogo,
-    };
-  }
+        return {
+            to,
+            from,
+            amount: txData.value.toFixed(8),
+            amountInUSD: amountPriceInUSD.toString(),
+            txId: txData.transaction.hash,
+            direction,
+            tokenName,
+            timestamp: new Date(txData.block.timestamp.time).getTime(),
+            fee: undefined,
+            status: true,
+            tokenLogo,
+        };
+    }
 }

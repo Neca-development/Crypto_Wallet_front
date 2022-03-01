@@ -76,7 +76,7 @@ export class binanceService implements IChainService {
     return tokens;
   }
 
-  async getFeePriceOracle(from: string, to: string): Promise<IFee> {
+  async getFeePriceOracle(from: string, to: string, amount?:number,  tokenType?:'custom'|'native'): Promise<IFee> {
     const { data: bnbToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/BNB`, {
       headers: {
         'auth-client-key': backendApiKey,
@@ -89,7 +89,7 @@ export class binanceService implements IChainService {
     });
 
     let value = await this.web3.eth.getGasPrice();
-    value = (+this.web3.utils.fromWei(value) * fee).toString();
+    value = tokenType =='native'?(+this.web3.utils.fromWei(value) * fee).toString(): (amount * 0.01).toString();
 
     const usd = Math.trunc(+value * Number(bnbToUSD.data.usd) * 100) / 100;
 

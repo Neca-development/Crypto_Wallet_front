@@ -5,7 +5,7 @@ export interface IChainService {
     generatePublicKey(privateKey: string): Promise<string>;
     getTokensByAddress(address: string): Promise<IToken[]>;
     getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]>;
-    getFeePriceOracle(from: string, to: string, amount?: number): Promise<IFee>;
+    getFeePriceOracle(from: string, to: string, amount?: number, tokenType?: 'native' | 'custom'): Promise<IFee>;
     sendMainToken(data: ISendingTransactionData): Promise<string>;
     send20Token(data: ISendingTransactionData): Promise<string>;
 }

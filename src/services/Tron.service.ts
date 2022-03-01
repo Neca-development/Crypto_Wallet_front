@@ -82,15 +82,15 @@ export class tronService implements IChainService {
     return tokens;
   }
 
-  async getFeePriceOracle(): Promise<IFee> {
+  async getFeePriceOracle(from:string, to: string, amount:number, tokenType?:'native'|'custom'): Promise<IFee> {
     const { data: trxToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/TRX`, {
       headers: {
         'auth-client-key': backendApiKey,
       },
     });
 
-    let value = 10;
-
+    let value = tokenType == 'native'? 10 : 10000000;
+    value = value*10e-10
     const usd = Math.trunc(value * Number(trxToUSD.data.usd) * 100) / 100;
 
     return {

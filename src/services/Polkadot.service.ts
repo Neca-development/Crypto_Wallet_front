@@ -39,7 +39,8 @@ export class polkadotService implements IChainService {
   private _publicKey: string;
   private _keyring: Keyring;
   private web3: Web3;
-
+  private _keypair: any;
+  private _tx: any;
   constructor() {
     this._provider = new WsProvider('wss://rpc.polkadot.io');
 
@@ -49,10 +50,9 @@ export class polkadotService implements IChainService {
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
     this._api = await ApiPromise.create({ provider: this._provider });
     this._keyring = new Keyring({ type: 'ed25519', ss58Format: 0 });
-    const pair = this._keyring.addFromUri(mnemonic);
-    this._publicKey = pair.address;
-    const registry  = await this._api.query
-    this._api.tx.balances.setBalance(this._publicKey, 20, 8)
+    this._keypair = this._keyring.addFromUri(mnemonic);
+
+    this._publicKey = this._keypair.address;
     return {
       publicKey: this._publicKey, privateKey: null
     };
@@ -80,7 +80,7 @@ export class polkadotService implements IChainService {
 
     tokens.push(
       this.generateTokenObject(
-        Number(nativeTokensBalance*10e-10),
+        Math.trunc(nativeTokensBalance*10e-11*100)/100,
         'DOT',
         imagesURL + 'DOT.svg',
         'native',
@@ -103,17 +103,18 @@ export class polkadotService implements IChainService {
     return tokens;
   }
 
-  async getFeePriceOracle(from: string, to: string): Promise<IFee> {
+  async getFeePriceOracle(from: string, to: string, amount?: number | null, tokenTypes?: 'native' | 'custom'): Promise<IFee> {
     const { data: dotToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/DOT`, {
       headers: {
         'auth-client-key': backendApiKey
       }
     });
-    const balanceFrom = await this._api.derive.balances.all(to, this._api)
-    const { partialFee } = await this._api.tx.balances.transfer(to, balanceFrom.availableBalance)
-      .paymentInfo(from).toJSON()
+    // const adres = '0x02b33c917f2f6103448d7feb42614037d05928433cb25e78f01a825aa829bb3c27';
+    // const {data} = await axios.get(`https://api.snowtrace.io/api?module=account&action=txlist&address=${adres}&startblock=1&endblock=99999999&sort=asc&apikey=YourApiKeyToken`)
+    this._tx = this._api.tx.balances.transfer(to, +amount * 10e11);
+    const { partialFee: fee } = await this._tx.paymentInfo(from);
 
-    const transactionFeeInDot = 10e-10 * partialFee;
+    const transactionFeeInDot = tokenTypes == 'native' ? Math.trunc(10e-11 * fee.toJSON() * 100) / 100 : null;
 
     const usd = Math.trunc(transactionFeeInDot * Number(dotToUSD.data.usd) * 100) / 100;
 
@@ -134,10 +135,10 @@ export class polkadotService implements IChainService {
       }
     });
 
-    const {data: {data: data }} = await axios.get(`${blockChairAPI}${address}`)
+    const { data: { data: data } } = await axios.get(`${blockChairAPI}${address}`);
     // const queries = [];
     let transactions = [];
-
+    console.log(data)
     // queries.push(this.generateTransactionsQuery(address, 'receiver'));
     // queries.push(this.generateTransactionsQuery(address, 'sender'));
     //
@@ -154,13 +155,13 @@ export class polkadotService implements IChainService {
     //     }
     //   );
 // console.log(resp) }
-      transactions.push(...data[Object.keys(data)[0]].transfers);
+    transactions.push(...data[Object.keys(data)[0]].transfers);
 
-
+    console.log(transactions)
     transactions = transactions.map((el: any) =>
-      this.convertTransactionToCommonFormat(el, address, Number(ethToUSD.data.usd), Number(ethToUSD.data.usdt), 'dot', 'TransferContract')
+        this.convertTransactionToCommonFormat(el, address, Number(ethToUSD.data.usd), Number(ethToUSD.data.usdt), 'dot', 'TransferContract')
     );
-
+    console.log(transactions)
     transactions.sort((a, b) => {
       if (a.timestamp > b.timestamp) {
         return -1;
@@ -170,13 +171,20 @@ export class polkadotService implements IChainService {
         return 0;
       }
     });
-
+    console.log(transactions)
     return transactions;
   }
 
   async sendMainToken(data: ISendingTransactionData): Promise<string> {
-    const transactionHash = await this._api.tx.balances.transfer(data.receiverAddress, data.amount)
-    transactionHash.signAndSend(this._publicKey)
+    console.log(data)
+    const transactionHash = await this._api.tx.balances
+        .transfer(data.receiverAddress, data.amount*10e9)
+        .signAndSend(this._keypair, (result) => {
+          if (result.status.isFinalized) {
+            console.log(`Transaction finalized at blockHash ${result.status.asFinalized}`);
+            transactionHash();
+          }
+        })
     return transactionHash;
   }
 
@@ -273,16 +281,16 @@ export class polkadotService implements IChainService {
    * @returns {ITransaction}
    */
   private convertTransactionToCommonFormat(
-    txData: any,
-    address: string,
-    tokenPriceToUSD: number,
-    nativeTokenToUSD: number,
-    symbol: string,
-    tokenType: 'TransferContract' | 'TriggerSmartContract',
+      txData: any,
+      address: string,
+      tokenPriceToUSD: number,
+      nativeTokenToUSD: number,
+      symbol: string,
+      tokenType: 'TransferContract' | 'TriggerSmartContract'
   ): ITransaction {
-    const amount =  Math.trunc(txData.amount*10e-8) / 100;
+    const amount = Math.trunc(txData.amount * 10e-9) / 100;
 
-    let amountPriceInUSD = tokenPriceToUSD
+    let amountPriceInUSD = tokenPriceToUSD;
     amountPriceInUSD = Math.trunc(amountPriceInUSD * amount * 100) / 100;
 
     const tokenLogo = imagesURL + symbol.toUpperCase() + '.svg';

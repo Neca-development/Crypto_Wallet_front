@@ -9,11 +9,13 @@ export declare class polkadotService implements IChainService {
     private _publicKey;
     private _keyring;
     private web3;
+    private _keypair;
+    private _tx;
     constructor();
     generateKeyPair(mnemonic: string): Promise<IWalletKeys>;
     generatePublicKey(privateKey: string): Promise<string>;
     getTokensByAddress(address: string): Promise<IToken[]>;
-    getFeePriceOracle(from: string, to: string): Promise<IFee>;
+    getFeePriceOracle(from: string, to: string, amount?: number | null, tokenTypes?: 'native' | 'custom'): Promise<IFee>;
     /**
      * @param {ISendingTransactionData} data:ISendingTransactionData
      * @returns {any}

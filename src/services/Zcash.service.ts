@@ -86,7 +86,7 @@ export class zcashService implements IChainService {
     return tokens;
   }
 
-  async getFeePriceOracle(from: string, to: string, amount: number): Promise<IFee> {
+  async getFeePriceOracle(from: string, to: string, amount?: number | null, tokenTypes?: 'native' | 'custom'): Promise<IFee> {
     amount = Math.trunc(amount * 1e8);
     const sochain_network = 'ZEC',
       sourceAddress = from,
@@ -121,8 +121,7 @@ export class zcashService implements IChainService {
     if (totalInputsBalance - amount - fee < 0) {
       throw new Error('Balance is too low for this transaction');
     }
-
-    const value = fee * 1e-8;
+    const value = tokenTypes == 'native' ? fee * 1e-8 : null;
 
     const { data: zcashToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/ZEC`, {
       headers: {

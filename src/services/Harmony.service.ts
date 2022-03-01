@@ -88,7 +88,7 @@ export class harmonyService implements IChainService {
     return tokens;
   }
 
-  async getFeePriceOracle(): Promise<IFee> {
+  async getFeePriceOracle(from:string, to: string, amount:number, tokenType?:'native'|'custom'): Promise<IFee> {
     // const { data: oneToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/ONE`, {
     //   headers: {
     //     'auth-client-key': backendApiKey,
@@ -102,9 +102,11 @@ export class harmonyService implements IChainService {
 
     const gasPrice = await this.web3.eth.getGasPrice();
     const gasPriceInOne = this.web3.utils.fromWei(gasPrice);
-    const gasLimit = 6721900;
+    const gasLimit = tokenType == 'custom'
+        ? 6721900
+        : 21000;
 
-    const transactionFeeInOne = +gasPriceInOne * gasLimit;
+    const transactionFeeInOne = Math.trunc(+gasPriceInOne * gasLimit*100)/100;
     const usd = Math.trunc(transactionFeeInOne * Number(oneToUSD.data.usd) * 100) / 100;
 
     return {
