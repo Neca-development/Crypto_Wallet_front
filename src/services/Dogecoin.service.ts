@@ -83,7 +83,7 @@ export class dogecoinService implements IChainService {
     return tokens;
   }
 
-  async getFeePriceOracle(from: string, to: string, amount: number): Promise<IFee> {
+  async getFeePriceOracle(from: string, to: string, amount?: number | null, tokenTypes?: 'native' | 'custom'): Promise<IFee> {
     amount = Math.trunc(amount * 1e8);
     const sochain_network = 'DOGE',
       sourceAddress = from,
@@ -119,7 +119,7 @@ export class dogecoinService implements IChainService {
       throw new Error('Balance is too low for this transaction');
     }
 
-    const value = fee * 1e-8;
+    const value = tokenTypes == 'native' ? fee * 1e-8 : null;
 
     const dogeToUSD = (
       await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/DOGE`, {

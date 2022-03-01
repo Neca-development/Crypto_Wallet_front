@@ -85,7 +85,13 @@ export class ethereumService implements IChainService {
     return tokens;
   }
 
-  async getFeePriceOracle(from: string, to: string, amount: number, rate?: 'slow' | 'medium' | 'fast'): Promise<IFee> {
+  async getFeePriceOracle(
+    from: string,
+    to: string,
+    amount: number,
+    tokenTypes: 'native' | 'custom',
+    speed: 'slow' | 'medium' | 'fast'
+  ): Promise<IFee> {
     const { data: ethToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/ETH`, {
       headers: {
         'auth-client-key': backendApiKey,
@@ -96,11 +102,11 @@ export class ethereumService implements IChainService {
       from,
       to,
     };
-    const gasLimit = await this.web3.eth.estimateGas(transactionObject);
+    const gasLimit = tokenTypes == 'custom' ? 200000 : await this.web3.eth.estimateGas(transactionObject);
     let { data: price } = await axios.get(etherGasPrice);
     let gasPriceGwei;
 
-    switch (rate) {
+    switch (speed) {
       case 'slow':
         gasPriceGwei = price.average / 10;
         break;
@@ -180,7 +186,7 @@ export class ethereumService implements IChainService {
   }
 
   async sendMainToken(data: ISendingTransactionData): Promise<string> {
-    const fee = await this.getFeePriceOracle(this.web3.defaultAccount, data.receiverAddress, data.amount, data.speed);
+    const fee = await this.getFeePriceOracle(this.web3.defaultAccount, data.receiverAddress, data.amount, 'native', data.speed);
 
     const result = await this.web3.eth.sendTransaction({
       from: this.web3.eth.defaultAccount,
@@ -200,7 +206,6 @@ export class ethereumService implements IChainService {
     const result = await contract.methods
       .transfer(data.receiverAddress, this.web3.utils.toHex(amount))
       .send({ from: this.web3.eth.defaultAccount, gas: 100000 });
-    console.log(result);
 
     return result.transactionHash;
   }

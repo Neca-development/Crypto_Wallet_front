@@ -337,7 +337,7 @@ export class bitcoincashService implements IChainService {
 
       return txidStr;
     } catch (err) {
-      console.log(`error: `, err);
+      throw new Error(err);
     }
 
     // Returns the utxo with the biggest balance from an array of utxos.

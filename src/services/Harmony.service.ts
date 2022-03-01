@@ -88,7 +88,7 @@ export class harmonyService implements IChainService {
     return tokens;
   }
 
-  async getFeePriceOracle(): Promise<IFee> {
+  async getFeePriceOracle(from: string, to: string, amount: number, tokenType?: 'native' | 'custom'): Promise<IFee> {
     // const { data: oneToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/ONE`, {
     //   headers: {
     //     'auth-client-key': backendApiKey,
@@ -102,9 +102,9 @@ export class harmonyService implements IChainService {
 
     const gasPrice = await this.web3.eth.getGasPrice();
     const gasPriceInOne = this.web3.utils.fromWei(gasPrice);
-    const gasLimit = 6721900;
+    const gasLimit = tokenType == 'custom' ? 6721900 : 21000;
 
-    const transactionFeeInOne = +gasPriceInOne * gasLimit;
+    const transactionFeeInOne = Math.trunc(+gasPriceInOne * gasLimit * 100) / 100;
     const usd = Math.trunc(transactionFeeInOne * Number(oneToUSD.data.usd) * 100) / 100;
 
     return {
@@ -222,12 +222,9 @@ export class harmonyService implements IChainService {
       .transfer(recieverEth, this.web3.utils.toHex(amount))
       .send({ from: this.web3.eth.defaultAccount, gas: '3000000' }, function (err, res) {
         if (err) {
-          console.log('An error occured', err);
-          return;
+          throw new Error(err);
         }
-        console.log('Hash of the transaction: ' + res);
       });
-    console.log(result);
 
     return result.transactionHash;
   }
@@ -321,7 +318,6 @@ export class harmonyService implements IChainService {
     const amount = txData.value * 1e-18;
 
     // let amountPriceInUSD = txData.currency.symbol === 'ONE' ? tokenPriceToUSD : (1 / nativeTokenToUSD) * tokenPriceToUSD;
-    console.log(nativeTokenToUSD);
     let amountPriceInUSD = tokenPriceToUSD;
     amountPriceInUSD = Math.trunc(amountPriceInUSD * amount * 100) / 100;
 

@@ -9,7 +9,7 @@ export declare class ethereumService implements IChainService {
     generateKeyPair(mnemonic: string): Promise<IWalletKeys>;
     generatePublicKey(privateKey: string): Promise<string>;
     getTokensByAddress(address: string): Promise<IToken[]>;
-    getFeePriceOracle(from: string, to: string, amount: number, rate?: 'slow' | 'medium' | 'fast'): Promise<IFee>;
+    getFeePriceOracle(from: string, to: string, amount: number, tokenTypes: 'native' | 'custom', speed: 'slow' | 'medium' | 'fast'): Promise<IFee>;
     /**
      * @param {ISendingTransactionData} data:ISendingTransactionData
      * @returns {any}

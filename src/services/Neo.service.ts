@@ -37,7 +37,6 @@ export class neoService implements IChainService {
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
     const seed = mnemonicToSeedSync(mnemonic);
     const privateKey = u.ab2hexstring(seed);
-    console.log(privateKey);
     const myWallet = Neon.create.wallet({ name: 'MyWallet' });
     myWallet.addAccount();
 

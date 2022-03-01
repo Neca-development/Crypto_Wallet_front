@@ -79,7 +79,13 @@ export class bitcoinService implements IChainService {
     return tokens;
   }
 
-  async getFeePriceOracle(from: string, to: string, amount: number, speed): Promise<IFee> {
+  async getFeePriceOracle(
+    from: string,
+    to: string,
+    amount: number,
+    tokenTypes: 'native' | 'custom',
+    speed: 'slow' | 'medium' | 'fast'
+  ): Promise<IFee> {
     const { data: btcFeeCost } = await axios.get(bitcoinFeesURL);
 
     let bitcoinSatoshisPerByte;
@@ -97,10 +103,6 @@ export class bitcoinService implements IChainService {
       default:
         break;
     }
-
-    console.log('====================================');
-    console.log(bitcoinSatoshisPerByte);
-    console.log('====================================');
 
     amount = Math.trunc(amount * 1e8);
     const sochain_network = 'BTCTEST',
@@ -137,7 +139,7 @@ export class bitcoinService implements IChainService {
       throw new Error('Balance is too low for this transaction');
     }
 
-    const value = fee * 1e-8;
+    const value = tokenTypes == 'native' ? fee * 1e-8 : null;
 
     const btcToUSD = (
       await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/BTC`, {
