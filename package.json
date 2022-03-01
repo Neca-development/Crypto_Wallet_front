@@ -34,19 +34,15 @@
     "bip39": "^3.0.4",
     "bitbox-sdk": "^8.11.2",
     "bitcoinjs-lib": "^5.2.0",
-    "bitcoinjs-lib-zcash": "^3.6.1",
-    "bitcoinjs-testnets": "^1.0.10",
     "coininfo": "^5.1.0",
     "ed25519-hd-key": "^1.2.0",
     "ethers": "^5.5.1",
     "tronweb": "^4.0.0",
-    "tweetnacl": "^1.0.3",
     "typedoc": "^0.22.11",
     "typedoc-plugin-missing-exports": "^0.22.4",
     "uglify-es-webpack-plugin": "^0.10.0",
     "web3": "^1.6.1",
-    "xrpl": "^2.1.1",
-    "zcash-bitcore-lib": "^0.13.20-rc3"
+    "xrpl": "^2.1.1"
   },
   "devDependencies": {
     "@babel/core": "^7.16.0",
