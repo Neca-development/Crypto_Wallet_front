@@ -106,8 +106,8 @@ export class harmonyService implements IChainService {
         ? 6721900
         : 21000;
 
-    const transactionFeeInOne = +gasPriceInOne * gasLimit;
-    const usd = Math.trunc(transactionFeeInOne * Number(oneToUSD.data.usd) * 1000) / 1000;
+    const transactionFeeInOne = Math.trunc(+gasPriceInOne * gasLimit*100)/100;
+    const usd = Math.trunc(transactionFeeInOne * Number(oneToUSD.data.usd) * 100) / 100;
 
     return {
       value: transactionFeeInOne,

@@ -80,7 +80,7 @@ export class polkadotService implements IChainService {
 
     tokens.push(
       this.generateTokenObject(
-        Number(nativeTokensBalance*10e-10),
+        Math.trunc(nativeTokensBalance*10e-11*100)/100,
         'DOT',
         imagesURL + 'DOT.svg',
         'native',
@@ -111,10 +111,10 @@ export class polkadotService implements IChainService {
     });
     // const adres = '0x02b33c917f2f6103448d7feb42614037d05928433cb25e78f01a825aa829bb3c27';
     // const {data} = await axios.get(`https://api.snowtrace.io/api?module=account&action=txlist&address=${adres}&startblock=1&endblock=99999999&sort=asc&apikey=YourApiKeyToken`)
-    this._tx = this._api.tx.balances.transfer(to, +amount * 10e10);
+    this._tx = this._api.tx.balances.transfer(to, +amount * 10e11);
     const { partialFee: fee } = await this._tx.paymentInfo(from);
 
-    const transactionFeeInDot = tokenTypes == 'native' ? Math.trunc(10e-10 * fee.toJSON() * 1000) / 1000 : null;
+    const transactionFeeInDot = tokenTypes == 'native' ? Math.trunc(10e-11 * fee.toJSON() * 100) / 100 : null;
 
     const usd = Math.trunc(transactionFeeInDot * Number(dotToUSD.data.usd) * 100) / 100;
 
@@ -176,7 +176,8 @@ export class polkadotService implements IChainService {
   }
 
   async sendMainToken(data: ISendingTransactionData): Promise<string> {
-    const transactionHash = await this._api.tx.balances.transfer(data.receiverAddress, data.amount)
+    const transactionHash = await this._api.tx.balances.transfer(data.receiverAddress, data.amount*10e11)
+    console.log(data.amount*10e11, )
     transactionHash.signAndSend(this._publicKey)
     return transactionHash;
   }
@@ -281,7 +282,7 @@ export class polkadotService implements IChainService {
       symbol: string,
       tokenType: 'TransferContract' | 'TriggerSmartContract'
   ): ITransaction {
-    const amount = Math.trunc(txData.amount * 10e-8) / 100;
+    const amount = Math.trunc(txData.amount * 10e-9) / 100;
 
     let amountPriceInUSD = tokenPriceToUSD;
     amountPriceInUSD = Math.trunc(amountPriceInUSD * amount * 100) / 100;
