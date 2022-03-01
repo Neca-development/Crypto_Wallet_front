@@ -49,7 +49,7 @@ export class polkadotService implements IChainService {
 
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
     this._api = await ApiPromise.create({ provider: this._provider });
-    this._keyring = new Keyring({ type: 'ed25519', ss58Format: 0 });
+    this._keyring = new Keyring({ type: 'sr25519', ss58Format: 0 });
     this._keypair = this._keyring.addFromUri(mnemonic);
 
     this._publicKey = this._keypair.address;
