@@ -12,7 +12,7 @@ export enum ChainIds {
   'Dash',
   'Ripple',
   'Zcash',
-  // 'Polkadot',
+  'Polkadot',
   'Harmony',
   // 'Neo',
 }

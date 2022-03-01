@@ -39,6 +39,7 @@ export class polkadotService implements IChainService {
   private _publicKey: string;
   private _keyring: Keyring;
   private web3: Web3;
+  private _keypair: any;
   private _tx: any;
   constructor() {
     this._provider = new WsProvider('wss://rpc.polkadot.io');
@@ -49,10 +50,9 @@ export class polkadotService implements IChainService {
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
     this._api = await ApiPromise.create({ provider: this._provider });
     this._keyring = new Keyring({ type: 'ed25519', ss58Format: 0 });
-    const pair = this._keyring.addFromUri(mnemonic);
-    this._publicKey = pair.address;
-    const registry  = await this._api.query
-    this._api.tx.balances.setBalance(this._publicKey, 20, 8)
+    this._keypair = this._keyring.addFromUri(mnemonic);
+
+    this._publicKey = this._keypair.address;
     return {
       publicKey: this._publicKey, privateKey: null
     };
@@ -176,9 +176,15 @@ export class polkadotService implements IChainService {
   }
 
   async sendMainToken(data: ISendingTransactionData): Promise<string> {
-    const transactionHash = await this._api.tx.balances.transfer(data.receiverAddress, data.amount*10e11)
-    console.log(data.amount*10e11, )
-    transactionHash.signAndSend(this._publicKey)
+    console.log(data)
+    const transactionHash = await this._api.tx.balances
+        .transfer(data.receiverAddress, data.amount*10e9)
+        .signAndSend(this._keypair, (result) => {
+          if (result.status.isFinalized) {
+            console.log(`Transaction finalized at blockHash ${result.status.asFinalized}`);
+            transactionHash();
+          }
+        })
     return transactionHash;
   }
 

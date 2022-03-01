@@ -9,6 +9,7 @@ export declare class polkadotService implements IChainService {
     private _publicKey;
     private _keyring;
     private web3;
+    private _keypair;
     private _tx;
     constructor();
     generateKeyPair(mnemonic: string): Promise<IWalletKeys>;
