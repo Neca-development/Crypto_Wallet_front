@@ -4,7 +4,6 @@ import { IChainService } from '../models/chainService';
 import { ITransaction } from '../models/transaction';
 import { IToken } from '../models/token';
 export declare class avalancheService implements IChainService {
-    private web3;
     private xchain;
     private keys;
     private networkConfog;
@@ -21,9 +20,7 @@ export declare class avalancheService implements IChainService {
     getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]>;
     sendMainToken(data: ISendingTransactionData): Promise<string>;
     send20Token(data: ISendingTransactionData): Promise<string>;
-    private getCustomTokenBalance;
     private generateTokenObject;
-    private generateTransactionsQuery;
     /**
      * @param {any} txData:any
      * @param {string} address:string

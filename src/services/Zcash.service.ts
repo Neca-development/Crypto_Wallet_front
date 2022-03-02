@@ -249,6 +249,7 @@ export class zcashService implements IChainService {
       privateKey = data.privateKey,
       sourceAddress = this.keys.publicKey,
       amount = Math.trunc(data.amount * 1e8),
+        //@ts-ignore
       keyPair = utxolib.ECPair.fromWIF(privateKey, netGain),
       // @ts-ignore
       transaction = new utxolib.bitgo.ZcashTransactionBuilder(netGain),
