@@ -1,5 +1,5 @@
-import { IChainService, ISendingTransactionData, IToken, ITransaction } from '../main';
-import { IFee } from '../models/transaction';
+import { IChainService, ISendingTransactionData, IToken } from '../main';
+import { IFee, ITransactionsData } from '../models/transaction';
 export declare class solanaService implements IChainService {
     private address;
     private connection;
@@ -13,7 +13,7 @@ export declare class solanaService implements IChainService {
     getFeePriceOracle(from: string, to: string, amount?: number | null, tokenTypes?: 'native' | 'custom'): Promise<IFee>;
     sendMainToken(data: ISendingTransactionData): Promise<string>;
     send20Token(data: ISendingTransactionData): Promise<string>;
-    getTransactionsHistoryByAddress(address: any): Promise<ITransaction[]>;
+    getTransactionsHistoryByAddress(address: any, page_number?: number, page_size?: number): Promise<ITransactionsData>;
     private generateTokenObject;
     private generateTransactionsQuery;
     /**

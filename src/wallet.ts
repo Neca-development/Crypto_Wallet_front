@@ -1,7 +1,7 @@
 import { ChainIds, ErrorsTypes } from './models/enums';
 import { IChainService } from './models/chainService';
 import { IBalanceInfo, IWalletData } from './models/wallet';
-import { IFee, ISendingTransactionData, ITransaction } from './models/transaction';
+import {IFee, ISendingTransactionData, ITransaction, ITransactionsData} from './models/transaction';
 
 import { tronService } from './services/Tron.service';
 import { ethereumService } from './services/Ethereum.service';
@@ -120,9 +120,9 @@ export class Wallet {
    * Return wallet transactions
    * @returns {Promise<ITransaction[]>}
    */
-  async getTransactionsHistoryByAddress(): Promise<ITransaction[]> {
+  async getTransactionsHistoryByAddress(page_number?:number, page_size?:number): Promise<ITransactionsData> {
     try {
-      return await this.service.getTransactionsHistoryByAddress(this.data.publicKey);
+      return await this.service.getTransactionsHistoryByAddress(this.data.publicKey, page_number, page_size);
     } catch (error: any) {
       console.error(error);
       throw new CustomError(

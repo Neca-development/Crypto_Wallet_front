@@ -5,6 +5,8 @@ import { Typography } from '@mui/material';
 import ModalAccept from './Modal';
 import './wallet.scss';
 import TrxForm from './form/Form';
+import { DataGrid } from '@mui/x-data-grid'
+import Paginator from "./Paginator/Paginator";
 
 
 const Wallet = () => {
@@ -12,11 +14,12 @@ const Wallet = () => {
   const dispatch = useAppDispatch();
   const wallets = useAppSelector((state) => state.wallets.wallets);
   const [currentWallet, setCurrentWallet] = useState(null);
-  const [localTransactionHistory, setLocalTransactionHistory] = useState([]);
+  const [localTransactionHistory, setLocalTransactionHistory] = useState({transactions:[], length:0});
   const [tokensByAddress, setTokensByAddress] = useState({});
   const [fee, setFee] = useState({ usd: null, value: null });
   const [feeToken, setFeeToken] = useState({ usd: null, value: null })
   const [open, setOpen] = React.useState(false);
+  const [pageNumber, setPageNumber] = useState(1)
   const [openToken, setOpenToken] = React.useState(false);
   const handleOpenToken = () => setOpenToken(true);
   const handleCloseToken = () => setOpenToken(false);
@@ -56,12 +59,12 @@ const Wallet = () => {
     setCurrentWallet(findedWallet);
   };
 
-  const getWalletData = async () => {
+  const getWalletData = async (pageNumber) => {
     try {
       console.log('getstory');
       clearWallet();
       if (currentWallet) {
-        getTransactionWalletHistory();
+        await getTransactionWalletHistory(pageNumber);
         getTokensBywalletAdress();
       }
     } catch (error) {
@@ -69,16 +72,17 @@ const Wallet = () => {
     }
   };
 
-  const getTransactionWalletHistory = async () => {
+  const getTransactionWalletHistory = async (pageNumber) => {
     //@ts-ignore
-    const transactionsHistory = await currentWallet.getTransactionsHistoryByAddress();
-    console.log(transactionsHistory);
+    const transactionsHistory = await currentWallet.getTransactionsHistoryByAddress(pageNumber, 2);
+
     setLocalTransactionHistory(transactionsHistory);
   };
   const getTokensBywalletAdress = async () => {
     //@ts-ignore
     const tokensBalance = await currentWallet.getTokensByAddress();
     console.log(tokensBalance);
+
     setTokensByAddress(tokensBalance);
   };
 
@@ -157,7 +161,7 @@ const Wallet = () => {
   };
 
   useEffect(() => {
-    getWalletData();
+    getWalletData(1);
 
     setFee({ value: null, usd: null });
   }, [currentWallet]);
@@ -169,7 +173,7 @@ const Wallet = () => {
   }, [getWalletbyAddress]);
 
   // console.log(tokensByAddress);
-
+  console.log(localTransactionHistory)
   return (
     <>
 
@@ -237,9 +241,13 @@ const Wallet = () => {
 
         <div>
           <Typography variant="h3">Transaction history</Typography>
-          {localTransactionHistory.length === 0 && <div>...Loading</div>}
-          {localTransactionHistory.map((storyPoint, index = 0) => {
-            return index > localTransactionHistory.length - 10 ? (
+          {localTransactionHistory.transactions?.length === 0 && <div>...Loading</div>}
+          {/*{localTransactionHistory.map((tx, index)=>{*/}
+          {/*  */}
+          {/*})}*/}
+          {localTransactionHistory?.length !== 0 && <Paginator selectPage={getTransactionWalletHistory} len={localTransactionHistory?.length} pageSize={2}/>}
+          { localTransactionHistory.transactions?.length !== 0 && localTransactionHistory.transactions?.map((storyPoint, index = 0) => {
+            return index > localTransactionHistory.transactions?.length - 10 ? (
               <div key={`${index}_${storyPoint?.txId}`}>
                 <hr />
                 <figure className="history__picture-box">

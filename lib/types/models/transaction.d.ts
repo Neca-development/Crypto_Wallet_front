@@ -12,6 +12,10 @@ export interface ISendingTransactionData {
     destinationTag?: number;
     speed: 'slow' | 'medium' | 'fast';
 }
+export interface ITransactionsData {
+    transactions: ITransaction[];
+    length: number;
+}
 export interface ITransaction {
     amount: string;
     amountInUSD: string;

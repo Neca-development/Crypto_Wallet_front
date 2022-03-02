@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { IFee, ISendingTransactionData } from '../models/transaction';
+import {IFee, ISendingTransactionData, ITransactionsData} from '../models/transaction';
 import { IWalletKeys } from '../models/wallet';
 import { IChainService } from '../models/chainService';
 import { ITransaction } from '../models/transaction';
@@ -137,7 +137,7 @@ export class litecoinService implements IChainService {
     };
   }
 
-  async getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]> {
+  async getTransactionsHistoryByAddress(address: string, page_number?:number, page_size?:number): Promise<ITransactionsData> {
     const { data: ltcToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/LTC`, {
       headers: {
         'auth-client-key': backendApiKey,
@@ -216,7 +216,7 @@ export class litecoinService implements IChainService {
     );
 
     if (transactions.length === 0) {
-      return [];
+      return {transactions:[], length:0};
     }
 
     transactions.sort((a, b) => {
@@ -229,7 +229,14 @@ export class litecoinService implements IChainService {
       }
     });
 
-    return transactions;
+    const length = transactions.length
+    if(page_number || page_number===0) {
+      transactions = transactions.slice((page_number - 1) * page_size, page_number * page_size);
+
+    }
+    return {
+      transactions, length
+    };
   }
 
   async sendMainToken(data: ISendingTransactionData): Promise<string> {

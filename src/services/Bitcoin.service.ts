@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { IFee, ISendingTransactionData } from '../models/transaction';
+import {IFee, ISendingTransactionData, ITransactionsData} from '../models/transaction';
 import { IWalletKeys } from '../models/wallet';
 import { IChainService } from '../models/chainService';
 import { ITransaction } from '../models/transaction';
@@ -157,7 +157,7 @@ export class bitcoinService implements IChainService {
     };
   }
 
-  async getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]> {
+  async getTransactionsHistoryByAddress(address: string, page_number?:number, page_size?:number): Promise<ITransactionsData> {
     address = '18LT7D1wT4Qi28wrdK1DvKFgTy9gtrK9TK';
     const { data: btcToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/BTC`, {
       headers: {
@@ -238,7 +238,7 @@ export class bitcoinService implements IChainService {
     );
 
     if (transactions.length === 0) {
-      return [];
+      return {transactions:[], length:0};
     }
 
     transactions.sort((a, b) => {
@@ -250,8 +250,17 @@ export class bitcoinService implements IChainService {
         return 0;
       }
     });
+    const length = transactions.length
+    if(page_number || page_number===0) {
+     transactions = transactions.slice((page_number - 1) * page_size, page_number * page_size);
 
-    return transactions;
+    }
+    console.log({
+        transactions, length
+  })
+    return {
+      transactions, length
+    };
   }
 
   async sendMainToken(data: ISendingTransactionData): Promise<string> {

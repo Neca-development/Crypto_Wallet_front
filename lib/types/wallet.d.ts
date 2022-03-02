@@ -1,6 +1,6 @@
 import { ChainIds } from './models/enums';
 import { IBalanceInfo } from './models/wallet';
-import { IFee, ISendingTransactionData, ITransaction } from './models/transaction';
+import { IFee, ISendingTransactionData, ITransactionsData } from './models/transaction';
 export declare class Wallet {
     private service;
     private isInitialized;
@@ -45,7 +45,7 @@ export declare class Wallet {
      * Return wallet transactions
      * @returns {Promise<ITransaction[]>}
      */
-    getTransactionsHistoryByAddress(): Promise<ITransaction[]>;
+    getTransactionsHistoryByAddress(page_number?: number, page_size?: number): Promise<ITransactionsData>;
     /**
      * Returns the current fee price oracle.
      * @param {string} receiverAddress

@@ -1,11 +1,12 @@
 import { IToken } from './token';
-import { IFee, ISendingTransactionData, ITransaction } from './transaction';
+import { IFee, ISendingTransactionData, ITransaction, ITransactionsData } from './transaction';
+
 
 export interface IChainService {
   generateKeyPair(mnemonic: string): any;
   generatePublicKey(privateKey: string): Promise<string>;
   getTokensByAddress(address: string): Promise<IToken[]>;
-  getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]>;
+  getTransactionsHistoryByAddress(address: string, page_number?:number, page_size?:number): Promise<ITransactionsData>;
   getFeePriceOracle(
     from: string,
     to: string,
