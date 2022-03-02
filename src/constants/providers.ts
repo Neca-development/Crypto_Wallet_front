@@ -102,3 +102,5 @@ export const harmonyProvider = 'https://api.harmony.one/';
 // export const harmonyProvider = 'https://api.s0.b.hmny.io'
 
 export const harmonyUSDTContractAddress = '0x3c2b8be99c50593081eaa2a724f0b8285f5aba8f';
+
+// ------------- Avalanche -------------------------

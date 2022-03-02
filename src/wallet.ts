@@ -20,6 +20,7 @@ import { rippleService } from './services/Ripple.service';
 import { polkadotService } from './services/Polkadot.service';
 
 import { harmonyService } from './services/Harmony.service';
+import {avalancheService} from "./services/Avalanche.service";
 
 export class Wallet {
   private service: IChainService;
@@ -272,6 +273,9 @@ export class Wallet {
           break;
         case ChainIds['Harmony']:
           this.service = new harmonyService();
+          break;
+          case ChainIds['Avalanche']:
+          this.service = new avalancheService();
           break;
         default:
           break;

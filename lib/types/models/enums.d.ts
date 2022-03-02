@@ -13,7 +13,8 @@ export declare enum ChainIds {
     'Ripple' = 11,
     'Zcash' = 12,
     'Polkadot' = 13,
-    'Harmony' = 14
+    'Harmony' = 14,
+    'Avalanche' = 15
 }
 export declare enum ErrorsTypes {
     'Invalid data' = 0,
