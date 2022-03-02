@@ -66,6 +66,7 @@ export const etcWeb3Provider = 'https://www.ethercluster.com/etc';
 // ------------- BITCOIN -----------------
 
 export const bitcoinSatoshisPerByte = 20;
+export const bitcoinFeesURL = 'https://bitcoinfees.earn.com/api/v1/fees/recommended';
 
 // ------------- DOGECOIN -----------------
 
@@ -91,6 +92,9 @@ export const zcashSatoshisPerByte = 400;
 
 // export const rippleProvider = 'wss://s.altnet.rippletest.net:51233';
 export const rippleProvider = 'wss://xrplcluster.com';
+// -------------- Polkadot ------------------------
+// export const polkadotProvider =
+export const blockChairAPI = 'https://api.blockchair.com/polkadot/raw/address/';
 
 // ------------- Harmony -------------------------
 

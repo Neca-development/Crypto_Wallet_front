@@ -10,9 +10,13 @@ import { tronWebProvider, tronUSDTContractAddress, backendApi, imagesURL } from 
 // @ts-ignore
 import TronWeb from 'tronweb';
 // @ts-ignore
-import * as hdWallet from 'tron-wallet-hd';
+import * as bip39 from 'bip39';
 import axios from 'axios';
 import { getBNFromDecimal } from '../utils/numbers';
+
+import BIP32Factory from 'bip32';
+import * as ecc from 'tiny-secp256k1';
+const bip32 = BIP32Factory(ecc);
 
 import { BigNumber } from 'bignumber.js';
 import { backendApiKey } from './../constants/providers';
@@ -26,19 +30,26 @@ export class tronService implements IChainService {
   }
 
   async generatePublicKey(privateKey: string): Promise<string> {
-    const data = await hdWallet.utils.getAccountFromPrivateKey(privateKey);
+    const publicKey = await this.Tron.address.fromPrivateKey(privateKey);
     this.Tron.setPrivateKey(privateKey);
 
-    return data;
+    return publicKey;
   }
 
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
-    const data: any = (await hdWallet.utils.generateAccountsWithMnemonic(mnemonic, 1))[0];
-    this.Tron.setPrivateKey(data.privateKey);
+    const seed = await bip39.mnemonicToSeed(mnemonic);
+
+    const node = await bip32.fromSeed(seed);
+
+    const child = await node.derivePath("m/44'/195'/0'/0/0");
+    const privateKey = await child.privateKey.toString('hex');
+    const publicKey = await this.Tron.address.fromPrivateKey(privateKey);
+
+    this.Tron.setPrivateKey(privateKey);
 
     return {
-      privateKey: data.privateKey,
-      publicKey: data.address,
+      privateKey,
+      publicKey,
     };
   }
 
@@ -71,15 +82,15 @@ export class tronService implements IChainService {
     return tokens;
   }
 
-  async getFeePriceOracle(): Promise<IFee> {
+  async getFeePriceOracle(from: string, to: string, amount: number, tokenType?: 'native' | 'custom'): Promise<IFee> {
     const { data: trxToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/TRX`, {
       headers: {
         'auth-client-key': backendApiKey,
       },
     });
 
-    let value = 10;
-
+    let value = tokenType == 'native' ? 10 : 10000000;
+    value = value * 10e-10;
     const usd = Math.trunc(value * Number(trxToUSD.data.usd) * 100) / 100;
 
     return {
@@ -89,8 +100,6 @@ export class tronService implements IChainService {
   }
 
   async getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]> {
-    console.log('get tron history');
-
     const { data: trxToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/TRX`, {
       headers: {
         'auth-client-key': backendApiKey,

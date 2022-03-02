@@ -9,7 +9,7 @@ export declare class tronService implements IChainService {
     generatePublicKey(privateKey: string): Promise<string>;
     generateKeyPair(mnemonic: string): Promise<IWalletKeys>;
     getTokensByAddress(address: string): Promise<IToken[]>;
-    getFeePriceOracle(): Promise<IFee>;
+    getFeePriceOracle(from: string, to: string, amount: number, tokenType?: 'native' | 'custom'): Promise<IFee>;
     getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]>;
     sendMainToken(data: ISendingTransactionData): Promise<any>;
     send20Token(data: ISendingTransactionData): Promise<any>;

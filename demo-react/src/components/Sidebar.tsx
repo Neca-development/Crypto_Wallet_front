@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Drawer, List, ListItem, ListItemIcon, ListItemText, Typography } from '@mui/material';
+import { Typography } from '@mui/material';
 import walletPic from '../assets/wallet.png';
 
 import './sidebar.scss';

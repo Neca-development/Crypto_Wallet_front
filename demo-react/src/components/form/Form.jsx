@@ -1,77 +1,79 @@
-import React, { useEffect, useState } from 'react';
-
 import Button from '@mui/material/Button';
 import { useForm } from 'react-hook-form';
-import { Typography, Box, Select, MenuItem } from '@mui/material';
+import { Typography, Box } from '@mui/material';
 import TextField from '@mui/material/TextField';
 
 import '../wallet.scss';
 
 const TrxForm = ({
-  tokensByAddress,
-  sendTrxForm,
-  sendTokenForm,
-  setSendTrxForm,
-  setSendTokenForm,
-  handleOpen,
-  isSetTokens,
-  calcFee,
-  fee,
-  is20Token,
+    tokensByAddress,
+    sendTrxForm,
+    sendTokenForm,
+    setSendTrxForm,
+    setSendTokenForm,
+    handleOpen,
+    isSetTokens,
+    calcFee,
+    fee,
+    is20Token
 }) => {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm({ mode: 'onBlur' });
+    const {
+        register,
+        handleSubmit,
+        formState: { errors }
+    } = useForm({ mode: 'onBlur' });
 
-  const onChangeReceiver = ({ target: { value } }) => {
-    if (is20Token) {
-      setSendTokenForm({ ...sendTrxForm, receiver: value });
-    } else {
-      setSendTrxForm({ ...sendTrxForm, receiver: value });
-    }
-  };
+    const onChangeReceiver = ({ target: { value } }) => {
+        if (is20Token) {
+            setSendTokenForm({ ...sendTrxForm, receiver: value });
+            calcFee('custom');
+        } else {
+            setSendTrxForm({ ...sendTrxForm, receiver: value });
+            calcFee('native');
+        }
+    };
 
-  const onChangeAmount = ({ target: { value } }) => {
-    if (is20Token) {
-      setSendTokenForm({ ...sendTrxForm, amount: value });
-    } else {
-      setSendTrxForm({ ...sendTrxForm, amount: value });
-    }
-    calcFee();
-  };
+    const onChangeAmount = ({ target: { value } }) => {
+        if (is20Token) {
+            setSendTokenForm({ ...sendTrxForm, amount: value });
+            calcFee('custom');
+        } else {
+            setSendTrxForm({ ...sendTrxForm, amount: value });
+            calcFee('native');
+        }
 
-  const handleSend = (e) => {
-    e.preventDefault();
-    handleOpen();
-  };
+    };
 
-  // console.log(tokensByAddress);
+    const handleSend = (e) => {
+        e.preventDefault();
+        handleOpen();
+    };
 
-  // const onSubmit = (data) => {
-  //   console.log(data);
-  //   data.amount = Number(data.amount);
+    // console.log(tokensByAddress);
 
-  //   if (!data.tokenName) {
-  //     setSendTrxForm({ amount: data.amount, receiver: data.receiver });
-  //     handleOpen();
-  //   }
-  //   if (data.tokenName) {
-  //     setSendTokenForm({ amount: data.amount, receiver: data.receiver, tokenName: data.tokenName });
-  //     handleOpen();
-  //   }
-  // };
+    // const onSubmit = (data) => {
+    //   console.log(data);
+    //   data.amount = Number(data.amount);
 
-  return (
-    <>
-      <div className="form-contaier">
-        <form className="form" onSubmit={(e) => handleSend(e)}>
-          {/* {tokensByAddress && tokensByAddress?.tokens[0]} */}
+    //   if (!data.tokenName) {
+    //     setSendTrxForm({ amount: data.amount, receiver: data.receiver });
+    //     handleOpen();
+    //   }
+    //   if (data.tokenName) {
+    //     setSendTokenForm({ amount: data.amount, receiver: data.receiver, tokenName: data.tokenName });
+    //     handleOpen();
+    //   }
+    // };
 
-          <div className="form__header-box">
-            <Typography variant="h3"> {isSetTokens ? 'Send tokens' : 'Send main coin'}</Typography>{' '}
-            {/* {isSetTokens && (
+    return (
+        <>
+            <div className='form-contaier'>
+                <form className='form' onSubmit={(e) => handleSend(e)}>
+                    {/* {tokensByAddress && tokensByAddress?.tokens[0]} */}
+
+                    <div className='form__header-box'>
+                        <Typography variant='h3'> {isSetTokens ? 'Send tokens' : 'Send main coin'}</Typography>{' '}
+                        {/* {isSetTokens && (
               <select {...register('tokenName', { required: true })} className="form__select">
                 {tokensByAddress &&
                   tokensByAddress?.tokens?.map((storyPoint, index = 0) => (
@@ -79,10 +81,10 @@ const TrxForm = ({
                   ))}
               </select>
             )} */}
-            {is20Token && <h3>Tether USDT</h3>}
-          </div>
-          <div>
-            {/* <TextField
+                        {is20Token && <h3>Tether USDT</h3>}
+                    </div>
+                    <div>
+                        {/* <TextField
               className="form__input"
               defaultValue={sendTrxForm.receiver}
               control={control}
@@ -91,16 +93,16 @@ const TrxForm = ({
               id="outlined-required"
               label="receiver"
             /> */}
-            <TextField
-              className="form__input"
-              name="receiver"
-              id="outlined-required"
-              label="receiver"
-              value={sendTrxForm.receiver}
-              onChange={(e) => onChangeReceiver(e)}
-            />
-            <label style={{ color: 'red' }}>{errors.header && <span>Пожалуйста заполните поле</span>}</label>
-            {/* <TextField
+                        <TextField
+                            className='form__input'
+                            name='receiver'
+                            id='outlined-required'
+                            label='receiver'
+                            value={sendTrxForm.receiver}
+                            onChange={(e) => onChangeReceiver(e)}
+                        />
+                        <label style={{ color: 'red' }}>{errors.header && <span>Пожалуйста заполните поле</span>}</label>
+                        {/* <TextField
               className="form__input"
               defaultValue={sendTrxForm.amount}
               {...register('amount', { required: true })}
@@ -109,32 +111,32 @@ const TrxForm = ({
               sx={{ color: '#fff' }}
               onChange={calcFee}
             /> */}
-            <TextField
-              className="form__input"
-              id="outlined-required"
-              label="amount"
-              value={sendTrxForm.amount}
-              sx={{ color: '#fff' }}
-              onChange={(e) => onChangeAmount(e)}
-            />
-            <div style={{ color: 'red' }}>{errors.content && <span>Пожалуйста заполните поле</span>}</div>
+                        <TextField
+                            className='form__input'
+                            id='outlined-required'
+                            label='amount'
+                            value={sendTrxForm.amount}
+                            sx={{ color: '#fff' }}
+                            onChange={(e) => onChangeAmount(e)}
+                        />
+                        <div style={{ color: 'red' }}>{errors.content && <span>Пожалуйста заполните поле</span>}</div>
 
-            <div style={{ color: 'red' }}>{errors.content && <span>Пожалуйста заполните поле</span>}</div>
-            <Box sx={{ mt: 2 }} className="form__submit-wrapper">
-              <Button variant="outlined" type="submit">
-                Send
-              </Button>
-              {!is20Token && (
-                <small>
-                  Fee is: {fee.value} ({fee.usd}$)
-                </small>
-              )}
-            </Box>
-          </div>
-        </form>
-      </div>
-    </>
-  );
+                        <div style={{ color: 'red' }}>{errors.content && <span>Пожалуйста заполните поле</span>}</div>
+                        <Box sx={{ mt: 2 }} className='form__submit-wrapper'>
+                            <Button variant='outlined' type='submit'>
+                                Send
+                            </Button>
+
+                            <small>
+                                Fee is: {fee.value} ({fee.usd}$)
+                            </small>
+
+                        </Box>
+                    </div>
+                </form>
+            </div>
+        </>
+    );
 };
 
 export default TrxForm;

@@ -12,6 +12,7 @@ import { imagesURL, backendApi, backendApiKey, bitqueryProxy, bitcoincashSatoshi
 // @ts-ignore
 import axios from 'axios';
 import { IResponse } from '../models/response';
+
 import { CustomError } from '../errors';
 
 import { ErrorsTypes } from '../models/enums';
@@ -336,7 +337,7 @@ export class bitcoincashService implements IChainService {
 
       return txidStr;
     } catch (err) {
-      console.log(`error: `, err);
+      throw new Error(err);
     }
 
     // Returns the utxo with the biggest balance from an array of utxos.

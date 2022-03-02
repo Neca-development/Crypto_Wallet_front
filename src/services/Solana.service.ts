@@ -78,8 +78,7 @@ export class solanaService implements IChainService {
     return tokens;
   }
 
-  async getFeePriceOracle(from: string, to: string): Promise<IFee> {
-    console.log(from, to);
+  async getFeePriceOracle(from: string, to: string, amount?: number | null, tokenTypes?: 'native' | 'custom'): Promise<IFee> {
     const { data: solToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/SOL`, {
       headers: {
         'auth-client-key': backendApiKey,
@@ -87,7 +86,7 @@ export class solanaService implements IChainService {
     });
 
     const current_slot_time = 0.5;
-    const feeInSol = current_slot_time * 0.00001;
+    const feeInSol = tokenTypes == 'native' ? current_slot_time * 0.00001 : null;
     const usd = Math.trunc(feeInSol * Number(solToUSD.data.usd) * 100) / 100;
 
     return {

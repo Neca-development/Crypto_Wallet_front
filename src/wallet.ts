@@ -17,9 +17,9 @@ import { dogecoinService } from './services/Dogecoin.service';
 import { dashService } from './services/Dash.service';
 import { zcashService } from './services/Zcash.service';
 import { rippleService } from './services/Ripple.service';
+import { polkadotService } from './services/Polkadot.service';
+
 import { harmonyService } from './services/Harmony.service';
-// import { neoService } from './services/Neo.service';
-import { avalancheService } from './services/Avalanche.service';
 
 export class Wallet {
   private service: IChainService;
@@ -136,11 +136,19 @@ export class Wallet {
   /**
    * Returns the current fee price oracle.
    * @param {string} receiverAddress
+   * @param {number} amount?:number
+   * @param {'native'|'custom'} tokenType:by default = 'native'
+   * @param {'slow'|'medium'|'fast'} rate:by default = 'medium'
    * @returns {Promise<IFee>}
    */
-  async getFeePriceOracle(receiverAddress: string): Promise<IFee> {
+  async getFeePriceOracle(
+    receiverAddress: string,
+    amount: number,
+    tokenType: 'native' | 'custom' = 'native',
+    speed: 'slow' | 'medium' | 'fast' = 'medium'
+  ): Promise<IFee> {
     try {
-      return await this.service.getFeePriceOracle(this.data.publicKey, receiverAddress);
+      return await this.service.getFeePriceOracle(this.data.publicKey, receiverAddress, amount, tokenType, speed);
     } catch (error: any) {
       console.error(error);
       throw new CustomError(
@@ -259,15 +267,12 @@ export class Wallet {
         case ChainIds['Ripple']:
           this.service = new rippleService();
           break;
+        case ChainIds['Polkadot']:
+          this.service = new polkadotService();
+          break;
         case ChainIds['Harmony']:
           this.service = new harmonyService();
           break;
-        case ChainIds['Avalanche']:
-          this.service = new avalancheService();
-          break;
-        // case ChainIds['Neo']:
-        //   this.service = new neoService();
-        //   break;
         default:
           break;
       }

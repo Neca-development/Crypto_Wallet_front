@@ -5,7 +5,7 @@ import { IChainService } from '../models/chainService';
 import { ITransaction } from '../models/transaction';
 import { ICryptoCurrency, IToken } from '../models/token';
 
-import { imagesURL, backendApi, backendApiKey, bitqueryProxy, bitcoinSatoshisPerByte } from '../constants/providers';
+import { imagesURL, backendApi, backendApiKey, bitqueryProxy, bitcoinFeesURL } from '../constants/providers';
 
 // @ts-ignore
 import axios from 'axios';
@@ -79,7 +79,31 @@ export class bitcoinService implements IChainService {
     return tokens;
   }
 
-  async getFeePriceOracle(from: string, to: string, amount: number): Promise<IFee> {
+  async getFeePriceOracle(
+    from: string,
+    to: string,
+    amount: number,
+    tokenTypes: 'native' | 'custom',
+    speed: 'slow' | 'medium' | 'fast'
+  ): Promise<IFee> {
+    const { data: btcFeeCost } = await axios.get(bitcoinFeesURL);
+
+    let bitcoinSatoshisPerByte;
+
+    switch (speed) {
+      case 'slow':
+        bitcoinSatoshisPerByte = btcFeeCost.hourFee;
+        break;
+      case 'medium':
+        bitcoinSatoshisPerByte = btcFeeCost.halfHourFee;
+        break;
+      case 'fast':
+        bitcoinSatoshisPerByte = btcFeeCost.fastestFee;
+        break;
+      default:
+        break;
+    }
+
     amount = Math.trunc(amount * 1e8);
     const sochain_network = 'BTCTEST',
       sourceAddress = from,
@@ -115,7 +139,7 @@ export class bitcoinService implements IChainService {
       throw new Error('Balance is too low for this transaction');
     }
 
-    const value = fee * 1e-8;
+    const value = tokenTypes == 'native' ? fee * 1e-8 : null;
 
     const btcToUSD = (
       await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/BTC`, {

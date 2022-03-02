@@ -10,7 +10,7 @@ export declare class dogecoinService implements IChainService {
     generateKeyPair(mnemonic: string): Promise<IWalletKeys>;
     generatePublicKey(privateKey: string): Promise<string>;
     getTokensByAddress(address: string): Promise<IToken[]>;
-    getFeePriceOracle(from: string, to: string, amount: number): Promise<IFee>;
+    getFeePriceOracle(from: string, to: string, amount?: number | null, tokenTypes?: 'native' | 'custom'): Promise<IFee>;
     getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]>;
     sendMainToken(data: ISendingTransactionData): Promise<string>;
     send20Token(): Promise<string>;

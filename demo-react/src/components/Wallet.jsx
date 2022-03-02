@@ -1,16 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
 import { useAppDispatch, useAppSelector } from '../hooks/hooks';
-import { Avatar, Card, List, ListItem, MenuItem, Select } from '@mui/material';
-import Button from '@mui/material/Button';
-import { useForm } from 'react-hook-form';
-import { Typography, Box } from '@mui/material';
-import TextField from '@mui/material/TextField';
+import { Typography } from '@mui/material';
 import ModalAccept from './Modal';
 import './wallet.scss';
-import { id } from 'ethers/lib/utils';
 import TrxForm from './form/Form';
+
 
 const Wallet = () => {
   let { address } = useParams();
@@ -20,6 +15,7 @@ const Wallet = () => {
   const [localTransactionHistory, setLocalTransactionHistory] = useState([]);
   const [tokensByAddress, setTokensByAddress] = useState({});
   const [fee, setFee] = useState({ usd: null, value: null });
+  const [feeToken, setFeeToken] = useState({ usd: null, value: null })
   const [open, setOpen] = React.useState(false);
   const [openToken, setOpenToken] = React.useState(false);
   const handleOpenToken = () => setOpenToken(true);
@@ -140,7 +136,7 @@ const Wallet = () => {
     try {
       const req = await currentWallet.send20Token({
         receiverAddress: receiverAddress,
-        cotractAddress: contractAddress,
+        contractAddress: contractAddress,
         amount: amount,
         privateKey: privateKey,
       });
@@ -153,15 +149,16 @@ const Wallet = () => {
     }
   };
 
-  const calcFee = async () => {
+  const calcFee = async (tokenType) => {
     if (sendTrxForm.receiver) {
-      const resp = await currentWallet.getFeePriceOracle(currentWallet.address, sendTrxForm.receiver);
-      setFee(resp);
+      const resp = await currentWallet.getFeePriceOracle(sendTrxForm.receiver, sendTokenForm.amount, tokenType, 'slow');
+      tokenType == 'native' ? setFee(resp) : setFeeToken(resp);
     }
   };
 
   useEffect(() => {
     getWalletData();
+
     setFee({ value: null, usd: null });
   }, [currentWallet]);
 
@@ -175,8 +172,10 @@ const Wallet = () => {
 
   return (
     <>
+
       <div className="wallet">
-        <ModalAccept clearSendTexForm={clearSendTexForm} sendTransaction={sendTrx} open={open} handleClose={handleClose} />
+        <ModalAccept clearSendTexForm={clearSendTexForm} sendTransaction={sendTrx} open={open}
+          handleClose={handleClose} />
         <ModalAccept
           clearSendTexForm={clearSendTokenForm}
           sendTransaction={sendToken}
@@ -197,11 +196,13 @@ const Wallet = () => {
                   <figure className="balance__figure">
                     <img src={storyPoint?.tokenLogo} />
                     <figcaption>
-                      {storyPoint?.tokenName} <b className="balance__content-amount">{storyPoint?.balance}</b>
+                      {storyPoint?.tokenName} <b
+                        className="balance__content-amount">{storyPoint?.balance}</b>
                     </figcaption>
                   </figure>
 
-                  <div className="balance__content-amountUSD">in USDT: {storyPoint?.balanceInUSD}$</div>
+                  <div className="balance__content-amountUSD">in USDT: {storyPoint?.balanceInUSD}$
+                  </div>
                 </div>
               ))}
           </div>
@@ -229,7 +230,7 @@ const Wallet = () => {
             setSendTokenForm={setSendTokenForm}
             isSetTokens={true}
             calcFee={calcFee}
-            fee={fee}
+            fee={feeToken}
             is20Token={true}
           />
         )}

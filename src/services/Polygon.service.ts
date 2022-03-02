@@ -77,17 +77,20 @@ export class polygonService implements IChainService {
     return tokens;
   }
 
-  async getFeePriceOracle(from: string, to: string): Promise<IFee> {
+  async getFeePriceOracle(from: string, to: string, amount?: number | null, tokenType?: 'native' | 'custom'): Promise<IFee> {
     const { data: maticToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/MATIC`, {
       headers: {
         'auth-client-key': backendApiKey,
       },
     });
 
-    const estimatedGas = await this.web3.eth.estimateGas({
-      from,
-      to,
-    });
+    const estimatedGas =
+      tokenType == 'native'
+        ? await this.web3.eth.estimateGas({
+            from,
+            to,
+          })
+        : 100000;
     const { data: gasPrice } = await axios.get(polygonGasPrice);
 
     const transactionFee = (estimatedGas * gasPrice.standard) / 1000000000;
