@@ -23,7 +23,7 @@ import {BigNumber} from 'bignumber.js';
 export class avalancheService implements IChainService {
     private xchain: avm.AVMAPI;
     private keys;
-    private networkConfog = TestnetConfig;
+    private networkConfog = MainnetConfig;
     private avaxAssetId: string = utils.Defaults.network[this.networkConfog.networkID].X['avaxAssetID'];
 
     constructor() {
