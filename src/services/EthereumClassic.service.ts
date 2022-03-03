@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { IFee, ISendingTransactionData } from '../models/transaction';
+import {IFee, ISendingTransactionData, ITransactionsData} from '../models/transaction';
 import { IWalletKeys } from '../models/wallet';
 import { IChainService } from '../models/chainService';
 import { IResponse } from '../models/response';
@@ -94,7 +94,7 @@ export class ethereumClassicService implements IChainService {
    * @param {ISendingTransactionData} data:ISendingTransactionData
    * @returns {any}
    */
-  async getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]> {
+  async getTransactionsHistoryByAddress(address: string, pageNumber?:number, pageSize?:number): Promise<ITransactionsData> {
     const { data: etcToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/ETC`, {
       headers: {
         'auth-client-key': backendApiKey,
@@ -124,7 +124,7 @@ export class ethereumClassicService implements IChainService {
     }
 
     if (transactions.length === 0) {
-      return [];
+      return {transactions:[], length:0};
     }
 
     transactions = transactions.map((el: any) =>
@@ -141,7 +141,14 @@ export class ethereumClassicService implements IChainService {
       }
     });
 
-    return transactions;
+    const length = transactions.length
+    if(pageNumber || pageNumber===0) {
+      transactions = transactions.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
+
+    }
+    return {
+      transactions, length
+    };
   }
 
   async sendMainToken(data: ISendingTransactionData): Promise<string> {

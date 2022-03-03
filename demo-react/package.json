@@ -10,6 +10,7 @@
     "@emotion/styled": "^11.6.0",
     "@mui/lab": "^5.0.0-alpha.68",
     "@mui/material": "^5.2.3",
+    "@mui/x-data-grid": "^5.5.1",
     "@react-leaflet/core": "^1.1.1",
     "@reduxjs/toolkit": "^1.7.0",
     "@testing-library/jest-dom": "^5.16.1",

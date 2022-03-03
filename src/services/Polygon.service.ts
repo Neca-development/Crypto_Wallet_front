@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { IFee, ISendingTransactionData } from '../models/transaction';
+import {IFee, ISendingTransactionData, ITransactionsData} from '../models/transaction';
 import { IWalletKeys } from '../models/wallet';
 import { IChainService } from '../models/chainService';
 import { ITransaction } from '../models/transaction';
@@ -102,7 +102,7 @@ export class polygonService implements IChainService {
     };
   }
 
-  async getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]> {
+  async getTransactionsHistoryByAddress(address: string, pageNumber?:number, pageSize?:number): Promise<ITransactionsData> {
     const { data: maticToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/MATIC`, {
       headers: {
         'auth-client-key': backendApiKey,
@@ -132,7 +132,7 @@ export class polygonService implements IChainService {
     }
 
     if (transactions.length === 0) {
-      return [];
+      return {transactions:[], length:0};
     }
 
     transactions = transactions.map((el: any) =>
@@ -149,7 +149,14 @@ export class polygonService implements IChainService {
       }
     });
 
-    return transactions;
+    const length = transactions.length
+    if(pageNumber || pageNumber===0) {
+      transactions = transactions.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
+
+    }
+    return {
+      transactions, length
+    };
   }
 
   async sendMainToken(data: ISendingTransactionData): Promise<string> {

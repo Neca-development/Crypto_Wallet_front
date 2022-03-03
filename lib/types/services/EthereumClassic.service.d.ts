@@ -1,7 +1,6 @@
-import { IFee, ISendingTransactionData } from '../models/transaction';
+import { IFee, ISendingTransactionData, ITransactionsData } from '../models/transaction';
 import { IWalletKeys } from '../models/wallet';
 import { IChainService } from '../models/chainService';
-import { ITransaction } from '../models/transaction';
 import { IToken } from '../models/token';
 export declare class ethereumClassicService implements IChainService {
     private web3;
@@ -14,7 +13,7 @@ export declare class ethereumClassicService implements IChainService {
      * @param {ISendingTransactionData} data:ISendingTransactionData
      * @returns {any}
      */
-    getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]>;
+    getTransactionsHistoryByAddress(address: string, page_number?: number, page_size?: number): Promise<ITransactionsData>;
     sendMainToken(data: ISendingTransactionData): Promise<string>;
     send20Token(): Promise<string>;
     private generateTokenObject;

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { IFee, ISendingTransactionData } from '../models/transaction';
+import {IFee, ISendingTransactionData, ITransactionsData} from '../models/transaction';
 import { IWalletKeys } from '../models/wallet';
 import { IChainService } from '../models/chainService';
 import { ITransaction } from '../models/transaction';
@@ -99,7 +99,7 @@ export class binanceService implements IChainService {
     };
   }
 
-  async getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]> {
+  async getTransactionsHistoryByAddress(address: string, pageNumber?:number, pageSize?:number): Promise<ITransactionsData> {
     const { data: bnbToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/BNB`, {
       headers: {
         'auth-client-key': backendApiKey,
@@ -129,7 +129,7 @@ export class binanceService implements IChainService {
     }
 
     if (transactions.length === 0) {
-      return [];
+      return {transactions:[], length:0};
     }
 
     transactions = transactions.map((el: any) =>
@@ -145,8 +145,14 @@ export class binanceService implements IChainService {
         return 0;
       }
     });
+    const length = transactions.length
+    if(pageNumber || pageNumber===0) {
+      transactions = transactions.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
 
-    return transactions;
+    }
+    return {
+      transactions, length
+    };
   }
 
   async sendMainToken(data: ISendingTransactionData): Promise<string> {

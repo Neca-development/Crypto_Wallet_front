@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { IFee, ISendingTransactionData, ITransaction } from '../models/transaction';
+import {IFee, ISendingTransactionData, ITransaction, ITransactionsData} from '../models/transaction';
 import { IWalletKeys } from '../models/wallet';
 import { IChainService } from '../models/chainService';
 import { ICryptoCurrency, IToken } from '../models/token';
@@ -99,7 +99,7 @@ export class tronService implements IChainService {
     };
   }
 
-  async getTransactionsHistoryByAddress(address: string): Promise<ITransaction[]> {
+  async getTransactionsHistoryByAddress(address: string, pageNumber?:number, pageSize?:number): Promise<ITransactionsData> {
     const { data: trxToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/TRX`, {
       headers: {
         'auth-client-key': backendApiKey,
@@ -129,7 +129,7 @@ export class tronService implements IChainService {
     }
 
     if (transactions.length === 0) {
-      return [];
+      return {transactions:[], length:0};
     }
 
     transactions = transactions.map((el: any) => this.convertTransactionToCommonFormat(el, address, Number(trxToUSD.data.usd)));
@@ -143,8 +143,15 @@ export class tronService implements IChainService {
         return 0;
       }
     });
+    const length = transactions.length
+    if(pageNumber || pageNumber===0) {
+      transactions = transactions.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
 
-    return transactions;
+    }
+
+    return {
+      transactions, length
+    };
   }
 
   async sendMainToken(data: ISendingTransactionData) {

@@ -1,5 +1,5 @@
 import { IChainService, ISendingTransactionData, IToken, ITransaction } from '../main';
-import { IFee } from '../models/transaction';
+import {IFee, ITransactionsData} from '../models/transaction';
 
 import * as solanaWeb3 from '@solana/web3.js';
 import { Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
@@ -133,7 +133,7 @@ export class solanaService implements IChainService {
     return signature;
   }
 
-  async getTransactionsHistoryByAddress(address: any): Promise<ITransaction[]> {
+  async getTransactionsHistoryByAddress(address: any, pageNumber?:number, pageSize?:number): Promise<ITransactionsData> {
     const { data: solToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/SOL`, {
       headers: {
         'auth-client-key': backendApiKey,
@@ -163,7 +163,7 @@ export class solanaService implements IChainService {
     }
 
     if (transactions.length === 0) {
-      return [];
+      return {transactions:[], length:0};
     }
 
     transactions = transactions.map((el: any) => this.convertTransactionToCommonFormat(el, address, Number(solToUSD.data.usd)));
@@ -177,8 +177,14 @@ export class solanaService implements IChainService {
         return 0;
       }
     });
+    const length = transactions.length
+    if(pageNumber || pageNumber===0) {
+      transactions = transactions.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
 
-    return transactions;
+    }
+    return {
+      transactions, length
+    };
   }
 
   // -------------------------------------------------
