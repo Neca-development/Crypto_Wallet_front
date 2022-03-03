@@ -5,7 +5,6 @@ import { Typography } from '@mui/material';
 import ModalAccept from './Modal';
 import './wallet.scss';
 import TrxForm from './form/Form';
-import { DataGrid } from '@mui/x-data-grid'
 import Paginator from "./Paginator/Paginator";
 
 
@@ -242,9 +241,6 @@ const Wallet = () => {
         <div>
           <Typography variant="h3">Transaction history</Typography>
           {localTransactionHistory.transactions?.length === 0 && <div>...Loading</div>}
-          {/*{localTransactionHistory.map((tx, index)=>{*/}
-          {/*  */}
-          {/*})}*/}
           {localTransactionHistory?.length !== 0 && <Paginator selectPage={getTransactionWalletHistory} len={localTransactionHistory?.length} pageSize={2}/>}
           { localTransactionHistory.transactions?.length !== 0 && localTransactionHistory.transactions?.map((storyPoint, index = 0) => {
             return index > localTransactionHistory.transactions?.length - 10 ? (
