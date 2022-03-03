@@ -138,7 +138,7 @@ export class zcashService implements IChainService {
     };
   }
 
-  async getTransactionsHistoryByAddress(address: string, page_number?:number, page_size?:number): Promise<ITransactionsData> {
+  async getTransactionsHistoryByAddress(address: string, pageNumber?:number, pageSize?:number): Promise<ITransactionsData> {
     const { data: zcashToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/ZEC`, {
       headers: {
         'auth-client-key': backendApiKey,
@@ -231,8 +231,8 @@ export class zcashService implements IChainService {
     });
 
     const length = transactions.length
-    if(page_number || page_number===0) {
-      transactions = transactions.slice((page_number - 1) * page_size, page_number * page_size);
+    if(pageNumber || pageNumber === 0) {
+      transactions = transactions.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
 
     }
     return {

@@ -157,7 +157,7 @@ export class bitcoinService implements IChainService {
     };
   }
 
-  async getTransactionsHistoryByAddress(address: string, page_number?:number, page_size?:number): Promise<ITransactionsData> {
+  async getTransactionsHistoryByAddress(address: string, pageNumber?:number, pageSize?:number): Promise<ITransactionsData> {
     address = '18LT7D1wT4Qi28wrdK1DvKFgTy9gtrK9TK';
     const { data: btcToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/BTC`, {
       headers: {
@@ -251,8 +251,8 @@ export class bitcoinService implements IChainService {
       }
     });
     const length = transactions.length
-    if(page_number || page_number===0) {
-     transactions = transactions.slice((page_number - 1) * page_size, page_number * page_size);
+    if(pageNumber || pageNumber===0) {
+     transactions = transactions.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
 
     }
     console.log({

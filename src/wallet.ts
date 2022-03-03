@@ -118,11 +118,13 @@ export class Wallet {
 
   /**
    * Return wallet transactions
-   * @returns {Promise<ITransaction[]>}
+   * @param  {number} pageNumber
+   * @param {number} pageSize
+   * @returns {Promise<ITransactionsData>}
    */
-  async getTransactionsHistoryByAddress(page_number?:number, page_size?:number): Promise<ITransactionsData> {
+  async getTransactionsHistoryByAddress(pageNumber?:number, pageSize?:number): Promise<ITransactionsData> {
     try {
-      return await this.service.getTransactionsHistoryByAddress(this.data.publicKey, page_number, page_size);
+      return await this.service.getTransactionsHistoryByAddress(this.data.publicKey, pageNumber, pageSize);
     } catch (error: any) {
       console.error(error);
       throw new CustomError(

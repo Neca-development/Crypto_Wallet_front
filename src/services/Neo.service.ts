@@ -119,7 +119,7 @@ export class neoService implements IChainService {
    * @param {ISendingTransactionData} data:ISendingTransactionData
    * @returns {any}
    */
-  async getTransactionsHistoryByAddress(address: string, page_number?:number, page_size?:number): Promise<ITransactionsData> {
+  async getTransactionsHistoryByAddress(address: string, pageNumber?:number, pageSize?:number): Promise<ITransactionsData> {
     const { data: ethToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/ETH`, {
       headers: {
         'auth-client-key': backendApiKey,
@@ -163,8 +163,8 @@ export class neoService implements IChainService {
     });
 
     const length = transactions.length
-    if(page_number || page_number===0) {
-      transactions = transactions.slice((page_number - 1) * page_size, page_number * page_size);
+    if(pageNumber || pageNumber===0) {
+      transactions = transactions.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
 
     }
     return {
