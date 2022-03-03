@@ -13,7 +13,7 @@ export declare class solanaService implements IChainService {
     getFeePriceOracle(from: string, to: string, amount?: number | null, tokenTypes?: 'native' | 'custom'): Promise<IFee>;
     sendMainToken(data: ISendingTransactionData): Promise<string>;
     send20Token(data: ISendingTransactionData): Promise<string>;
-    getTransactionsHistoryByAddress(address: any, page_number?: number, page_size?: number): Promise<ITransactionsData>;
+    getTransactionsHistoryByAddress(address: any, pageNumber?: number, pageSize?: number): Promise<ITransactionsData>;
     private generateTokenObject;
     private generateTransactionsQuery;
     /**

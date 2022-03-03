@@ -13,7 +13,7 @@ const Wallet = () => {
   const dispatch = useAppDispatch();
   const wallets = useAppSelector((state) => state.wallets.wallets);
   const [currentWallet, setCurrentWallet] = useState(null);
-  const [localTransactionHistory, setLocalTransactionHistory] = useState({transactions:[], length:0});
+  const [localTransactionHistory, setLocalTransactionHistory] = useState({ transactions: [], length: 0 });
   const [tokensByAddress, setTokensByAddress] = useState({});
   const [fee, setFee] = useState({ usd: null, value: null });
   const [feeToken, setFeeToken] = useState({ usd: null, value: null })
@@ -241,8 +241,8 @@ const Wallet = () => {
         <div>
           <Typography variant="h3">Transaction history</Typography>
           {localTransactionHistory.transactions?.length === 0 && <div>...Loading</div>}
-          {localTransactionHistory?.length !== 0 && <Paginator selectPage={getTransactionWalletHistory} len={localTransactionHistory?.length} pageSize={2}/>}
-          { localTransactionHistory.transactions?.length !== 0 && localTransactionHistory.transactions?.map((storyPoint, index = 0) => {
+          {localTransactionHistory?.length !== 0 && <Paginator selectPage={getTransactionWalletHistory} len={localTransactionHistory?.length} pageSize={2} />}
+          {localTransactionHistory.transactions?.length !== 0 && localTransactionHistory.transactions?.map((storyPoint, index = 0) => {
             return index > localTransactionHistory.transactions?.length - 10 ? (
               <div key={`${index}_${storyPoint?.txId}`}>
                 <hr />
@@ -250,6 +250,8 @@ const Wallet = () => {
                   <img className="history__picture" src={storyPoint?.tokenLogo} />
                 </figure>
                 <h2>{storyPoint?.tokenName}</h2>
+                <p>TxId: {storyPoint?.txId}</p>
+                <p>Fee: {storyPoint?.fee}</p>
                 <p>amount: {storyPoint?.amount}</p>
                 <div>amount in USDT: {storyPoint?.amountInUSD}$</div>
                 {/* <p>time: {storyPoint?.timestamp}</p> */}

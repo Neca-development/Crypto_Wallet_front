@@ -43,9 +43,11 @@ export declare class Wallet {
     getTokensByAddress(): Promise<IBalanceInfo>;
     /**
      * Return wallet transactions
-     * @returns {Promise<ITransaction[]>}
+     * @param  {number} pageNumber
+     * @param {number} pageSize
+     * @returns {Promise<ITransactionsData>}
      */
-    getTransactionsHistoryByAddress(page_number?: number, page_size?: number): Promise<ITransactionsData>;
+    getTransactionsHistoryByAddress(pageNumber?: number, pageSize?: number): Promise<ITransactionsData>;
     /**
      * Returns the current fee price oracle.
      * @param {string} receiverAddress
