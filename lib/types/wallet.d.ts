@@ -51,12 +51,12 @@ export declare class Wallet {
     /**
      * Returns the current fee price oracle.
      * @param {string} receiverAddress
-     * @param {number} amount?:number
+     * @param {number} amount:number
      * @param {'native'|'custom'} tokenType:by default = 'native'
      * @param {'slow'|'medium'|'fast'} rate:by default = 'medium'
      * @returns {Promise<IFee>}
      */
-    getFeePriceOracle(receiverAddress: string, amount: number, tokenType?: 'native' | 'custom', speed?: 'slow' | 'medium' | 'fast'): Promise<IFee>;
+    getFeePriceOracle(receiverAddress: string, amount: number, tokenType?: 'native' | 'custom', rate?: 'slow' | 'medium' | 'fast'): Promise<IFee>;
     /**
      * send current chain main token e.g. ETH, BTC or TRX. Retutn transaction hash
      * @param {ISendingTransactionData} data:ISendingTransactionData

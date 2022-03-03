@@ -406,6 +406,7 @@ export class bitcoincashService implements IChainService {
       tokenName,
       timestamp: new Date(txData.block.timestamp.time).getTime(),
       fee: undefined,
+      currencyFee: 'satoshi',
       status: true,
       tokenLogo,
     };

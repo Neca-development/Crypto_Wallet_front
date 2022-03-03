@@ -233,6 +233,7 @@ export class rippleService implements IChainService {
       tokenName: 'XRP',
       timestamp: txData.date,
       fee: txData.Fee,
+      currencyFee: 'XRP',
       status: true,
       tokenLogo,
     };

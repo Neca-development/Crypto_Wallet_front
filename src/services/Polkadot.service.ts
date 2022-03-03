@@ -317,6 +317,7 @@ export class polkadotService implements IChainService {
       tokenName: symbol,
       timestamp: new Date(txData.block_timestamp).getTime(),
       fee: txData.fee,
+      currencyFee:'DOT',
       status: !txData.failed,
       tokenLogo,
     };

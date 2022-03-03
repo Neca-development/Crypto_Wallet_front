@@ -365,6 +365,7 @@ export class zcashService implements IChainService {
       tokenName,
       timestamp: new Date(txData.block.timestamp.time).getTime(),
       fee: undefined,
+      currencyFee: 'zatoshi',
       status: true,
       tokenLogo,
     };
