@@ -1,10 +1,10 @@
 // classes
-export { Wallet } from './wallet';
-export { WalletFactory } from './wallet-factory';
-export { CustomError } from './errors';
+export * from './wallet';
+export * from './wallet-factory';
+export * from './errors';
 
 // interfaces
-export { IChainService } from './models/chainService';
-export { IToken } from './models/token';
-export { ISendingTransactionData, ITransaction } from './models/transaction';
-export { ICreateWalletsData } from './models/wallet';
+export * from './models/chainService';
+export * from './models/token';
+export * from './models/transaction';
+export * from './models/wallet';

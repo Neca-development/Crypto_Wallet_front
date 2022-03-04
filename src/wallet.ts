@@ -1,7 +1,7 @@
 import { ChainIds, ErrorsTypes } from './models/enums';
 import { IChainService } from './models/chainService';
 import { IBalanceInfo, IWalletData } from './models/wallet';
-import {IFee, ISendingTransactionData, ITransaction, ITransactionsData} from './models/transaction';
+import { IFee, ISendingTransactionData, ITransactionsData } from './models/transaction';
 
 import { tronService } from './services/Tron.service';
 import { ethereumService } from './services/Ethereum.service';
@@ -20,7 +20,7 @@ import { rippleService } from './services/Ripple.service';
 import { polkadotService } from './services/Polkadot.service';
 
 import { harmonyService } from './services/Harmony.service';
-import {avalancheService} from "./services/Avalanche.service";
+import { avalancheService } from './services/Avalanche.service';
 
 export class Wallet {
   private service: IChainService;
@@ -122,7 +122,7 @@ export class Wallet {
    * @param {number} pageSize
    * @returns {Promise<ITransactionsData>}
    */
-  async getTransactionsHistoryByAddress(pageNumber?:number, pageSize?:number): Promise<ITransactionsData> {
+  async getTransactionsHistoryByAddress(pageNumber?: number, pageSize?: number): Promise<ITransactionsData> {
     try {
       return await this.service.getTransactionsHistoryByAddress(this.data.publicKey, pageNumber, pageSize);
     } catch (error: any) {
@@ -276,7 +276,7 @@ export class Wallet {
         case ChainIds['Harmony']:
           this.service = new harmonyService();
           break;
-          case ChainIds['Avalanche']:
+        case ChainIds['Avalanche']:
           this.service = new avalancheService();
           break;
         default:

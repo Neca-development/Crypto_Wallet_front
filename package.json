@@ -3,9 +3,12 @@
   "version": "1.0.0",
   "description": "",
   "source": "src/main.ts",
-  "main": "lib/main.js",
-  "typings": "lib/types",
+  "main": "dist/main.js",
+  "module": "dist/module.js",
+  "types": "dist/types.d.ts",
+  "typings": "dist/types",
   "scripts": {
+    "build": "parcel build",
     "compile": "npx tsc -p tsconfig.json",
     "docs": "npx typedoc src/main.ts --plugin typedoc-plugin-missing-exports --excludeExternals true --out docs/res"
   },
@@ -17,6 +20,7 @@
     "@bitgo/utxo-lib": "^2.2.0",
     "@cityofzion/neon-js": "^5.0.0-next.17",
     "@ethereumjs/tx": "^3.4.0",
+    "@findeth/secp256k1": "^0.3.1",
     "@pefish/js-coin-ltc": "0.0.7",
     "@polkadot/api": "^7.9.1",
     "@polkadot/api-derive": "^7.9.1",
@@ -28,6 +32,7 @@
     "@polkadot/x-textdecoder": "^8.4.1",
     "@solana/spl-token": "^0.1.8",
     "@solana/web3.js": "^1.31.0",
+    "@swc/helpers": "^0.3.6",
     "avalanche": "^3.12.0",
     "axios": "^0.24.0",
     "bech32-converting": "^1.0.8",
@@ -39,6 +44,8 @@
     "coininfo": "^5.1.0",
     "ed25519-hd-key": "^1.2.0",
     "ethers": "^5.5.1",
+    "regenerator-runtime": "^0.13.9",
+    "tiny-secp256k1": "^2.2.1",
     "tronweb": "^4.0.0",
     "typedoc": "^0.22.11",
     "typedoc-plugin-missing-exports": "^0.22.4",
@@ -48,10 +55,13 @@
   },
   "devDependencies": {
     "@babel/core": "^7.16.0",
+    "@parcel/packager-ts": "^2.3.2",
+    "@parcel/transformer-typescript-types": "^2.3.2",
     "@types/bs58check": "^2.1.0",
     "@types/create-hash": "^1.2.2",
     "@types/hdkey": "^2.0.0",
     "html-webpack-plugin": "^5.5.0",
+    "parcel": "^2.3.2",
     "terser-webpack-plugin": "^5.2.5",
     "typescript": "^4.5.2"
   }
