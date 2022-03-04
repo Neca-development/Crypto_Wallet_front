@@ -304,7 +304,7 @@ export class neoService implements IChainService {
       tokenName: txData.currency.symbol,
       timestamp: new Date(txData.any).getTime(),
       fee: txData.fee,
-      currencyFee:'GAS',
+      currencyFee:'NEO',
       status: txData.success,
       tokenLogo,
     };

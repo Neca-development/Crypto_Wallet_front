@@ -364,7 +364,7 @@ export class dogecoinService implements IChainService {
       tokenName,
       timestamp: new Date(txData.block.timestamp.time).getTime(),
       fee: undefined,
-      currencyFee: 'satoshi',
+      currencyFee: 'DOGE',
       status: true,
       tokenLogo,
     };

@@ -361,7 +361,7 @@ export class dashService implements IChainService {
       tokenName,
       timestamp: new Date(txData.block.timestamp.time).getTime(),
       fee: undefined,
-      currencyFee: 'satoshi',
+      currencyFee: 'DASH',
       status: true,
       tokenLogo,
     };

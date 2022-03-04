@@ -269,7 +269,7 @@ export class ethereumClassicService implements IChainService {
       tokenName: txData.currency.symbol,
       timestamp: new Date(txData.any).getTime(),
       fee: +fee.toFixed(5),
-      currencyFee: 'Gwei',
+      currencyFee: 'ETC',
       status: txData.success,
       tokenLogo,
     };

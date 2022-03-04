@@ -251,7 +251,7 @@ export class avalancheService implements IChainService {
             tokenName,
             timestamp: undefined,
             fee: undefined,
-            currencyFee: tokenName,
+            currencyFee: 'avax',
             status: true,
             tokenLogo,
         };

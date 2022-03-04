@@ -346,7 +346,7 @@ export class harmonyService implements IChainService {
       tokenName: 'ONE',
       timestamp: +new Date(txData.timestamp * 1000),
       fee: txData.gas * +this.web3.utils.fromWei(txData.gasPrice.toString()),
-      currencyFee: 'Nano',
+      currencyFee: 'ONE',
       status: true,
       tokenLogo,
     };

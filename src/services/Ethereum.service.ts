@@ -323,7 +323,7 @@ export class ethereumService implements IChainService {
       tokenName: txData.currency.symbol,
       timestamp: new Date(txData.any).getTime(),
       fee: txData.fee,
-      currencyFee:'Gwei',
+      currencyFee:'ETH',
       status: txData.success,
       tokenLogo,
     };
