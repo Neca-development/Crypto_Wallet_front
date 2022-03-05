@@ -277,6 +277,7 @@ export class solanaService implements IChainService {
       tokenName: txData.currency.symbol,
       timestamp: new Date(txData.any).getTime(),
       fee: txData.transaction.fee,
+      currencyFee: 'SOL',
       status: txData.transaction.success,
       tokenLogo,
     };

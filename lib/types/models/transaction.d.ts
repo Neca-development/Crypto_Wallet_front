@@ -29,6 +29,7 @@ export interface ITransaction {
     type?: 'TransferContract' | 'TriggerSmartContract';
     tokenLogo: string;
     fee: number;
+    currencyFee: string;
 }
 export interface IFee {
     value: number;
