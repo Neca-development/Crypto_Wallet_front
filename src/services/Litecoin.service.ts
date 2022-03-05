@@ -364,6 +364,7 @@ export class litecoinService implements IChainService {
       tokenName,
       timestamp: new Date(txData.block.timestamp.time).getTime(),
       fee: undefined,
+      currencyFee:'LTC',
       status: true,
       tokenLogo,
     };

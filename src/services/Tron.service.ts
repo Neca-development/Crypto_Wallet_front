@@ -286,6 +286,7 @@ export class tronService implements IChainService {
       tokenName: txData.currency.symbol,
       timestamp: new Date(txData.any).getTime(),
       fee: txData.fee,
+      currencyFee:'TRX',
       status: txData.success,
       tokenLogo,
     };

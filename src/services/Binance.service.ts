@@ -291,6 +291,7 @@ export class binanceService implements IChainService {
       tokenName: txData.currency.symbol,
       timestamp: new Date(txData.any).getTime(),
       fee: txData.fee,
+      currencyFee: 'BNB',
       status: txData.success,
       tokenLogo,
     };

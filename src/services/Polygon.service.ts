@@ -299,6 +299,7 @@ export class polygonService implements IChainService {
       tokenName: txData.currency.symbol,
       timestamp: new Date(txData.any).getTime(),
       fee: +fee.toFixed(5),
+      currencyFee: 'MATIC',
       status: txData.success,
       tokenLogo,
     };

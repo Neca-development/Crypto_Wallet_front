@@ -251,9 +251,9 @@ const Wallet = () => {
                 </figure>
                 <h2>{storyPoint?.tokenName}</h2>
                 <p>TxId: {storyPoint?.txId}</p>
-                <p>Fee: {storyPoint?.fee}</p>
                 <p>amount: {storyPoint?.amount}</p>
                 <div>amount in USDT: {storyPoint?.amountInUSD}$</div>
+                <p>Fee in {storyPoint?.currencyFee}: {storyPoint?.fee}</p>
                 {/* <p>time: {storyPoint?.timestamp}</p> */}
                 <p>From: {storyPoint?.from}</p>
                 <p>To: {storyPoint?.to}</p>
