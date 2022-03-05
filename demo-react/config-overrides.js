@@ -8,9 +8,11 @@ const ModuleScopePlugin = require('react-dev-utils/ModuleScopePlugin');
 //   },
 // }
 
-const { addBabelPlugins, override, disableEsLint, addExternalBabelPlugins, addWebpackModuleRule, addBabelPlugin,
-  addBabelPresets
-} = require("customize-cra");
+const {
+  addBabelPlugins, override, disableEsLint, addExternalBabelPlugins,
+  addBabelPresets, addWebpackPlugin
+} = require('customize-cra');
+const TerserPlugin = require('terser-webpack-plugin');
 // module.exports = override(
 //   ...addBabelPlugins(
 //     "@babel/plugin-proposal-private-property-in-object"
@@ -21,19 +23,40 @@ const addHandleBarsLoader = config => {
   // add handlebars-loader so that handlebars templates in
   // webpack-dev-server's served html files are parsed
   // (specifically the meta tags)
-  config.module.rules.push({test: /\.js$/, loader: require.resolve('@open-wc/webpack-import-meta-loader')});
-  console.log(config.resolve.plugins)
+  config.module.rules.push({ test: /\.js$/, loader: require.resolve('@open-wc/webpack-import-meta-loader') });
+  console.log(config.resolve.plugins);
   config.resolve.plugins = config.resolve.plugins.filter((plugin) => !(plugin instanceof ModuleScopePlugin));
-  return config
-}
+  return config;
+};
 module.exports = override(
+  disableEsLint(),
   addHandleBarsLoader,
-  ...addBabelPresets("@babel/preset-env"),
-  ...addBabelPlugins("@babel/plugin-proposal-private-methods",
-    "@babel/plugin-proposal-class-properties", "@babel/plugin-proposal-private-property-in-object"),
-  ...addExternalBabelPlugins("@babel/plugin-proposal-private-methods",
-  "@babel/plugin-proposal-class-properties", "@babel/plugin-proposal-private-property-in-object" )
-)
+  addWebpackPlugin(new TerserPlugin({
+    sourceMap:true,
+      terserOptions: {
+        mangle: {
+          reserved: [
+            'Buffer',
+            'BigInteger',
+            'Point',
+            'ECPubKey',
+            'ECKey',
+            'sha512_asm',
+            'asm',
+            'ECPair',
+            'HDNode'
+          ]
+
+        }
+      }
+    }
+  )),
+  ...addBabelPresets('@babel/env'),
+  ...addBabelPlugins('@babel/plugin-proposal-private-methods', '@babel/plugin-transform-shorthand-properties',
+    '@babel/plugin-proposal-class-properties', '@babel/plugin-proposal-private-property-in-object'),
+  ...addExternalBabelPlugins('@babel/plugin-proposal-private-methods', '@babel/plugin-transform-shorthand-properties',
+    '@babel/plugin-proposal-class-properties', '@babel/plugin-proposal-private-property-in-object')
+);
 // module.exports = function override(config, env) {
 
 //

@@ -148,7 +148,7 @@ export class bitcoincashService implements IChainService {
   }
 
   async getTransactionsHistoryByAddress(address: string, pageNumber?:number, pageSize?:number): Promise<ITransactionsData> {
-    address = 'qpasvklrlksww840y6tsfdldj9r2867gpuwtrlpxhn';
+    // address = 'qpasvklrlksww840y6tsfdldj9r2867gpuwtrlpxhn';
     const { data: bchToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/BCH`, {
       headers: {
         'auth-client-key': backendApiKey,

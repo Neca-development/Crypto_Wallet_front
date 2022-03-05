@@ -8,10 +8,10 @@ const Paginator = ({selectPage, len, pageSize}) => {
         tx.push(i);
     }
 
-    return <div classNames={'paginator'}>
+    return <div className={'paginator'}>
 
-        {tx.map((val)=>{
-           return <ButtonPaginator selectPage={selectPage} pageNumber={val+1}/>
+        {tx.map((val, index)=>{
+           return <ButtonPaginator key={val+index} selectPage={selectPage} pageNumber={val+1}/>
         })}
 
 
