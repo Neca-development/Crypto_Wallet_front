@@ -1,9 +1,9 @@
 import { ChainIds, ErrorsTypes } from './models/enums';
 import { IChainService } from './models/chainService';
 import { IBalanceInfo, IWalletData } from './models/wallet';
-import {IFee, ISendingTransactionData, ITransaction, ITransactionsData} from './models/transaction';
+import { IFee, ISendingTransactionData, ITransaction, ITransactionsData } from './models/transaction';
 
-import { tronService } from './services/Tron.service';
+// import { tronService } from './services/Tron.service';
 import { ethereumService } from './services/Ethereum.service';
 import { binanceService } from './services/Binance.service';
 import { bitcoinService } from './services/Bitcoin.service';
@@ -17,10 +17,10 @@ import { dogecoinService } from './services/Dogecoin.service';
 import { dashService } from './services/Dash.service';
 import { zcashService } from './services/Zcash.service';
 import { rippleService } from './services/Ripple.service';
-import { polkadotService } from './services/Polkadot.service';
+// import { polkadotService } from './services/Polkadot.service';
 
 import { harmonyService } from './services/Harmony.service';
-import {avalancheService} from "./services/Avalanche.service";
+import { avalancheService } from './services/Avalanche.service';
 
 export class Wallet {
   private service: IChainService;
@@ -122,7 +122,7 @@ export class Wallet {
    * @param {number} pageSize
    * @returns {Promise<ITransactionsData>}
    */
-  async getTransactionsHistoryByAddress(pageNumber?:number, pageSize?:number): Promise<ITransactionsData> {
+  async getTransactionsHistoryByAddress(pageNumber?: number, pageSize?: number): Promise<ITransactionsData> {
     try {
       return await this.service.getTransactionsHistoryByAddress(this.data.publicKey, pageNumber, pageSize);
     } catch (error: any) {
@@ -234,9 +234,9 @@ export class Wallet {
         case ChainIds['Ethereum']:
           this.service = new ethereumService();
           break;
-        case ChainIds['Tron']:
-          this.service = new tronService();
-          break;
+        // case ChainIds['Tron']:
+        //   this.service = new tronService();
+        //   break;
         case ChainIds['Binance']:
           this.service = new binanceService();
           break;
@@ -270,13 +270,13 @@ export class Wallet {
         case ChainIds['Ripple']:
           this.service = new rippleService();
           break;
-        case ChainIds['Polkadot']:
-          this.service = new polkadotService();
+          // case ChainIds['Polkadot']:
+          //   this.service = new polkadotService();
           break;
         case ChainIds['Harmony']:
           this.service = new harmonyService();
           break;
-          case ChainIds['Avalanche']:
+        case ChainIds['Avalanche']:
           this.service = new avalancheService();
           break;
         default:

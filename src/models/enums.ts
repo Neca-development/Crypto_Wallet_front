@@ -1,5 +1,5 @@
 export enum ChainIds {
-  'Tron',
+  // 'Tron',
   'Ethereum',
   'EthereumClassic',
   'Binance',
@@ -12,7 +12,7 @@ export enum ChainIds {
   'Dash',
   'Ripple',
   'Zcash',
-  'Polkadot',
+  // 'Polkadot',
   'Harmony',
   'Avalanche',
   // 'Neo',

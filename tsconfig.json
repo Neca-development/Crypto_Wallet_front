@@ -1,5 +1,8 @@
 {
   "compilerOptions": {
+    "paths": {
+      "crypto": ["./node_modules/crypto-js"]
+    },
     /* Visit https://aka.ms/tsconfig.json to read more about this file */
 
     /* Projects */

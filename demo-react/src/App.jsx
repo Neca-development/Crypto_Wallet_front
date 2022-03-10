@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Sidebar from './components/Sidebar';
-import { WalletFactory } from '../../lib/main';
+import { WalletFactory } from '../../build/index_bundle.js';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import Wallet from './components/Wallet';
