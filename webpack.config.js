@@ -13,20 +13,19 @@ module.exports = {
         rules: [
             {
                 test: /\.(js)$/,
-                exclude: /node_modules/,
                 use: "babel-loader",
             },
         ],
     },
     resolve: {
         fallback: {
-            assert: require.resolve('assert'),
-            crypto: require.resolve('crypto-browserify'),
-            http: require.resolve('stream-http'),
-            https: require.resolve('https-browserify'),
-            os: require.resolve('os-browserify/browser'),
-            stream: require.resolve('stream-browserify'),
+            assert: false,
+            crypto: false,
+            http: false,
+            https: false,
+            os: false,
+            stream: false,
         },
     },
-    mode: "development",
+    mode: "production",
 }
