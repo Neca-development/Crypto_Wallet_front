@@ -6,11 +6,11 @@ export declare enum ChainIds {
     'Polygon' = 4,
     'Bitcoin' = 5,
     'Litecoin' = 6,
-    'Bitcoincash' = 7,
-    'Dogecoin' = 8,
-    'Dash' = 9,
-    'Ripple' = 10,
-    'Zcash' = 11,
+    'Dogecoin' = 7,
+    'Dash' = 8,
+    'Ripple' = 9,
+    'Zcash' = 10,
+    'Polkadot' = 11,
     'Harmony' = 12,
     'Avalanche' = 13
 }

@@ -17,7 +17,7 @@ import { dogecoinService } from './services/Dogecoin.service';
 import { dashService } from './services/Dash.service';
 import { zcashService } from './services/Zcash.service';
 import { rippleService } from './services/Ripple.service';
-// import { polkadotService } from './services/Polkadot.service';
+import { polkadotService } from './services/Polkadot.service';
 
 import { harmonyService } from './services/Harmony.service';
 import { avalancheService } from './services/Avalanche.service';
@@ -270,16 +270,14 @@ export class Wallet {
         case ChainIds['Ripple']:
           this.service = new rippleService();
           break;
-          // case ChainIds['Polkadot']:
-          //   this.service = new polkadotService();
+        case ChainIds['Polkadot']:
+          this.service = new polkadotService();
           break;
         case ChainIds['Harmony']:
           this.service = new harmonyService();
           break;
         case ChainIds['Avalanche']:
           this.service = new avalancheService();
-          break;
-        default:
           break;
       }
     } catch (error: any) {

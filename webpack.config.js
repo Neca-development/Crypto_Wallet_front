@@ -5,27 +5,40 @@ module.exports = {
     entry: path.resolve(__dirname, "lib/main.js"),
     output: {
         path: path.resolve(__dirname, "build"),
-        filename: "index_bundle.js",
-        library: "$",
+        library: {
+            type: "umd",
+            name: "sdk",
+        },
+        filename: "sdk.js",
         libraryTarget: "umd",
-    },
-    module: {
-        rules: [
-            {
-                test: /\.(js)$/,
-                use: "babel-loader",
-            },
-        ],
     },
     resolve: {
         fallback: {
-            assert: false,
-            crypto: false,
-            http: false,
-            https: false,
-            os: false,
-            stream: false,
+            "stream": require.resolve("stream-browserify"),
+            "http": require.resolve("stream-http"),
+            "crypto": require.resolve("crypto-browserify"),
+            "https": require.resolve("https-browserify"),
+            "os": require.resolve("os-browserify/browser")
         },
     },
     mode: "production",
 }
+
+
+
+// module.exports = {
+
+//     entry: path.resolve(__dirname, "test/index.js"),
+//     output: {
+//         library: {
+//             type: "umd",
+//             name: "sdk",
+//         },
+//         filename: "sdk.js",
+//     },
+//     resolve: {
+//         fallback: {
+//             "stream": require.resolve("stream-browserify")
+//         },
+//     },
+// };

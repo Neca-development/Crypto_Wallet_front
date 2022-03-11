@@ -7,14 +7,15 @@ export enum ChainIds {
   'Polygon',
   'Bitcoin',
   'Litecoin',
-  'Bitcoincash',
+  // 'Bitcoincash',
   'Dogecoin',
   'Dash',
   'Ripple',
   'Zcash',
-  // 'Polkadot',
+  'Polkadot',
   'Harmony',
   'Avalanche',
+  // --- (Deprecated) ---
   // 'Neo',
 }
 
