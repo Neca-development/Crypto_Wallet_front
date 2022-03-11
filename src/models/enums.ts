@@ -1,5 +1,5 @@
 export enum ChainIds {
-  // 'Tron',
+  'Tron',
   'Ethereum',
   'EthereumClassic',
   'Binance',

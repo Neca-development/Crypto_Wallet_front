@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import Sidebar from './components/Sidebar';
-import { WalletFactory } from '../../build/sdk.js';
+import { WalletFactory } from '../../bundle/cw-lib.bundle.js';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import Wallet from './components/Wallet';
 import { setWallets } from './store/walletSlice';
-import { helloWorld } from './../../dist/sdk.js';
 
 function App() {
   const dispatch = useDispatch();

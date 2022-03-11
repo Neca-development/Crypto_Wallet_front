@@ -1,9 +1,9 @@
 import { ChainIds, ErrorsTypes } from './models/enums';
 import { IChainService } from './models/chainService';
 import { IBalanceInfo, IWalletData } from './models/wallet';
-import { IFee, ISendingTransactionData, ITransaction, ITransactionsData } from './models/transaction';
+import { IFee, ISendingTransactionData, ITransactionsData } from './models/transaction';
 
-// import { tronService } from './services/Tron.service';
+import { tronService } from './services/Tron.service';
 import { ethereumService } from './services/Ethereum.service';
 import { binanceService } from './services/Binance.service';
 import { bitcoinService } from './services/Bitcoin.service';
@@ -107,6 +107,8 @@ export class Wallet {
 
       return { tokens, totalBalanceInUSD };
     } catch (error: any) {
+      console.error(error);
+
       throw new CustomError(
         `An error occurred while receiving wallet tokens info from ${this.chainId} network`,
         3,
@@ -234,9 +236,9 @@ export class Wallet {
         case ChainIds['Ethereum']:
           this.service = new ethereumService();
           break;
-        // case ChainIds['Tron']:
-        //   this.service = new tronService();
-        //   break;
+        case ChainIds['Tron']:
+          this.service = new tronService();
+          break;
         case ChainIds['Binance']:
           this.service = new binanceService();
           break;

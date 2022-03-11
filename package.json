@@ -9,7 +9,7 @@
     "compile": "npx tsc -p tsconfig.json",
     "docs": "npx typedoc src/main.ts --plugin typedoc-plugin-missing-exports --excludeExternals true --out docs/res",
     "browserify": "npm run compile && browserify ./lib/main.js > ./bundle.js -t babelify",
-    "webpack": "npm run compile && webpack"
+    "build-bundle": "npm run compile && webpack"
   },
   "keywords": [],
   "author": "",
@@ -52,7 +52,6 @@
     "tronweb": "^4.0.0",
     "typedoc": "^0.22.11",
     "typedoc-plugin-missing-exports": "^0.22.4",
-    "uglify-es-webpack-plugin": "^0.10.0",
     "uniq": "^1.0.1",
     "web3": "^1.6.1",
     "xrpl": "^2.1.1"
@@ -85,6 +84,7 @@
     "stream-http": "^3.2.0",
     "terser-webpack-plugin": "^5.2.5",
     "typescript": "^4.5.2",
+    "uglify-es-webpack-plugin": "^0.10.0",
     "vinyl-source-stream": "^2.0.0",
     "webpack": "^5.70.0",
     "webpack-cli": "^4.9.2"

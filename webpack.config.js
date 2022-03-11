@@ -1,15 +1,14 @@
 const path = require("path")
 
 module.exports = {
-
     entry: path.resolve(__dirname, "lib/main.js"),
     output: {
-        path: path.resolve(__dirname, "build"),
+        path: path.resolve(__dirname, "bundle"),
         library: {
             type: "umd",
-            name: "sdk",
+            name: "cw-lib",
         },
-        filename: "sdk.js",
+        filename: "cw-lib.bundle.js",
         libraryTarget: "umd",
     },
     resolve: {
@@ -22,6 +21,7 @@ module.exports = {
         },
     },
     mode: "production",
+
 }
 
 

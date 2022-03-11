@@ -1,18 +1,19 @@
 export declare enum ChainIds {
-    'Ethereum' = 0,
-    'EthereumClassic' = 1,
-    'Binance' = 2,
-    'Solana' = 3,
-    'Polygon' = 4,
-    'Bitcoin' = 5,
-    'Litecoin' = 6,
-    'Dogecoin' = 7,
-    'Dash' = 8,
-    'Ripple' = 9,
-    'Zcash' = 10,
-    'Polkadot' = 11,
-    'Harmony' = 12,
-    'Avalanche' = 13
+    'Tron' = 0,
+    'Ethereum' = 1,
+    'EthereumClassic' = 2,
+    'Binance' = 3,
+    'Solana' = 4,
+    'Polygon' = 5,
+    'Bitcoin' = 6,
+    'Litecoin' = 7,
+    'Dogecoin' = 8,
+    'Dash' = 9,
+    'Ripple' = 10,
+    'Zcash' = 11,
+    'Polkadot' = 12,
+    'Harmony' = 13,
+    'Avalanche' = 14
 }
 export declare enum ErrorsTypes {
     'Invalid data' = 0,
