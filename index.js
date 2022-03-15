@@ -1,3 +1,3 @@
-import { WalletFactory } from './build/index_bundle';
+import { WalletFactory } from './bundle/cw-lib.bundle';
 
-console.log(WalletFactory);
+console.log(new WalletFactory().createWallets());

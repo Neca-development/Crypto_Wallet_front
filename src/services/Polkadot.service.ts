@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import {IFee, ISendingTransactionData, ITransactionsData} from '../models/transaction';
+import { IFee, ISendingTransactionData, ITransactionsData } from '../models/transaction';
 import { IWalletKeys } from '../models/wallet';
 import { IChainService } from '../models/chainService';
 import { IResponse } from '../models/response';
@@ -126,7 +126,7 @@ export class polkadotService implements IChainService {
    * @param {ISendingTransactionData} data:ISendingTransactionData
    * @returns {any}
    */
-  async getTransactionsHistoryByAddress(address: string, pageNumber?:number, pageSize?:number): Promise<ITransactionsData> {
+  async getTransactionsHistoryByAddress(address: string, pageNumber?: number, pageSize?: number): Promise<ITransactionsData> {
     const { data: ethToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/DOT`, {
       headers: {
         'auth-client-key': backendApiKey,
@@ -175,13 +175,13 @@ export class polkadotService implements IChainService {
         return 0;
       }
     });
-    const length = transactions.length
-    if(pageNumber || pageNumber===0) {
+    const length = transactions.length;
+    if (pageNumber || pageNumber === 0) {
       transactions = transactions.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
-
     }
     return {
-      transactions, length
+      transactions,
+      length,
     };
   }
 
@@ -317,7 +317,7 @@ export class polkadotService implements IChainService {
       tokenName: symbol,
       timestamp: new Date(txData.block_timestamp).getTime(),
       fee: txData.fee,
-      currencyFee:'DOT',
+      currencyFee: 'DOT',
       status: !txData.failed,
       tokenLogo,
     };

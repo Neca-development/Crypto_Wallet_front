@@ -153,7 +153,13 @@ export class tronService implements IChainService {
   }
 
   async sendMainToken(data: ISendingTransactionData) {
+    console.log('====================================');
+    console.log(data);
+    console.log('====================================');
     this.Tron.setPrivateKey(data.privateKey);
+    console.log(this.Tron.toSun(data.amount));
+
+    console.log(this.Tron);
 
     const address = this.Tron.address.toHex(data.receiverAddress);
     const result = await this.Tron.trx.sendTransaction(address, this.Tron.toSun(data.amount), data.privateKey);
