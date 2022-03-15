@@ -275,9 +275,9 @@ export class Wallet {
         // case ChainIds['Polkadot']:
         //   this.service = new polkadotService();
         //   break;
-        // case ChainIds['Harmony']:
-        //   this.service = new harmonyService();
-        //   break;
+        case ChainIds['Harmony']:
+          this.service = new harmonyService();
+          break;
         case ChainIds['Avalanche']:
           this.service = new avalancheService();
           break;

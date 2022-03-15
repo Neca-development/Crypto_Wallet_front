@@ -13,7 +13,7 @@ export enum ChainIds {
   'Ripple',
   'Zcash',
   // 'Polkadot',
-  // 'Harmony',
+  'Harmony',
   'Avalanche',
   // --- (Deprecated) ---
   // 'Neo',
