@@ -7,7 +7,7 @@
 <script>
 import SidebarVue from './components/Sidebar.vue';
 import { mapActions } from 'vuex';
-import { WalletFactory } from '../../lib/main';
+import { WalletFactory } from '../../build/sdk.js';
 
 export default {
   components: {

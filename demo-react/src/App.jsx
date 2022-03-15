@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Sidebar from './components/Sidebar';
-import { WalletFactory } from '../../lib/main';
+import { WalletFactory } from '../../bundle/cw-lib.bundle.js';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import Wallet from './components/Wallet';
@@ -23,9 +23,6 @@ function App() {
     //   'aafdd04dd28d1fed7ca6a2ea5ede0453d94a21336a5bee8998ac1255e6e60941',
     //   'Tron'
     // );
-    console.log('====================================');
-    console.log(data);
-    console.log('====================================');
     const allTokens = await wf.getAllTokens();
     console.log(allTokens);
     setLocalTokens(allTokens);

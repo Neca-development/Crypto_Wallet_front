@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import {IFee, ISendingTransactionData, ITransactionsData} from '../models/transaction';
+import { IFee, ISendingTransactionData, ITransactionsData } from '../models/transaction';
 import { IWalletKeys } from '../models/wallet';
 import { IChainService } from '../models/chainService';
 import { ITransaction } from '../models/transaction';
@@ -24,9 +24,20 @@ export class bitcoinService implements IChainService {
   constructor() {}
 
   async generateKeyPair(mnemonic: string): Promise<IWalletKeys> {
+    console.log(mnemonic);
+
     const seed = mnemonicToSeedSync(mnemonic);
+    console.log(seed);
     const root = bitcoin.bip32.fromSeed(seed, this.network).derivePath("m/44'/1'/0'/0/0");
+    console.log(
+      '%cMyProject%cline:31%croot',
+      'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
+      'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
+      'color:#fff;background:rgb(89, 61, 67);padding:3px;border-radius:2px',
+      root
+    );
     const keyPair = bitcoin.payments.p2pkh({ pubkey: root.publicKey, network: this.network });
+    console.log(keyPair);
 
     const privateKey = root.toWIF();
     const publicKey = keyPair.address;
@@ -157,7 +168,7 @@ export class bitcoinService implements IChainService {
     };
   }
 
-  async getTransactionsHistoryByAddress(address: string, pageNumber?:number, pageSize?:number): Promise<ITransactionsData> {
+  async getTransactionsHistoryByAddress(address: string, pageNumber?: number, pageSize?: number): Promise<ITransactionsData> {
     address = '18LT7D1wT4Qi28wrdK1DvKFgTy9gtrK9TK';
     const { data: btcToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/BTC`, {
       headers: {
@@ -238,7 +249,7 @@ export class bitcoinService implements IChainService {
     );
 
     if (transactions.length === 0) {
-      return {transactions:[], length:0};
+      return { transactions: [], length: 0 };
     }
 
     transactions.sort((a, b) => {
@@ -250,16 +261,17 @@ export class bitcoinService implements IChainService {
         return 0;
       }
     });
-    const length = transactions.length
-    if(pageNumber || pageNumber===0) {
-     transactions = transactions.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
-
+    const length = transactions.length;
+    if (pageNumber || pageNumber === 0) {
+      transactions = transactions.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
     }
     console.log({
-        transactions, length
-  })
+      transactions,
+      length,
+    });
     return {
-      transactions, length
+      transactions,
+      length,
     };
   }
 

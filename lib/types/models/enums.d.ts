@@ -7,14 +7,11 @@ export declare enum ChainIds {
     'Polygon' = 5,
     'Bitcoin' = 6,
     'Litecoin' = 7,
-    'Bitcoincash' = 8,
-    'Dogecoin' = 9,
-    'Dash' = 10,
-    'Ripple' = 11,
-    'Zcash' = 12,
-    'Polkadot' = 13,
-    'Harmony' = 14,
-    'Avalanche' = 15
+    'Dogecoin' = 8,
+    'Dash' = 9,
+    'Ripple' = 10,
+    'Zcash' = 11,
+    'Avalanche' = 12
 }
 export declare enum ErrorsTypes {
     'Invalid data' = 0,

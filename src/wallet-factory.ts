@@ -3,6 +3,8 @@ import { Wallet } from './wallet';
 import { ChainIds, ErrorsTypes } from './models/enums';
 import { ICreateWalletsData } from './models/wallet';
 import { CustomError } from './errors';
+require('buffer');
+import { Buffer } from 'buffer';
 
 import * as bip39 from 'bip39';
 export class WalletFactory {
@@ -15,7 +17,11 @@ export class WalletFactory {
    * @returns {Promise<Wallet[]>}
    */
   async createWallets(mnemonic?: string, chainId?: ChainIds): Promise<ICreateWalletsData> {
-    console.log({ bip39 });
+    // @ts-ignore
+    window.Buffer = Buffer;
+    console.log(Buffer);
+    // @ts-ignore
+    console.log(window.Buffer);
 
     if (mnemonic !== undefined && mnemonic !== null && bip39.validateMnemonic(mnemonic) === false) {
       throw new CustomError('Invalid seed phrase was provided', 0, ErrorsTypes['Invalid data']);
