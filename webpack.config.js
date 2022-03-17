@@ -7,7 +7,7 @@ module.exports = {
         path: path.resolve(__dirname, "bundle"),
         library: {
             type: "umd",
-            name: "cw-lib",
+            name: "cwlib",
         },
         filename: "cw-lib.bundle.js",
         libraryTarget: "umd",

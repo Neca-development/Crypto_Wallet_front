@@ -7,10 +7,11 @@
     <title>Document</title>
   </head>
   <body>
+    <srcipt src="bundle/cw-lib.bundle.js" type="module"></srcipt>
     <script type="module">
-      import { WalletFactory } from './bundle/cw-lib.bundle';
+      console.log(window);
       (async () => {
-        console.log(await new WalletFactory().createWallets());
+        console.log(await new window.WalletFactory().createWallets());
       })();
     </script>
   </body>

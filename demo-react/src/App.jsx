@@ -13,6 +13,7 @@ function App() {
 
   const loadWallets = async () => {
     const wf = new WalletFactory();
+    console.log(window);
     //@ts-ignore
     const data = await wf.createWallets('light afraid crawl solve chicken receive sound prize figure turn punch angry');
     // const data1 = await wf.createWalletByPrivateKey(
