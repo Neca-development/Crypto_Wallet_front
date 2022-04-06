@@ -117,7 +117,7 @@ export class harmonyService implements IChainService {
    * @param {ISendingTransactionData} data:ISendingTransactionData
    * @returns {any}
    */
-  async getTransactionsHistoryByAddress(address: string, pageNumber?:number, pageSize?:number): Promise<ITransactionsData> {
+  async getTransactionsHistoryByAddress(address: string, pageNumber?:number, pageSize?:number, tokenType?:string): Promise<ITransactionsData> {
     // const { data: oneToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/ONE`, {
     //   headers: {
     //     'auth-client-key': backendApiKey,
@@ -189,6 +189,17 @@ export class harmonyService implements IChainService {
         return 0;
       }
     });
+    if(tokenType!='all'){
+      if(tokenType=='native'){
+        transactions = transactions.filter((tx)=>{
+          return tx.tokenName == "ONE"
+        })
+      }else{
+        transactions = transactions.filter((tx)=>{
+          return tx.tokenName == tokenType.toUpperCase()
+        })
+      }
+    }
     const length = transactions.length
     if(pageNumber || pageNumber===0) {
       transactions = transactions.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);

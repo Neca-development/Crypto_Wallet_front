@@ -6,7 +6,7 @@ export interface IChainService {
   generateKeyPair(mnemonic: string): any;
   generatePublicKey(privateKey: string): Promise<string>;
   getTokensByAddress(address: string): Promise<IToken[]>;
-  getTransactionsHistoryByAddress(address: string, pageNumber?:number, pageSize?:number): Promise<ITransactionsData>;
+  getTransactionsHistoryByAddress(address: string, pageNumber?:number, pageSize?:number, tokenType?: string): Promise<ITransactionsData>;
   getFeePriceOracle(
     from: string,
     to: string,

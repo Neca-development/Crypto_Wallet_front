@@ -13,7 +13,7 @@ export declare class ethereumService implements IChainService {
      * @param {ISendingTransactionData} data:ISendingTransactionData
      * @returns {any}
      */
-    getTransactionsHistoryByAddress(address: string, pageNumber?: number, pageSize?: number): Promise<ITransactionsData>;
+    getTransactionsHistoryByAddress(address: string, pageNumber?: number, pageSize?: number, tokenType?: string): Promise<ITransactionsData>;
     sendMainToken(data: ISendingTransactionData): Promise<string>;
     send20Token(data: ISendingTransactionData): Promise<string>;
     private getCustomTokenBalance;

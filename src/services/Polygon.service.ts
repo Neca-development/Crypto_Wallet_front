@@ -102,7 +102,7 @@ export class polygonService implements IChainService {
     };
   }
 
-  async getTransactionsHistoryByAddress(address: string, pageNumber?:number, pageSize?:number): Promise<ITransactionsData> {
+  async getTransactionsHistoryByAddress(address: string, pageNumber?:number, pageSize?:number, tokenType?:string): Promise<ITransactionsData> {
     const { data: maticToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/MATIC`, {
       headers: {
         'auth-client-key': backendApiKey,
@@ -148,7 +148,17 @@ export class polygonService implements IChainService {
         return 0;
       }
     });
-
+    if(tokenType!='all'){
+      if(tokenType=='native'){
+        transactions = transactions.filter((tx)=>{
+          return tx.tokenName == "MATIC"
+        })
+      }else{
+        transactions = transactions.filter((tx)=>{
+          return tx.tokenName == tokenType.toUpperCase()
+        })
+      }
+    }
     const length = transactions.length
     if(pageNumber || pageNumber===0) {
       transactions = transactions.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
