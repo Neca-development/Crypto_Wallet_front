@@ -1,11 +1,11 @@
 import React from 'react'
 
 
-const ButtonPaginator = ({selectPage, pageNumber}) => {
+const ButtonPaginator = ({selectPage, pageNumber, tokenType}) => {
 
 
     return <div>
-        <button onClick={()=>selectPage(pageNumber)}>{pageNumber}</button>
+        <button onClick={()=>selectPage(pageNumber, tokenType)}>{pageNumber}</button>
     </div>
 }
 export default ButtonPaginator

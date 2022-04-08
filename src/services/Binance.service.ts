@@ -99,7 +99,7 @@ export class binanceService implements IChainService {
     };
   }
 
-  async getTransactionsHistoryByAddress(address: string, pageNumber?:number, pageSize?:number): Promise<ITransactionsData> {
+  async getTransactionsHistoryByAddress(address: string, pageNumber?:number, pageSize?:number, tokenType?:string): Promise<ITransactionsData> {
     const { data: bnbToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/BNB`, {
       headers: {
         'auth-client-key': backendApiKey,
@@ -145,6 +145,17 @@ export class binanceService implements IChainService {
         return 0;
       }
     });
+    if(tokenType!='all'){
+      if(tokenType=='native'){
+        transactions = transactions.filter((tx)=>{
+          return tx.tokenName == "BNB"
+        })
+      }else{
+        transactions = transactions.filter((tx)=>{
+          return tx.tokenName == tokenType.toUpperCase()
+        })
+      }
+    }
     const length = transactions.length
     if(pageNumber || pageNumber===0) {
       transactions = transactions.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);

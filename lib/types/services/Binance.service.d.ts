@@ -9,7 +9,7 @@ export declare class binanceService implements IChainService {
     generatePublicKey(privateKey: string): Promise<string>;
     getTokensByAddress(address: string): Promise<IToken[]>;
     getFeePriceOracle(from: string, to: string, amount?: number, tokenType?: 'custom' | 'native'): Promise<IFee>;
-    getTransactionsHistoryByAddress(address: string, pageNumber?: number, pageSize?: number): Promise<ITransactionsData>;
+    getTransactionsHistoryByAddress(address: string, pageNumber?: number, pageSize?: number, tokenType?: string): Promise<ITransactionsData>;
     sendMainToken(data: ISendingTransactionData): Promise<string>;
     send20Token(data: ISendingTransactionData): Promise<string>;
     private getCustomTokenBalance;

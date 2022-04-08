@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../hooks/hooks';
 import { Typography } from '@mui/material';
@@ -24,6 +24,7 @@ const Wallet = () => {
   const handleCloseToken = () => setOpenToken(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
+  const [chosedToken, setChosedToken] = useState('all')
 
   const [isTrxSuccess, setIsTrxSuccess] = useState(false);
 
@@ -58,12 +59,12 @@ const Wallet = () => {
     setCurrentWallet(findedWallet);
   };
 
-  const getWalletData = async (pageNumber) => {
+  const getWalletData = async (pageNumber, tokenType) => {
     try {
       console.log('getstory');
       clearWallet();
       if (currentWallet) {
-        await getTransactionWalletHistory(pageNumber);
+        await getTransactionWalletHistory(pageNumber, tokenType);
         getTokensBywalletAdress();
       }
     } catch (error) {
@@ -71,12 +72,19 @@ const Wallet = () => {
     }
   };
 
-  const getTransactionWalletHistory = async (pageNumber) => {
+  const getTransactionWalletHistory = async (pageNumber, tokenType) => {
     //@ts-ignore
-    const transactionsHistory = await currentWallet.getTransactionsHistoryByAddress(pageNumber, 2);
+    const transactionsHistory = await currentWallet.getTransactionsHistoryByAddress(pageNumber, 2, tokenType);
 
-    setLocalTransactionHistory(transactionsHistory);
+    await setLocalTransactionHistory(transactionsHistory);
   };
+  useEffect(async ()=>{
+    console.log(localTransactionHistory)
+
+    await getTransactionWalletHistory(pageNumber, chosedToken)
+    console.log(localTransactionHistory)
+
+  },[pageNumber, chosedToken])
   const getTokensBywalletAdress = async () => {
     //@ts-ignore
     const tokensBalance = await currentWallet.getTokensByAddress();
@@ -160,7 +168,7 @@ const Wallet = () => {
   };
 
   useEffect(() => {
-    getWalletData(1);
+    getWalletData(1, chosedToken);
 
     setFee({ value: null, usd: null });
   }, [currentWallet]);
@@ -241,7 +249,14 @@ const Wallet = () => {
         <div>
           <Typography variant="h3">Transaction history</Typography>
           {localTransactionHistory.transactions?.length === 0 && <div>...Loading</div>}
-          {localTransactionHistory?.length !== 0 && <Paginator selectPage={getTransactionWalletHistory} len={localTransactionHistory?.length} pageSize={2} />}
+          {localTransactionHistory?.length !== 0 && <Paginator selectPage={getTransactionWalletHistory} len={localTransactionHistory?.length} pageSize={2} tokenType={chosedToken}/>}
+          {localTransactionHistory?.length !== 0 &&
+            <div>
+            <button onClick={()=>setChosedToken('all')}>All</button>
+              <button onClick={()=>setChosedToken('native')}>Native</button>
+            <button onClick={()=>setChosedToken('usdt')}>USDT</button>
+              <button onClick={()=>setChosedToken('love')}>LOVE</button>
+            </div>}
           {localTransactionHistory.transactions?.length !== 0 && localTransactionHistory.transactions?.map((storyPoint, index = 0) => {
             return index > localTransactionHistory.transactions?.length - 10 ? (
               <div key={`${index}_${storyPoint?.txId}`}>

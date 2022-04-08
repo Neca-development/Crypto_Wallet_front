@@ -97,7 +97,7 @@ export class tronService implements IChainService {
     };
   }
 
-  async getTransactionsHistoryByAddress(address: string, pageNumber?: number, pageSize?: number): Promise<ITransactionsData> {
+  async getTransactionsHistoryByAddress(address: string, pageNumber?: number, pageSize?: number, tokenType?: string): Promise<ITransactionsData> {
     const { data: trxToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/TRX`, {
       headers: {
         'auth-client-key': backendApiKey,
@@ -141,6 +141,18 @@ export class tronService implements IChainService {
         return 0;
       }
     });
+    if(tokenType!='all'){
+      if(tokenType=='native'){
+        transactions = transactions.filter((tx)=>{
+         return tx.tokenName == "TRX"
+        })
+      }else{
+    transactions = transactions.filter((tx)=>{
+        return tx.tokenName == tokenType.toUpperCase()
+      })
+      }
+    }
+
     const length = transactions.length;
     if (pageNumber || pageNumber === 0) {
       transactions = transactions.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);

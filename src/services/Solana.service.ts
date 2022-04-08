@@ -133,7 +133,7 @@ export class solanaService implements IChainService {
     return signature;
   }
 
-  async getTransactionsHistoryByAddress(address: any, pageNumber?:number, pageSize?:number): Promise<ITransactionsData> {
+  async getTransactionsHistoryByAddress(address: any, pageNumber?:number, pageSize?:number, tokenType?:string): Promise<ITransactionsData> {
     const { data: solToUSD } = await axios.get<IResponse<ICryptoCurrency>>(`${backendApi}coins/SOL`, {
       headers: {
         'auth-client-key': backendApiKey,
@@ -177,6 +177,17 @@ export class solanaService implements IChainService {
         return 0;
       }
     });
+    if(tokenType!='all'){
+      if(tokenType=='native'){
+        transactions = transactions.filter((tx)=>{
+          return tx.tokenName == "SOL"
+        })
+      }else{
+        transactions = transactions.filter((tx)=>{
+          return tx.tokenName == tokenType.toUpperCase()
+        })
+      }
+    }
     const length = transactions.length
     if(pageNumber || pageNumber===0) {
       transactions = transactions.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
