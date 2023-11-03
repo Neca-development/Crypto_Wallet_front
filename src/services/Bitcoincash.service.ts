@@ -354,6 +354,8 @@ export class bitcoincashService implements IChainService {
     throw new CustomError('Network doesnt support this method', 14, ErrorsTypes['Unknown error']);
   }
 
+  
+
   // -------------------------------------------------
   // ********** PRIVATE METHODS SECTION **************
   // -------------------------------------------------
