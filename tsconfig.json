@@ -102,5 +102,15 @@
     "skipLibCheck": true /* Skip type checking all .d.ts files. */,
     "outDir": "./lib"
   },
-  "include": ["./src"]
+  "include": ["./src"],
+  "exclude": [
+    "node_modules",
+    "./src/services/Bitcoin.service.ts",
+    "./src/services/Bitcoincash.service.ts",
+    "./src/services/Litecoin.service.ts",
+    "./src/services/Dogecoin.service.ts",
+    "./src/services/Dash.service.ts",
+    "./src/services/Zcash.service.ts",
+    "./src/services/Tron.service.ts",
+  ]
 }

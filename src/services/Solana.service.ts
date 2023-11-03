@@ -2,7 +2,7 @@ import { IChainService, ISendingTransactionData, IToken, ITransaction } from '..
 import {IFee, ITransactionsData} from '../models/transaction';
 
 import * as solanaWeb3 from '@solana/web3.js';
-import { Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
+// import { Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { Keypair, LAMPORTS_PER_SOL, Connection, clusterApiUrl, PublicKey } from '@solana/web3.js';
 import * as bip39 from 'bip39';
 import * as ed25519 from 'ed25519-hd-key';
@@ -109,28 +109,29 @@ export class solanaService implements IChainService {
   }
 
   async send20Token(data: ISendingTransactionData): Promise<string> {
-    const mintToken = new Token(this.connection, new PublicKey(data.cotractAddress), TOKEN_PROGRAM_ID, this.address);
+    // const mintToken = new Token(this.connection, new PublicKey(data.cotractAddress), TOKEN_PROGRAM_ID, this.address);
 
-    const fromTokenAccount = await mintToken.getOrCreateAssociatedAccountInfo(this.address.publicKey);
-    const receiverAddress = new PublicKey(data.receiverAddress);
-    const toTokenAccount = await mintToken.getOrCreateAssociatedAccountInfo(receiverAddress);
+    // const fromTokenAccount = await mintToken.getOrCreateAssociatedAccountInfo(this.address.publicKey);
+    // const receiverAddress = new PublicKey(data.receiverAddress);
+    // const toTokenAccount = await mintToken.getOrCreateAssociatedAccountInfo(receiverAddress);
 
-    const transaction = new solanaWeb3.Transaction().add(
-      Token.createTransferInstruction(
-        TOKEN_PROGRAM_ID,
-        fromTokenAccount.address,
-        toTokenAccount.address,
-        this.address.publicKey,
-        [],
-        data.amount * 100
-      )
-    );
+    // const transaction = new solanaWeb3.Transaction().add(
+    //   Token.createTransferInstruction(
+    //     TOKEN_PROGRAM_ID,
+    //     fromTokenAccount.address,
+    //     toTokenAccount.address,
+    //     this.address.publicKey,
+    //     [],
+    //     data.amount * 100
+    //   )
+    // );
 
-    const signature = await solanaWeb3.sendAndConfirmTransaction(this.connection, transaction, [this.address], {
-      commitment: 'confirmed',
-    });
+    // const signature = await solanaWeb3.sendAndConfirmTransaction(this.connection, transaction, [this.address], {
+    //   commitment: 'confirmed',
+    // });
 
-    return signature;
+    // return signature;
+    throw new Error('Method not implemented.');
   }
 
   async getTransactionsHistoryByAddress(address: any, pageNumber?:number, pageSize?:number, tokenType?:string): Promise<ITransactionsData> {

@@ -3,24 +3,25 @@ import { IChainService } from './models/chainService';
 import { IBalanceInfo, IWalletData } from './models/wallet';
 import { IFee, ISendingTransactionData, ITransactionsData } from './models/transaction';
 
-import { tronService } from './services/Tron.service';
 import { ethereumService } from './services/Ethereum.service';
 import { binanceService } from './services/Binance.service';
-import { bitcoinService } from './services/Bitcoin.service';
 import { CustomError } from './errors';
 import { solanaService } from './services/Solana.service';
 import { polygonService } from './services/Polygon.service';
-import { litecoinService } from './services/Litecoin.service';
 import { ethereumClassicService } from './services/EthereumClassic.service';
-import { bitcoincashService } from './services/Bitcoincash.service';
-import { dogecoinService } from './services/Dogecoin.service';
-import { dashService } from './services/Dash.service';
-import { zcashService } from './services/Zcash.service';
 import { rippleService } from './services/Ripple.service';
-import { polkadotService } from './services/Polkadot.service';
 
 import { harmonyService } from './services/Harmony.service';
 import { avalancheService } from './services/Avalanche.service';
+
+// import { tronService } from './services/Tron.service';
+// import { polkadotService } from './services/Polkadot.service';
+// import { dogecoinService } from './services/Dogecoin.service';
+// import { dashService } from './services/Dash.service';
+// import { zcashService } from './services/Zcash.service';
+// import { bitcoinService } from './services/Bitcoin.service';
+// import { bitcoincashService } from './services/Bitcoincash.service';
+// import { litecoinService } from './services/Litecoin.service';
 
 export class Wallet {
   private service: IChainService;
@@ -236,51 +237,52 @@ export class Wallet {
         case ChainIds['Ethereum']:
           this.service = new ethereumService();
           break;
-        case ChainIds['Tron']:
-          this.service = new tronService();
-          break;
         case ChainIds['Binance']:
           this.service = new binanceService();
           break;
         case ChainIds['Solana']:
           this.service = new solanaService();
           break;
-        case ChainIds['Bitcoin']:
-          this.service = new bitcoinService();
-          break;
-        case ChainIds['Polygon']:
-          this.service = new polygonService();
-          break;
-        case ChainIds['Litecoin']:
-          this.service = new litecoinService();
-          break;
-        case ChainIds['EthereumClassic']:
-          this.service = new ethereumClassicService();
-          break;
-        case ChainIds['Bitcoincash']:
-          this.service = new bitcoincashService();
-          break;
-        case ChainIds['Dogecoin']:
-          this.service = new dogecoinService();
-          break;
-        case ChainIds['Dash']:
-          this.service = new dashService();
-          break;
-        case ChainIds['Zcash']:
-          this.service = new zcashService();
-          break;
-        case ChainIds['Ripple']:
+            case ChainIds['Ripple']:
           this.service = new rippleService();
           break;
-        // case ChainIds['Polkadot']:
-        //   this.service = new polkadotService();
-        //   break;
         case ChainIds['Harmony']:
           this.service = new harmonyService();
           break;
         case ChainIds['Avalanche']:
           this.service = new avalancheService();
           break;
+        case ChainIds['Polygon']:
+          this.service = new polygonService();
+          break;
+        case ChainIds['EthereumClassic']:
+          this.service = new ethereumClassicService();
+          break;
+        // case ChainIds['Tron']:
+        //   this.service = new tronService();
+        //   break;
+        // case ChainIds['Bitcoin']:
+        //   this.service = new bitcoinService();
+        //   break;
+        // case ChainIds['Litecoin']:
+        //   this.service = new litecoinService();
+        //   break;
+        // case ChainIds['Bitcoincash']:
+        //   this.service = new bitcoincashService();
+        //   break;
+        // case ChainIds['Dogecoin']:
+        //   this.service = new dogecoinService();
+        //   break;
+        // case ChainIds['Dash']:
+        //   this.service = new dashService();
+        //   break;
+        // case ChainIds['Zcash']:
+        //   this.service = new zcashService();
+        //   break;
+        // case ChainIds['Polkadot']:
+        //   this.service = new polkadotService();
+        //   break;
+    
       }
     } catch (error: any) {
       throw new CustomError(
